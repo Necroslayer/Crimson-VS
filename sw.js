@@ -1,4 +1,4 @@
-const CACHE = "crimson-vs-v9";
+const CACHE = "crimson-vs-v10";
 const PRECACHE = [
   "./", "./index.html", "./app.js?v=2", "./imgs.js?v=2",
   "./manifest.json", "./icons/icon-192.png", "./icons/icon-512.png",

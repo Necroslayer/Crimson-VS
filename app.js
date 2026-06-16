@@ -1,6 +1,6 @@
  function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }const { useState, createContext, useContext, useEffect, useRef } = React;
 
-const CVS_VERSION = "v0.5.33";
+const CVS_VERSION = "v0.5.34";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
@@ -1838,6 +1838,22 @@ function GeneralCard({ card, selected, onSelect }) {
 function DeckBuilderScreen({ onBack }) {
   const t = useT();
 
+  // Orientation detection — portrait vs landscape
+  const [isLandscape, setIsLandscape] = useState(
+    typeof window !== "undefined" ? window.innerWidth > window.innerHeight : false
+  );
+  useEffect(() => {
+    const onResize = () => setIsLandscape(window.innerWidth > window.innerHeight);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+    };
+  }, []);
+  const gridCols = isLandscape ? "repeat(6,1fr)" : "repeat(4,1fr)";
+  const gridGap  = isLandscape ? 3 : 5;
+
   // Load decks instantly from localStorage — no delay, no external calls
   const [view, setView]             = useState("list");
   const [decks, setDecks]           = useState(() => {
@@ -2140,7 +2156,7 @@ function DeckBuilderScreen({ onBack }) {
           /* Card grid — scrollable */
           , React.createElement('div', { style: { flex:1, overflowY:"auto", padding:"0 10px 16px" },}
             , tab === "general" && (
-              React.createElement('div', { style: { display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:5 },}
+              React.createElement('div', { style: { display:"grid", gridTemplateColumns:gridCols, gap:gridGap },}
                 , filteredGens.map(card => (
                   React.createElement(GeneralCard, { key: card.id, card: card,
                     selected: _optionalChain([selGeneral, 'optionalAccess', _4 => _4.id]) === card.id,
@@ -2149,7 +2165,7 @@ function DeckBuilderScreen({ onBack }) {
               )
             )
             , tab === "units" && (
-              React.createElement('div', { style: { display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:5 },}
+              React.createElement('div', { style: { display:"grid", gridTemplateColumns:gridCols, gap:gridGap },}
                 , filteredUnits.map(card => {
                   const isSel = selUnits.some(u => u.id === card.id);
                   const curTotal = selUnits.reduce((s,u) => s+u.cost, 0);
@@ -2169,7 +2185,7 @@ function DeckBuilderScreen({ onBack }) {
 
         /* ─── RIGHT PANEL: deck pool ─── */
         , React.createElement('div', { style: {
-          width:"22vw", maxWidth:110, minWidth:72, flexShrink:0,
+          width: isLandscape ? "18vw" : "22vw", maxWidth: isLandscape ? 90 : 110, minWidth:60, flexShrink:0,
           display:"flex", flexDirection:"column",
           background:"rgba(2,4,38,0.88)",
           borderLeft:`1px solid ${C.border}`,
