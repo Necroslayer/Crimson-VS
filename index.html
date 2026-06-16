@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  <meta name="theme-color" content="#060318"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Crimson VS"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
+  <link rel="icon" type="image/png" href="icon-192.png"/>
+  <title>Crimson VS</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body,#root{width:100%;height:100%;min-height:100dvh;background:#060318;overflow-x:hidden;-webkit-tap-highlight-color:transparent;user-select:none;overscroll-behavior:none}
+    #root{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+    body{position:fixed;width:100%}
+    #splash{position:fixed;inset:0;background:#060318;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:9999;transition:opacity 0.5s}
+    #splash.fade{opacity:0;pointer-events:none}
+    .st{font-family:monospace;font-size:22px;font-weight:900;color:#f5a623;letter-spacing:.15em;text-shadow:0 0 20px rgba(245,166,35,.6)}
+    .ss{font-family:monospace;font-size:11px;color:rgba(0,245,255,.8);min-height:18px;text-align:center}
+    .bw{width:200px;height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+    .bf{height:100%;border-radius:3px;background:linear-gradient(90deg,#f5a623,#00f5ff);transition:width .3s;width:0%}
+    .sub{font-family:monospace;font-size:10px;color:rgba(255,255,255,.2);letter-spacing:.1em}
+    .errbx{background:rgba(255,40,60,.1);border:1px solid rgba(255,40,60,.4);border-radius:8px;padding:12px 16px;max-width:300px;text-align:center;display:none}
+    .errbx p{font-family:monospace;font-size:11px;color:#ff6677;margin-bottom:10px}
+    .errbx button{background:rgba(255,40,60,.15);border:1px solid rgba(255,40,60,.5);color:#ff4466;font-family:monospace;font-size:12px;padding:7px 16px;border-radius:6px;cursor:pointer}
+  </style>
+</head>
+<body>
+<div id="splash">
+  <div class="st">&#x26A1; CRIMSON VS &#x26A1;</div>
+  <div class="bw"><div class="bf" id="bar"></div></div>
+  <div class="ss" id="status">Loading...</div>
+  <div class="sub">.hack//G.U. &#x2014; ALTIMIT Mine OS</div>
+  <div class="errbx" id="errbx">
+    <p id="errmsg">Something went wrong.</p>
+    <button onclick="location.reload()">Retry</button>
+  </div>
+</div>
+<div id="root"></div>
+
+<script>
+(function(){
+  var ua=navigator.userAgent;
+  window.__PLATFORM__={
+    isAndroid:/Android/i.test(ua),
+    isIOS:/iPhone|iPad|iPod/i.test(ua),
+    isMobile:/Android|iPhone|iPad|iPod/i.test(ua),
+    isStandalone:window.matchMedia('(display-mode: standalone)').matches
+  };
+  if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('portrait').catch(function(){});
+})();
+
+var bar=document.getElementById('bar');
+var statusEl=document.getElementById('status');
+var errbx=document.getElementById('errbx');
+
+function setP(pct,msg){
+  bar.style.width=pct+'%';
+  if(msg)statusEl.textContent=msg;
+}
+function showErr(msg){
+  errbx.style.display='block';
+  document.getElementById('errmsg').textContent=msg;
+  statusEl.textContent='Failed.';
+}
+function loadScript(src,cb,errCb){
+  var s=document.createElement('script');
+  s.src=src;
+  s.onload=cb;
+  s.onerror=errCb||function(){showErr('Failed to load: '+src.split('/').pop());};
+  document.head.appendChild(s);
+}
+function hideSplash(){
+  var sp=document.getElementById('splash');
+  sp.classList.add('fade');
+  setTimeout(function(){if(sp&&sp.parentNode)sp.parentNode.removeChild(sp);},600);
+}
+
+// Step 1: React
+setP(10,'Loading React...');
+loadScript('https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js',function(){
+  // Step 2: ReactDOM
+  setP(25,'Loading ReactDOM...');
+  loadScript('https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js',function(){
+    // Step 3: Images
+    setP(45,'Loading images...');
+    loadScript('imgs.js',function(){
+      // Step 4: App (pre-compiled JS — no Babel needed!)
+      setP(70,'Loading game...');
+      loadScript('app.js',function(){
+        setP(100,'Starting...');
+        setTimeout(hideSplash, 300);
+      },function(){ showErr('Failed to load app.js'); });
+    },function(){ showErr('Failed to load imgs.js'); });
+  },function(){ showErr('Failed to load ReactDOM'); });
+},function(){ showErr('Failed to load React'); });
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  });
+}
+</script>
+</body>
+</html>
