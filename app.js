@@ -1,6 +1,6 @@
  function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }const { useState, createContext, useContext, useEffect, useRef } = React;
 
-const CVS_VERSION = "v0.5.34";
+const CVS_VERSION = "v0.5.38";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
@@ -1838,22 +1838,6 @@ function GeneralCard({ card, selected, onSelect }) {
 function DeckBuilderScreen({ onBack }) {
   const t = useT();
 
-  // Orientation detection — portrait vs landscape
-  const [isLandscape, setIsLandscape] = useState(
-    typeof window !== "undefined" ? window.innerWidth > window.innerHeight : false
-  );
-  useEffect(() => {
-    const onResize = () => setIsLandscape(window.innerWidth > window.innerHeight);
-    window.addEventListener("resize", onResize);
-    window.addEventListener("orientationchange", onResize);
-    return () => {
-      window.removeEventListener("resize", onResize);
-      window.removeEventListener("orientationchange", onResize);
-    };
-  }, []);
-  const gridCols = isLandscape ? "repeat(6,1fr)" : "repeat(4,1fr)";
-  const gridGap  = isLandscape ? 3 : 5;
-
   // Load decks instantly from localStorage — no delay, no external calls
   const [view, setView]             = useState("list");
   const [decks, setDecks]           = useState(() => {
@@ -2156,7 +2140,7 @@ function DeckBuilderScreen({ onBack }) {
           /* Card grid — scrollable */
           , React.createElement('div', { style: { flex:1, overflowY:"auto", padding:"0 10px 16px" },}
             , tab === "general" && (
-              React.createElement('div', { style: { display:"grid", gridTemplateColumns:gridCols, gap:gridGap },}
+              React.createElement('div', { style: { display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:5 },}
                 , filteredGens.map(card => (
                   React.createElement(GeneralCard, { key: card.id, card: card,
                     selected: _optionalChain([selGeneral, 'optionalAccess', _4 => _4.id]) === card.id,
@@ -2165,7 +2149,7 @@ function DeckBuilderScreen({ onBack }) {
               )
             )
             , tab === "units" && (
-              React.createElement('div', { style: { display:"grid", gridTemplateColumns:gridCols, gap:gridGap },}
+              React.createElement('div', { style: { display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:5 },}
                 , filteredUnits.map(card => {
                   const isSel = selUnits.some(u => u.id === card.id);
                   const curTotal = selUnits.reduce((s,u) => s+u.cost, 0);
@@ -2185,7 +2169,7 @@ function DeckBuilderScreen({ onBack }) {
 
         /* ─── RIGHT PANEL: deck pool ─── */
         , React.createElement('div', { style: {
-          width: isLandscape ? "18vw" : "22vw", maxWidth: isLandscape ? 90 : 110, minWidth:60, flexShrink:0,
+          width:"22vw", maxWidth:110, minWidth:72, flexShrink:0,
           display:"flex", flexDirection:"column",
           background:"rgba(2,4,38,0.88)",
           borderLeft:`1px solid ${C.border}`,
@@ -2374,6 +2358,8 @@ function CardInfoBox({ card, onClose, isGen, bState }) {
 
 
 function ArenaPlaceholder({ onBack, difficulty }) {
+  const { settings } = useSettings();
+  const isPT = settings.language === "pt";
   // ── PHASES ──
   // "select"  → pick saved deck
   // "reveal"  → show both generals + unit pools side by side
@@ -2498,7 +2484,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     else if(!pDefStance&&!aDefStance){
       if(trinityWinner==="player") log.push("YOU won the Trinity Duel — YOU go first");
       else if(trinityWinner==="ai") log.push("AI won the Trinity Duel — AI goes first");
-      else log.push("Trinity Duel — drawn multiple times, turn order randomized");
+      else log.push("Trinity Duel Draw — turn order randomized");
     }
     log.push("━━ BATTLE START ━━");
     log.push(`${firstTurn==="player"?"YOU":"AI"} go first`);
@@ -2847,7 +2833,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
               background:"rgba(255,40,60,0.08)", border:"1px solid rgba(255,40,60,0.35)",
               color:"#ff4466", fontFamily:"monospace", fontSize:10, fontWeight:700,
               flexShrink:0,
-            },}, "🏳 Surrender" )
+            },}, isPT?"🏳 Render-se":"🏳 Surrender")
           )
           , React.createElement('div', { style: {flex:1, display:"flex", gap:3, justifyContent:"center", alignItems:"center"},}
             , PHASE_STEPS.map((p,i) => {
@@ -3031,30 +3017,37 @@ function ArenaPlaceholder({ onBack, difficulty }) {
       // AI picks by difficulty
       let aiPick;
       if (difficulty === "easy") {
+        // Easy: random
         aiPick = TYPES[Math.floor(Math.random()*3)].key;
       } else if (difficulty === "hard") {
         // Hard: tries to counter player's pick
         const counter = TYPES.find(t => t.beats === playerPick);
         aiPick = counter ? counter.key : TYPES[Math.floor(Math.random()*3)].key;
       } else {
+        // Normal: random
         aiPick = TYPES[Math.floor(Math.random()*3)].key;
       }
       const result = trinityBeats(playerPick, aiPick);
-      if (result === "draw") {
-        // Show draw briefly then reset picks so buttons reappear
-        setTrinityChoice(playerPick);
-        setTrinityAiChoice(aiPick);
-        setTrinityWinner("draw");
-      } else {
-        setTrinityChoice(playerPick);
-        setTrinityAiChoice(aiPick);
-        setTrinityWinner(result);
-      }
+      setTrinityChoice(playerPick);
+      setTrinityAiChoice(aiPick);
+      setTrinityWinner(result);
     }
 
     const pType = TYPES.find(t => t.key === trinityChoice);
     const aType = TYPES.find(t => t.key === trinityAiChoice);
     const resolved = trinityChoice && trinityAiChoice;
+    // PT-BR strings for Trinity phase
+    const _trinHeader = isPT ? "Vencedor vai primeiro na Batalha dos Generais" : "Winner goes first in the General Battle";
+    const _trinDraw   = isPT ? "⚡ EMPATE!" : "⚡ DRAW!";
+    const _trinBothChose = isPT ? `Ambos escolheram ${_optionalChain([pType, 'optionalAccess', _7 => _7.key])} — jogue novamente!` : `Both chose ${_optionalChain([pType, 'optionalAccess', _8 => _8.key])} — play again to decide!`;
+    const _trinChooseAgain = isPT ? "Escolha novamente:" : "Choose again:";
+    const _trinChooseType  = isPT ? "Escolha seu tipo Trinity:" : "Choose your Trinity type:";
+    const _trinContinue    = isPT ? "Continuar -> Reveal" : "Continue -> Reveal";
+    const _trinYouFirst    = isPT ? "Você vai primeiro na Batalha dos Generais!" : "You go first in the General Battle!";
+    const _trinAIFirst     = isPT ? "A IA vai primeiro na Batalha dos Generais!" : "AI goes first in the General Battle!";
+    const _trinYouWin      = isPT ? "VOCÊ VENCE" : "YOU WIN";
+    const _trinAIWins      = isPT ? "IA VENCE" : "AI WINS";
+    const _trinDraw2       = isPT ? "EMPATE" : "DRAW";
 
     return (
       React.createElement('div', { style: {width:"100%",height:"100vh",display:"flex",flexDirection:"column",
@@ -3139,21 +3132,25 @@ function ArenaPlaceholder({ onBack, difficulty }) {
           )
 
           /* Result message */
-          , resolved && trinityWinner !== "draw" && (
+          , resolved && (
             React.createElement('div', { style: {textAlign:"center",padding:"10px 20px",borderRadius:10,
-              background:trinityWinner==="player"?"rgba(0,200,80,0.08)":"rgba(255,40,60,0.08)",
-              border:`1px solid ${trinityWinner==="player"?"rgba(68,238,136,0.3)":"rgba(255,40,60,0.3)"}`,
+              background:trinityWinner==="player"?"rgba(0,200,80,0.08)":trinityWinner==="ai"?"rgba(255,40,60,0.08)":"rgba(255,200,0,0.08)",
+              border:`1px solid ${trinityWinner==="player"?"rgba(68,238,136,0.3)":trinityWinner==="ai"?"rgba(255,40,60,0.3)":"rgba(255,200,0,0.3)"}`,
               maxWidth:320},}
               , React.createElement('div', { style: {fontSize:12,fontFamily:"monospace",fontWeight:700,
-                color:trinityWinner==="player"?"#44ee88":"#ff4466",
+                color:trinityWinner==="player"?"#44ee88":trinityWinner==="ai"?"#ff4466":"#ffcc00",
                 marginBottom:3},}
                 , trinityWinner==="player"
                   ? "You go first in the General Battle!"
-                  : "AI goes first in the General Battle!"
+                  : trinityWinner==="ai"
+                  ? "AI goes first in the General Battle!"
+                  : "Draw — turn order will be randomized!"
               )
               , pType && aType && (
                 React.createElement('div', { style: {fontSize:10,fontFamily:"monospace",color:C.textMuted},}
-                  , trinityWinner==="player"
+                  , trinityWinner==="draw"
+                    ? `Both chose ${pType.key}`
+                    : trinityWinner==="player"
                     ? `${pType.key} beats ${aType.key}`
                     : `${aType.key} beats ${pType.key}`
                 )
@@ -3161,25 +3158,11 @@ function ArenaPlaceholder({ onBack, difficulty }) {
             )
           )
 
-          /* Draw message — prompt to play again */
-          , resolved && trinityWinner === "draw" && (
-            React.createElement('div', { style: {textAlign:"center",padding:"10px 20px",borderRadius:10,
-              background:"rgba(255,200,0,0.08)",
-              border:"1px solid rgba(255,200,0,0.3)",
-              maxWidth:320},}
-              , React.createElement('div', { style: {fontSize:14,fontFamily:"monospace",fontWeight:900,
-                color:"#ffcc00",marginBottom:4},}, "⚡ DRAW!" )
-              , React.createElement('div', { style: {fontSize:11,fontFamily:"monospace",color:C.textMuted},}, "Both chose "
-                  , _optionalChain([pType, 'optionalAccess', _7 => _7.key]), " — play again to decide!"
-              )
-            )
-          )
-
-          /* Pick buttons — shown before pick OR after a draw */
-          , (!resolved || trinityWinner === "draw") && (
+          /* Pick buttons — shown before pick; hidden after */
+          , !resolved && (
             React.createElement('div', { style: {display:"flex",flexDirection:"column",alignItems:"center",gap:10,width:"100%",maxWidth:320},}
-              , React.createElement('div', { style: {fontSize:11,fontFamily:"monospace",color:C.textMuted,marginBottom:4},}
-                , trinityWinner === "draw" ? "Choose again:" : "Choose your Trinity type:"
+              , React.createElement('div', { style: {fontSize:11,fontFamily:"monospace",color:C.textMuted,marginBottom:4},}, "Choose your Trinity type:"
+
               )
               , TYPES.map(t => (
                 React.createElement('button', { key: t.key, onClick: () => pickAndReveal(t.key), style: {
@@ -3195,8 +3178,8 @@ function ArenaPlaceholder({ onBack, difficulty }) {
             )
           )
 
-          /* Continue button — only shown after a decisive result */
-          , resolved && trinityWinner !== "draw" && (
+          /* Continue button — shown after pick */
+          , resolved && (
             React.createElement('button', { onClick: () => setPhase("reveal"), style: {
               padding:"13px 40px",
               background:"rgba(245,166,35,0.12)",border:"1px solid rgba(245,166,35,0.5)",
@@ -3221,7 +3204,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
           , React.createElement('div', { style: {flex:1},}
             , React.createElement('div', { style: {fontSize:12, color:C.cyan, fontFamily:"monospace", fontWeight:700,
               letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:4,
-              textAlign:"center", textShadow:`0 0 8px rgba(0,245,255,0.4)`},}, "Your Units" )
+              textAlign:"center", textShadow:`0 0 8px rgba(0,245,255,0.4)`},}, isPT?"Suas Unidades":"Your Units")
             , React.createElement('div', { style: {fontSize:9, fontFamily:"monospace", textAlign:"center", marginBottom:8,
               padding:"3px 6px", borderRadius:5, background:"rgba(0,100,200,0.07)",
               border:"1px solid rgba(0,180,255,0.2)", color:"rgba(150,220,255,0.9)"},}, "Pool of 5 — Chr "
@@ -3259,7 +3242,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
           , React.createElement('div', { style: {flex:1},}
             , React.createElement('div', { style: {fontSize:12, color:"#ff4466", fontFamily:"monospace", fontWeight:700,
               letterSpacing:"0.06em", textTransform:"uppercase", marginBottom:4,
-              textAlign:"center", textShadow:"0 0 8px rgba(255,40,80,0.4)"},}, "AI Units" )
+              textAlign:"center", textShadow:"0 0 8px rgba(255,40,80,0.4)"},}, isPT?"Unidades da IA":"AI Units")
             , React.createElement('div', { style: {fontSize:9, fontFamily:"monospace", textAlign:"center", marginBottom:8,
               padding:"3px 6px", borderRadius:5, background:"rgba(255,40,60,0.07)",
               border:"1px solid rgba(255,40,60,0.2)", color:"rgba(255,150,150,0.9)"},}, "Pool of 5 — Chr "
@@ -3325,7 +3308,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
         /* AI banned yours */
         , React.createElement('div', { style: {...S.callout, marginBottom:12, borderColor:"rgba(255,68,80,0.3)", background:"rgba(255,68,80,0.06)"},}
           , React.createElement('span', null, "🤖")
-          , React.createElement('span', null, "AI banned your: "   , React.createElement('strong', { style: {color:"#ff6677"},}, _optionalChain([aiBan, 'optionalAccess', _8 => _8.name])))
+          , React.createElement('span', null, "AI banned your: "   , React.createElement('strong', { style: {color:"#ff6677"},}, _optionalChain([aiBan, 'optionalAccess', _9 => _9.name])))
         )
 
         /* AI pool — player picks one to ban */
@@ -3334,7 +3317,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
         )
         , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:8},}
           , aiPool.map(u => {
-            const isBanned = _optionalChain([playerBan, 'optionalAccess', _9 => _9.id]) === u.id;
+            const isBanned = _optionalChain([playerBan, 'optionalAccess', _10 => _10.id]) === u.id;
             const tc = TYPE_COLOR[u.type] || "#aaa";
             return (
               React.createElement('div', { key: u.id, onClick: () => setPlayerBan(u),
@@ -3609,7 +3592,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
           , React.createElement('div', { style: {flex:1, ...S.callout},}
             , React.createElement('span', null, "🃏")
             , React.createElement('span', { style: {fontSize:11, color:C.textSub, fontFamily:"monospace", overflow:"hidden",
-              textOverflow:"ellipsis", whiteSpace:"nowrap"},}, _optionalChain([playerDeck, 'optionalAccess', _10 => _10.name]))
+              textOverflow:"ellipsis", whiteSpace:"nowrap"},}, _optionalChain([playerDeck, 'optionalAccess', _11 => _11.name]))
           )
         )
 
@@ -3632,6 +3615,8 @@ function ArenaPlaceholder({ onBack, difficulty }) {
   // PHASE: CLASH — sequential reveal Right → Center → Left
   // ─────────────────────────────────────────────────────────────────────────
   if (phase === "clash") {
+    const _clashResults = isPT ? "RESULTADOS DO CLASH" : "CLASH RESULTS";
+    const _genBattle    = isPT ? "Batalha dos Generais ->" : "General Battle ->";
 
     // Trinity advantage: returns true if typeA beats typeB
     function beats(typeA, typeB) {
@@ -3733,8 +3718,8 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     }
 
     function ClashCard({ card, revealed, side, dimmed }) {
-      const tc = TYPE_COLOR[_optionalChain([card, 'optionalAccess', _11 => _11.type])] || "#aaa";
-      const tg = TYPE_GLOW[_optionalChain([card, 'optionalAccess', _12 => _12.type])]  || "transparent";
+      const tc = TYPE_COLOR[_optionalChain([card, 'optionalAccess', _12 => _12.type])] || "#aaa";
+      const tg = TYPE_GLOW[_optionalChain([card, 'optionalAccess', _13 => _13.type])]  || "transparent";
       return (
         React.createElement('div', { style: {
           width:80, height:107, borderRadius:8, overflow:"hidden", flexShrink:0,
@@ -3819,7 +3804,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
             borderRadius:9, cursor:"pointer", color:C.cyan,
             fontFamily:"monospace", fontSize:14, fontWeight:700, letterSpacing:"0.08em",
             textShadow:`0 0 10px rgba(0,245,255,0.5)`,
-          },}, "⚔ General Battle →"   )
+          },}, isPT?"⚔ Batalha dos Generais ->":"⚔ General Battle ->")
         )
       )
     );
@@ -3876,7 +3861,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                   return (
                     React.createElement('div', { key: idx, style: {display:"flex", flexDirection:"column", alignItems:"center", gap:1},}
                       , React.createElement('div', {
-                        onClick: e=>{e.stopPropagation();if(card&&(isActive||isResolved)){const c2={...card,_side:"ai"};setInfoCard(_optionalChain([infoCard, 'optionalAccess', _13 => _13.id])===c2.id&&_optionalChain([infoCard, 'optionalAccess', _14 => _14._side])==="ai"?null:c2);}},
+                        onClick: e=>{e.stopPropagation();if(card&&(isActive||isResolved)){const c2={...card,_side:"ai"};setInfoCard(_optionalChain([infoCard, 'optionalAccess', _14 => _14.id])===c2.id&&_optionalChain([infoCard, 'optionalAccess', _15 => _15._side])==="ai"?null:c2);}},
                         style: {
                         width:"100%", maxWidth:72, aspectRatio:"3/4", borderRadius:5,
                         overflow:"hidden", margin:"0 auto", position:"relative",
@@ -3885,7 +3870,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                               : fizzle    ? "1.5px solid #ffcc00"
                               : isResolved ? "1px solid rgba(255,80,80,0.3)"
                               : "1px solid rgba(255,50,70,0.35)",
-                        boxShadow: isActive ? `0 0 10px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _15 => _15.type])]||"transparent"}` : "none",
+                        boxShadow: isActive ? `0 0 10px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _16 => _16.type])]||"transparent"}` : "none",
                         opacity: isResolved && !won && !fizzle ? 0.28 : 1,
                         transition:"all 0.3s",
                         cursor: (isActive||isResolved) && card ? "pointer" : "default",
@@ -3944,7 +3929,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
               borderBottom:"1px solid rgba(80,32,160,0.5)",
               display:"flex", alignItems:"center", justifyContent:"space-between"},}
               , React.createElement('span', { style: {fontSize:9,fontWeight:700,fontFamily:"monospace",color:C.accent},}
-                , _optionalChain([POS_LABELS, 'access', _16 => _16[clashStep], 'optionalAccess', _17 => _17.toUpperCase, 'call', _18 => _18()]), " CLASH ("  , clashStep+1, "/3)"
+                , _optionalChain([POS_LABELS, 'access', _17 => _17[clashStep], 'optionalAccess', _18 => _18.toUpperCase, 'call', _19 => _19()]), " CLASH ("  , clashStep+1, "/3)"
               )
               , React.createElement('span', { style: {fontSize:9,fontFamily:"monospace"},}
                 , React.createElement('span', { style: {color:"#44ee88",fontWeight:700},}, pScore)
@@ -3994,7 +3979,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                     React.createElement('div', { key: idx, style: {display:"flex", flexDirection:"column", alignItems:"center", gap:1},}
                       , React.createElement('span', { style: {fontSize:6,color:isActive?"rgba(245,166,35,0.9)":won?"rgba(68,238,136,0.6)":"rgba(80,140,255,0.4)",fontFamily:"monospace"},}, POS_LABELS[idx])
                       , React.createElement('div', {
-                        onClick: e=>{e.stopPropagation();if(card&&(isActive||isResolved)){const c2={...card,_side:"player"};setInfoCard(_optionalChain([infoCard, 'optionalAccess', _19 => _19.id])===c2.id&&_optionalChain([infoCard, 'optionalAccess', _20 => _20._side])==="player"?null:c2);}},
+                        onClick: e=>{e.stopPropagation();if(card&&(isActive||isResolved)){const c2={...card,_side:"player"};setInfoCard(_optionalChain([infoCard, 'optionalAccess', _20 => _20.id])===c2.id&&_optionalChain([infoCard, 'optionalAccess', _21 => _21._side])==="player"?null:c2);}},
                         style: {
                         width:"100%", maxWidth:72, aspectRatio:"3/4", borderRadius:5,
                         overflow:"hidden", margin:"0 auto", position:"relative",
@@ -4003,7 +3988,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                               : fizzle    ? "1.5px solid #ffcc00"
                               : isResolved ? "1px solid rgba(80,200,100,0.3)"
                               : "1px solid rgba(80,120,255,0.35)",
-                        boxShadow: isActive ? `0 0 10px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _21 => _21.type])]||"transparent"}` : "none",
+                        boxShadow: isActive ? `0 0 10px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _22 => _22.type])]||"transparent"}` : "none",
                         opacity: isResolved && !won && !fizzle ? 0.28 : 1,
                         transition:"all 0.3s",
                         cursor: (isActive||isResolved) && card ? "pointer" : "default",
@@ -4080,7 +4065,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                   , React.createElement('span', { onClick: ()=>setShowLog(false), style: {cursor:"pointer",color:C.textMuted,fontSize:15,padding:"0 3px"},}, "✕")
                 )
                 , buildLog().length === 0
-                  ? React.createElement('div', { style: {fontSize:12,color:C.textMuted,fontFamily:"monospace"},}, "No events yet."  )
+                  ? React.createElement('div', { style: {fontSize:12,color:C.textMuted,fontFamily:"monospace"},}, isPT?"Nenhum evento ainda.":"No events yet.")
                   : buildLog().map((e,i) => (
                   React.createElement('div', { key: i, style: {
                     fontSize:13, color:e.color, fontFamily:"monospace", lineHeight:1.7,
@@ -4223,6 +4208,7 @@ const JUNCTION_DESC = {
       const { pHP, pAP, aHP, aAP, turn, currentTurn, pJunctions, aJunctions,
               pEffects, aEffects } = state;
       const newLog = [];
+      const L = (en, pt) => isPT ? pt : en;
       let npHP=pHP, naHP=aHP, npAP=pAP, naAP=aAP;
       let npJ=[...pJunctions], naJ=[...aJunctions];
       let npEff={...pEffects}, naEff={...aEffects};
@@ -4232,43 +4218,43 @@ const JUNCTION_DESC = {
       // Merciless Light (both)
       if(npJ.includes("Merciless Light")||naJ.includes("Merciless Light")){
         npHP-=2; naHP-=2;
-        newLog.push(`⚡ Merciless Light — 2 dmg to both`);
+        newLog.push(L("⚡ Merciless Light — 2 dmg to both","⚡ Merciless Light — 2 dmg nos dois"));
       }
       // First Strike
       if(npJ.includes("First Strike")||naJ.includes("First Strike")){
         npHP-=1; naHP-=1;
-        newLog.push(`⚡ First Strike — 1 dmg to both`);
+        newLog.push(L("⚡ First Strike — 1 dmg to both","⚡ First Strike — 1 dmg nos dois"));
       }
       // Light of Annihilation
       if(npJ.includes("Light of Annihilation")||naJ.includes("Light of Annihilation")){
         npHP-=3; naHP-=3;
-        newLog.push(`⚡ Light of Annihilation — 3 dmg to both`);
+        newLog.push(L("⚡ Light of Annihilation — 3 dmg to both","⚡ Light of Annihilation — 3 dmg nos dois"));
       }
 
       if(isPlayer) {
         // Energy Genome
-        if(npJ.includes("Energy Genome")){ npHP+=1; newLog.push("YOU: Energy Genome — +1 HP"); }
-        if(npJ.includes("Immortal Genome")){ npHP+=2; newLog.push("YOU: Immortal Genome — +2 HP"); }
-        if(npJ.includes("Vengeful Arrow")){ naHP-=1; newLog.push("YOU: Vengeful Arrow — 1 dmg to AI"); }
-        if(npJ.includes("Tragic Arrow")){ naHP-=2; newLog.push("YOU: Tragic Arrow — 2 dmg to AI"); }
-        if(npJ.includes("AIDA Corrosion")){ npAP+=1; npHP-=1; newLog.push("YOU: AIDA Corrosion — +1 AP, -1 HP"); }
-        if(npJ.includes("AIDA Berserk")){ npAP+=2; npHP-=2; newLog.push("YOU: AIDA Berserk — +2 AP, -2 HP"); }
-        if(npJ.includes("Folset's Trial")){ npAP+=1; npHP-=1; newLog.push("YOU: Folset's Trial — +1 AP, -1 HP"); }
-        if(npJ.includes("Long-awaited Return")){ npAP+=1; npHP+=2; newLog.push("YOU: Long-awaited Return — +1 AP, +2 HP"); }
+        if(npJ.includes("Energy Genome")){ npHP+=1; newLog.push(L("YOU: Energy Genome — +1 HP","VOCÊ: Energy Genome — +1 HP")); }
+        if(npJ.includes("Immortal Genome")){ npHP+=2; newLog.push(L("YOU: Immortal Genome — +2 HP","VOCÊ: Immortal Genome — +2 HP")); }
+        if(npJ.includes("Vengeful Arrow")){ naHP-=1; newLog.push(L("YOU: Vengeful Arrow — 1 dmg to AI","VOCÊ: Vengeful Arrow — 1 dmg na IA")); }
+        if(npJ.includes("Tragic Arrow")){ naHP-=2; newLog.push(L("YOU: Tragic Arrow — 2 dmg to AI","VOCÊ: Tragic Arrow — 2 dmg na IA")); }
+        if(npJ.includes("AIDA Corrosion")){ npAP+=1; npHP-=1; newLog.push(L("YOU: AIDA Corrosion — +1 AP, -1 HP","VOCÊ: AIDA Corrosion — +1 AP, -1 HP")); }
+        if(npJ.includes("AIDA Berserk")){ npAP+=2; npHP-=2; newLog.push(L("YOU: AIDA Berserk — +2 AP, -2 HP","VOCÊ: AIDA Berserk — +2 AP, -2 HP")); }
+        if(npJ.includes("Folset's Trial")){ npAP+=1; npHP-=1; newLog.push(L("YOU: Folset's Trial — +1 AP, -1 HP","VOCÊ: Folset's Trial — +1 AP, -1 HP")); }
+        if(npJ.includes("Long-awaited Return")){ npAP+=1; npHP+=2; newLog.push(L("YOU: Long-awaited Return — +1 AP, +2 HP","VOCÊ: Long-awaited Return — +1 AP, +2 HP")); }
         if(npJ.includes("Filling Hollow") && (npJ.length>1||naJ.length>0)){
           const pi=Math.floor(Math.random()*Math.max(1,npJ.length));
           const ai2=Math.floor(Math.random()*Math.max(1,naJ.length));
           if(npJ.length>0){const r=npJ.splice(pi,1)[0]; newLog.push(`YOU: Filling Hollow — removed YOUR junction: ${r}`);}
           if(naJ.length>0){const r=naJ.splice(ai2,1)[0]; newLog.push(`YOU: Filling Hollow — removed AI junction: ${r}`);}
         }
-        if(npJ.includes("Reckless Rewards")){ npAP+=2; npEff.recklessTaken=(npEff.recklessTaken||0)+1; newLog.push("YOU: Reckless Rewards — +2 AP (takes +1 dmg when hit)"); }
-        if(npJ.includes("Harmonic Rhythm")&&npEff.goesFirst){ npAP+=2; newLog.push("YOU: Harmonic Rhythm — +2 AP (first)"); }
-        if(npJ.includes("Gathering of the Strong")&&turn<=5){ naHP-=1; newLog.push("YOU: Gathering of the Strong — 1 dmg to AI"); }
-        if(npJ.includes("Mobilize the Troops")&&turn>5){ npHP+=1; newLog.push("YOU: Mobilize the Troops — +1 HP"); }
-        if(npJ.includes("Rendezvous")&&turn===8){ npHP-=10; newLog.push("YOU: Rendezvous — 10 dmg to YOU (turn 8)"); }
-        if(npJ.includes("Trial by Fire")&&turn===5){ npAP+=5; npHP+=6; newLog.push("YOU: Trial by Fire — +5 AP, +6 HP (turn 5 unlocked)"); }
+        if(npJ.includes("Reckless Rewards")){ npAP+=2; npEff.recklessTaken=(npEff.recklessTaken||0)+1; newLog.push(L("YOU: Reckless Rewards — +2 AP (takes +1 dmg when hit)","VOCÊ: Reckless Rewards — +2 AP (+1 dmg)")); }
+        if(npJ.includes("Harmonic Rhythm")&&npEff.goesFirst){ npAP+=2; newLog.push(L("YOU: Harmonic Rhythm — +2 AP (first)","VOCÊ: Harmonic Rhythm — +2 AP (primeiro)")); }
+        if(npJ.includes("Gathering of the Strong")&&turn<=5){ naHP-=1; newLog.push(L("YOU: Gathering of the Strong — 1 dmg to AI","VOCÊ: Gathering of the Strong — 1 dmg na IA")); }
+        if(npJ.includes("Mobilize the Troops")&&turn>5){ npHP+=1; newLog.push(L("YOU: Mobilize the Troops — +1 HP","VOCÊ: Mobilize the Troops — +1 HP")); }
+        if(npJ.includes("Rendezvous")&&turn===8){ npHP-=10; newLog.push(L("YOU: Rendezvous — 10 dmg to YOU (turn 8)","VOCÊ: Rendezvous — 10 dmg (turno 8)")); }
+        if(npJ.includes("Trial by Fire")&&turn===5){ npAP+=5; npHP+=6; newLog.push(L("YOU: Trial by Fire — +5 AP, +6 HP (turn 5 unlocked)","VOCÊ: Trial by Fire — +5 AP, +6 HP (turno 5)")); }
         // Anu's Karma (end of your turn when going second) — handled at end
-        if(npJ.includes("Aurora Tears")&&npEff.goesFirst){ npAP+=2; newLog.push("YOU: Aurora Tears — +2 AP end of turn"); }
+        if(npJ.includes("Aurora Tears")&&npEff.goesFirst){ npAP+=2; newLog.push(L("YOU: Aurora Tears — +2 AP end of turn","VOCÊ: Aurora Tears — +2 AP")); }
 
         // ── ATTACK ──
         let skip = false;
@@ -4285,7 +4271,7 @@ const JUNCTION_DESC = {
           if(naJ.includes("Spirit Clothes")) dmg=Math.max(0,dmg-1);
           if(naJ.includes("Veil of Aura")) dmg=Math.max(0,dmg-2);
           if(naJ.includes("Emperor's Pride")) dmg=Math.max(0,dmg-1);
-          if(naJ.includes("Defensive Stance")) { dmg=Math.max(0,dmg-1); newLog.push("AI: Defensive Stance — -1 dmg"); }
+          if(naJ.includes("Defensive Stance")) { dmg=Math.max(0,dmg-1); newLog.push(L("AI: Defensive Stance — -1 dmg","IA: Defensive Stance — -1 dmg")); }
           if(naJ.includes("Promised Discretion")) dmg=Math.min(dmg,3);
           if(naJ.includes("Detail Oriented")&&dmg<=2) dmg=0;
           // Mirror/Ingenious reflect
@@ -4293,40 +4279,40 @@ const JUNCTION_DESC = {
           if(naJ.includes("Mirror of Revenge")&&(naEff.mirrorTurns||0)>0){ reflected=dmg; dmg=0; npHP-=reflected; newLog.push(`AI: Mirror of Revenge — reflects ${reflected} dmg back`); naEff.mirrorTurns=(naEff.mirrorTurns||0)-1; }
           if(naJ.includes("Ingenious Scheme")&&(naEff.schemeTurns||0)>0){ reflected=dmg; dmg=0; npHP-=reflected; newLog.push(`AI: Ingenious Scheme — reflects ${reflected} dmg back`); naEff.schemeTurns=(naEff.schemeTurns||0)-1; }
           // Apply dmg
-          if(naJ.includes("Reckless Rewards")&&dmg>0){ dmg+=1; newLog.push("AI: Reckless Rewards — +1 extra dmg taken"); }
-          if(naEff.firstToAction&&dmg>0){ dmg+=1; newLog.push("AI: First to Action penalty — +1 extra dmg taken"); }
+          if(naJ.includes("Reckless Rewards")&&dmg>0){ dmg+=1; newLog.push(L("AI: Reckless Rewards — +1 extra dmg taken","IA: Reckless Rewards — +1 dmg extra")); }
+          if(naEff.firstToAction&&dmg>0){ dmg+=1; newLog.push(L("AI: First to Action penalty — +1 extra dmg taken","IA: First to Action — +1 dmg extra")); }
           naHP-=dmg;
-          if(dmg>0||reflected>0) newLog.push(`YOU attack — ${dmg} dmg to AI${reflected>0?" ("+reflected+" reflected)":""}`);
-          if(naJ.includes("Cross Counter")&&dmg>0){ npHP-=1; newLog.push("AI: Cross Counter — 1 dmg to YOU"); }
+          if(dmg>0||reflected>0) newLog.push(isPT?`VOCÊ ataca — ${dmg} dmg na IA${reflected>0?" ("+reflected+" refletido)":""}`:` YOU attack — ${dmg} dmg to AI${reflected>0?" ("+reflected+" reflected)":""}`);
+          if(naJ.includes("Cross Counter")&&dmg>0){ npHP-=1; newLog.push(L("AI: Cross Counter — 1 dmg to YOU","IA: Cross Counter — 1 dmg em você")); }
           // Massacre Pulse
-          if(npJ.includes("Massacre Pulse")&&dmg>0){ npAP+=1; newLog.push("YOU: Massacre Pulse — +1 AP"); }
+          if(npJ.includes("Massacre Pulse")&&dmg>0){ npAP+=1; newLog.push(L("YOU: Massacre Pulse — +1 AP","VOCÊ: Massacre Pulse — +1 AP")); }
         }
-        if(npJ.includes("Quickdance")){ let dmg2=Math.max(0,npAP-3); if(naJ.includes("Spirit Clothes")) dmg2=Math.max(0,dmg2-1); naHP-=dmg2; newLog.push(`YOU: Quickdance — extra attack ${dmg2} dmg`); }
-        if(npJ.includes("Anu's Karma")&&!npEff.goesFirst){ npHP+=3; newLog.push("YOU: Anu's Karma — +3 HP (going second)"); }
+        if(npJ.includes("Quickdance")){ let dmg2=Math.max(0,npAP-3); if(naJ.includes("Spirit Clothes")) dmg2=Math.max(0,dmg2-1); naHP-=dmg2; newLog.push(isPT?`VOCÊ: Quickdance — ataque extra ${dmg2} dmg`:`YOU: Quickdance — extra attack ${dmg2} dmg`); }
+        if(npJ.includes("Anu's Karma")&&!npEff.goesFirst){ npHP+=3; newLog.push(L("YOU: Anu's Karma — +3 HP (going second)","VOCÊ: Anu's Karma — +3 HP (segundo)")); }
 
       } else {
         // AI TURN — mirror of player
-        if(naJ.includes("Energy Genome")){ naHP+=1; newLog.push("AI: Energy Genome — +1 HP"); }
-        if(naJ.includes("Immortal Genome")){ naHP+=2; newLog.push("AI: Immortal Genome — +2 HP"); }
-        if(naJ.includes("Vengeful Arrow")){ npHP-=1; newLog.push("AI: Vengeful Arrow — 1 dmg to YOU"); }
-        if(naJ.includes("Tragic Arrow")){ npHP-=2; newLog.push("AI: Tragic Arrow — 2 dmg to YOU"); }
-        if(naJ.includes("AIDA Corrosion")){ naAP+=1; naHP-=1; newLog.push("AI: AIDA Corrosion — +1 AP, -1 HP"); }
-        if(naJ.includes("AIDA Berserk")){ naAP+=2; naHP-=2; newLog.push("AI: AIDA Berserk — +2 AP, -2 HP"); }
-        if(naJ.includes("Folset's Trial")){ naAP+=1; naHP-=1; newLog.push("AI: Folset's Trial — +1 AP, -1 HP"); }
-        if(naJ.includes("Long-awaited Return")){ naAP+=1; naHP+=2; newLog.push("AI: Long-awaited Return — +1 AP, +2 HP"); }
+        if(naJ.includes("Energy Genome")){ naHP+=1; newLog.push(L("AI: Energy Genome — +1 HP","IA: Energy Genome — +1 HP")); }
+        if(naJ.includes("Immortal Genome")){ naHP+=2; newLog.push(L("AI: Immortal Genome — +2 HP","IA: Immortal Genome — +2 HP")); }
+        if(naJ.includes("Vengeful Arrow")){ npHP-=1; newLog.push(L("AI: Vengeful Arrow — 1 dmg to YOU","IA: Vengeful Arrow — 1 dmg em você")); }
+        if(naJ.includes("Tragic Arrow")){ npHP-=2; newLog.push(L("AI: Tragic Arrow — 2 dmg to YOU","IA: Tragic Arrow — 2 dmg em você")); }
+        if(naJ.includes("AIDA Corrosion")){ naAP+=1; naHP-=1; newLog.push(L("AI: AIDA Corrosion — +1 AP, -1 HP","IA: AIDA Corrosion — +1 AP, -1 HP")); }
+        if(naJ.includes("AIDA Berserk")){ naAP+=2; naHP-=2; newLog.push(L("AI: AIDA Berserk — +2 AP, -2 HP","IA: AIDA Berserk — +2 AP, -2 HP")); }
+        if(naJ.includes("Folset's Trial")){ naAP+=1; naHP-=1; newLog.push(L("AI: Folset's Trial — +1 AP, -1 HP","IA: Folset's Trial — +1 AP, -1 HP")); }
+        if(naJ.includes("Long-awaited Return")){ naAP+=1; naHP+=2; newLog.push(L("AI: Long-awaited Return — +1 AP, +2 HP","IA: Long-awaited Return — +1 AP, +2 HP")); }
         if(naJ.includes("Filling Hollow") && (naJ.length>1||npJ.length>0)){
           const ai2=Math.floor(Math.random()*Math.max(1,naJ.length));
           const pi=Math.floor(Math.random()*Math.max(1,npJ.length));
           if(naJ.length>0){const r=naJ.splice(ai2,1)[0]; newLog.push(`AI: Filling Hollow — removed AI junction: ${r}`);}
           if(npJ.length>0){const r=npJ.splice(pi,1)[0]; newLog.push(`AI: Filling Hollow — removed YOUR junction: ${r}`);}
         }
-        if(naJ.includes("Reckless Rewards")){ naAP+=2; naEff.recklessTaken=(naEff.recklessTaken||0)+1; newLog.push("AI: Reckless Rewards — +2 AP (takes +1 dmg when hit)"); }
-        if(naJ.includes("Harmonic Rhythm")&&naEff.goesFirst){ naAP+=2; newLog.push("AI: Harmonic Rhythm — +2 AP (goes first)"); }
-        if(naJ.includes("Gathering of the Strong")&&turn<=5){ npHP-=1; newLog.push("AI: Gathering of the Strong — 1 dmg to YOU"); }
-        if(naJ.includes("Mobilize the Troops")&&turn>5){ naHP+=1; newLog.push("AI: Mobilize the Troops — +1 HP"); }
-        if(naJ.includes("Rendezvous")&&turn===8){ naHP-=10; newLog.push("AI: Rendezvous — 10 dmg to AI (turn 8)"); }
-        if(naJ.includes("Trial by Fire")&&turn===5){ naAP+=5; naHP+=6; newLog.push("AI: Trial by Fire — +5 AP, +6 HP unlocked"); }
-        if(naJ.includes("Aurora Tears")&&naEff.goesFirst){ naAP+=2; newLog.push("AI: Aurora Tears — +2 AP (goes first)"); }
+        if(naJ.includes("Reckless Rewards")){ naAP+=2; naEff.recklessTaken=(naEff.recklessTaken||0)+1; newLog.push(L("AI: Reckless Rewards — +2 AP (takes +1 dmg when hit)","IA: Reckless Rewards — +2 AP (+1 dmg)")); }
+        if(naJ.includes("Harmonic Rhythm")&&naEff.goesFirst){ naAP+=2; newLog.push(L("AI: Harmonic Rhythm — +2 AP (goes first)","IA: Harmonic Rhythm — +2 AP (primeiro)")); }
+        if(naJ.includes("Gathering of the Strong")&&turn<=5){ npHP-=1; newLog.push(L("AI: Gathering of the Strong — 1 dmg to YOU","IA: Gathering of the Strong — 1 dmg em você")); }
+        if(naJ.includes("Mobilize the Troops")&&turn>5){ naHP+=1; newLog.push(L("AI: Mobilize the Troops — +1 HP","IA: Mobilize the Troops — +1 HP")); }
+        if(naJ.includes("Rendezvous")&&turn===8){ naHP-=10; newLog.push(L("AI: Rendezvous — 10 dmg to AI (turn 8)","IA: Rendezvous — 10 dmg (turno 8)")); }
+        if(naJ.includes("Trial by Fire")&&turn===5){ naAP+=5; naHP+=6; newLog.push(L("AI: Trial by Fire — +5 AP, +6 HP unlocked","IA: Trial by Fire — +5 AP, +6 HP liberado")); }
+        if(naJ.includes("Aurora Tears")&&naEff.goesFirst){ naAP+=2; newLog.push(L("AI: Aurora Tears — +2 AP (goes first)","IA: Aurora Tears — +2 AP (primeiro)")); }
 
         let skip = false;
         if(naJ.includes("Trial by Fire")&&turn<=4){ skip=true; newLog.push("AI: Trial by Fire — cannot attack (turn "+(turn)+" of 4)"); }
@@ -4338,22 +4324,22 @@ const JUNCTION_DESC = {
           if(npJ.includes("Spirit Clothes")) dmg=Math.max(0,dmg-1);
           if(npJ.includes("Veil of Aura")) dmg=Math.max(0,dmg-2);
           if(npJ.includes("Emperor's Pride")) dmg=Math.max(0,dmg-1);
-          if(npJ.includes("Defensive Stance")) { dmg=Math.max(0,dmg-1); newLog.push("YOU: Defensive Stance — -1 dmg"); }
+          if(npJ.includes("Defensive Stance")) { dmg=Math.max(0,dmg-1); newLog.push(L("YOU: Defensive Stance — -1 dmg","VOCÊ: Defensive Stance — -1 dmg")); }
           if(npJ.includes("Promised Discretion")) dmg=Math.min(dmg,3);
           if(npJ.includes("Detail Oriented")&&dmg<=2) dmg=0;
-          if(npJ.includes("Mind's Eye")&&!npEff.mindEyeUsed){ dmg=0; npEff.mindEyeUsed=true; newLog.push("YOU: Mind's Eye — evaded AI attack"); }
+          if(npJ.includes("Mind's Eye")&&!npEff.mindEyeUsed){ dmg=0; npEff.mindEyeUsed=true; newLog.push(L("YOU: Mind's Eye — evaded AI attack","VOCÊ: Mind's Eye — esquivou")); }
           let reflected=0;
           if(npJ.includes("Mirror of Revenge")&&(npEff.mirrorTurns||0)>0){ reflected=dmg; dmg=0; naHP-=reflected; newLog.push(`YOU: Mirror of Revenge — reflects ${reflected} dmg back`); npEff.mirrorTurns=(npEff.mirrorTurns||0)-1; }
           if(npJ.includes("Ingenious Scheme")&&(npEff.schemeTurns||0)>0){ reflected=dmg; dmg=0; naHP-=reflected; newLog.push(`YOU: Ingenious Scheme — reflects ${reflected} dmg back`); npEff.schemeTurns=(npEff.schemeTurns||0)-1; }
-          if(npJ.includes("Reckless Rewards")&&dmg>0){ dmg+=1; newLog.push("YOU: Reckless Rewards — +1 extra dmg taken"); }
-          if(npEff.firstToAction&&dmg>0){ dmg+=1; newLog.push("YOU: First to Action penalty — +1 extra dmg taken"); }
+          if(npJ.includes("Reckless Rewards")&&dmg>0){ dmg+=1; newLog.push(L("YOU: Reckless Rewards — +1 extra dmg taken","VOCÊ: Reckless Rewards — +1 dmg extra")); }
+          if(npEff.firstToAction&&dmg>0){ dmg+=1; newLog.push(L("YOU: First to Action penalty — +1 extra dmg taken","VOCÊ: First to Action — +1 dmg extra")); }
           npHP-=dmg;
-          if(dmg>0||reflected>0) newLog.push(`AI attacks — ${dmg} dmg to YOU${reflected>0?" ("+reflected+" reflected)":""}`);
-          if(npJ.includes("Cross Counter")&&dmg>0){ naHP-=1; newLog.push("YOU: Cross Counter — 1 dmg to AI"); }
-          if(naJ.includes("Massacre Pulse")&&dmg>0){ naAP+=1; newLog.push("AI: Massacre Pulse — +1 AP"); }
+          if(dmg>0||reflected>0) newLog.push(isPT?`IA ataca — ${dmg} dmg em você${reflected>0?" ("+reflected+" refletido)":""}`:` AI attacks — ${dmg} dmg to YOU${reflected>0?" ("+reflected+" reflected)":""}`);
+          if(npJ.includes("Cross Counter")&&dmg>0){ naHP-=1; newLog.push(L("YOU: Cross Counter — 1 dmg to AI","VOCÊ: Cross Counter — 1 dmg na IA")); }
+          if(naJ.includes("Massacre Pulse")&&dmg>0){ naAP+=1; newLog.push(L("AI: Massacre Pulse — +1 AP","IA: Massacre Pulse — +1 AP")); }
         }
-        if(naJ.includes("Quickdance")){ let dmg2=Math.max(0,naAP-3); if(npJ.includes("Spirit Clothes")) dmg2=Math.max(0,dmg2-1); npHP-=dmg2; newLog.push(`AI: Quickdance — extra attack ${dmg2} dmg`); }
-        if(naJ.includes("Anu's Karma")&&!naEff.goesFirst){ naHP+=3; newLog.push("AI: Anu's Karma — +3 HP (going second)"); }
+        if(naJ.includes("Quickdance")){ let dmg2=Math.max(0,naAP-3); if(npJ.includes("Spirit Clothes")) dmg2=Math.max(0,dmg2-1); npHP-=dmg2; newLog.push(isPT?`IA: Quickdance — ataque extra ${dmg2} dmg`:`AI: Quickdance — extra attack ${dmg2} dmg`); }
+        if(naJ.includes("Anu's Karma")&&!naEff.goesFirst){ naHP+=3; newLog.push(L("AI: Anu's Karma — +3 HP (going second)","IA: Anu's Karma — +3 HP (segundo)")); }
       }
 
       // Clenching Teeth / Suck it up
@@ -4384,14 +4370,14 @@ const JUNCTION_DESC = {
       // Check win conditions
       if (next.pHP <= 0) {
         setBState(next);
-        setBattleOver({ winner:"ai", reason:"K.O. — YOUR General was defeated" });
-        setBattleLog(l => [...l, "✕ YOU were K.O.'d!"]);
+        setBattleOver({ winner:"ai", reason:isPT?"K.O. — Seu General foi derrotado":"K.O. — YOUR General was defeated" });
+        setBattleLog(l => [...l, isPT?"✕ Você foi nocauteado!":"✕ YOU were K.O.'d!"]);
         return;
       }
       if (next.aHP <= 0) {
         setBState(next);
-        setBattleOver({ winner:"player", reason:"K.O. — AI General was defeated" });
-        setBattleLog(l => [...l, "✓ AI was K.O.'d — YOU WIN!"]);
+        setBattleOver({ winner:"player", reason:isPT?"K.O. — General da IA foi derrotado":"K.O. — AI General was defeated" });
+        setBattleLog(l => [...l, isPT?"✓ IA nocauteada — VOCÊ VENCEU!":"✓ AI was K.O.'d — YOU WIN!"]);
         return;
       }
       if (next.turn > 10) {
@@ -4418,10 +4404,18 @@ const JUNCTION_DESC = {
       );
     };
 
-    const maxPHP = _optionalChain([playerGen, 'optionalAccess', _22 => _22.hp]) || 1, maxAHP = _optionalChain([aiGen, 'optionalAccess', _23 => _23.hp]) || 1;
-    const pWinning = (_optionalChain([bState, 'optionalAccess', _24 => _24.pHP])||0) > (_optionalChain([bState, 'optionalAccess', _25 => _25.aHP])||0);
-    const aWinning = (_optionalChain([bState, 'optionalAccess', _26 => _26.aHP])||0) > (_optionalChain([bState, 'optionalAccess', _27 => _27.pHP])||0);
+    const maxPHP = _optionalChain([playerGen, 'optionalAccess', _23 => _23.hp]) || 1, maxAHP = _optionalChain([aiGen, 'optionalAccess', _24 => _24.hp]) || 1;
+    const pWinning = (_optionalChain([bState, 'optionalAccess', _25 => _25.pHP])||0) > (_optionalChain([bState, 'optionalAccess', _26 => _26.aHP])||0);
+    const aWinning = (_optionalChain([bState, 'optionalAccess', _27 => _27.aHP])||0) > (_optionalChain([bState, 'optionalAccess', _28 => _28.pHP])||0);
 
+    // PT-BR battle strings
+    const _yourTurn   = isPT ? "▶ SEU TURNO"      : "▶ YOUR TURN";
+    const _aiTurn     = isPT ? "▶ TURNO DA IA"     : "▶ AI TURN";
+    const _turnLabel  = isPT ? "TURNO "             : "TURN ";
+    const _noEvents2  = isPT ? "Nenhum evento ainda." : "No events yet.";
+    const _noneActive = isPT ? "Nenhuma ativa"      : "None active";
+    const _yourJuncs  = isPT ? "SUAS JUNCTIONS"     : "YOUR JUNCTIONS";
+    const _aiJuncs    = isPT ? "JUNCTIONS DA IA"    : "AI JUNCTIONS";
     return (
       React.createElement('div', { style: {width:"100%",height:"100vh",display:"flex",flexDirection:"column",overflow:"hidden"},
         onClick: ()=>setInfoCard(null),}
@@ -4459,15 +4453,15 @@ const JUNCTION_DESC = {
                 return (
                   React.createElement('div', { key: idx, style: {display:"flex",flexDirection:"column",alignItems:"center",gap:1},}
                     , React.createElement('div', {
-                      onClick: e=>{e.stopPropagation();if(card)setInfoCard(_optionalChain([infoCard, 'optionalAccess', _28 => _28.id])===card.id&&_optionalChain([infoCard, 'optionalAccess', _29 => _29._side])==="ai"?null:{...card,_side:"ai"});},
+                      onClick: e=>{e.stopPropagation();if(card)setInfoCard(_optionalChain([infoCard, 'optionalAccess', _29 => _29.id])===card.id&&_optionalChain([infoCard, 'optionalAccess', _30 => _30._side])==="ai"?null:{...card,_side:"ai"});},
                       style: {width:"100%",maxWidth:62,aspectRatio:"3/4",borderRadius:5,overflow:"hidden",margin:"0 auto",
                       border:card?`1.5px solid ${tc}`:"none",visibility:card?"visible":"hidden",
                       cursor:card?"pointer":"default",
-                      boxShadow:_optionalChain([infoCard, 'optionalAccess', _30 => _30.id])===_optionalChain([card, 'optionalAccess', _31 => _31.id])&&_optionalChain([infoCard, 'optionalAccess', _32 => _32._side])==="ai"?`0 0 8px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _33 => _33.type])]||"transparent"}`:"none"},}
+                      boxShadow:_optionalChain([infoCard, 'optionalAccess', _31 => _31.id])===_optionalChain([card, 'optionalAccess', _32 => _32.id])&&_optionalChain([infoCard, 'optionalAccess', _33 => _33._side])==="ai"?`0 0 8px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _34 => _34.type])]||"transparent"}`:"none"},}
                       , card&&React.createElement('img', { src: IMGS[card.img.replace('.png','')] || '', alt: card.name, style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
                     )
                     , React.createElement('span', { style: {fontSize:7,color:"rgba(255,110,130,0.6)",fontFamily:"monospace",
-                      visibility:card?"visible":"hidden",lineHeight:1},}, _optionalChain([card, 'optionalAccess', _34 => _34.name, 'optionalAccess', _35 => _35.split, 'call', _36 => _36(" "), 'access', _37 => _37[0]])||"")
+                      visibility:card?"visible":"hidden",lineHeight:1},}, _optionalChain([card, 'optionalAccess', _35 => _35.name, 'optionalAccess', _36 => _36.split, 'call', _37 => _37(" "), 'access', _38 => _38[0]])||"")
                   )
                 );
               })
@@ -4482,9 +4476,9 @@ const JUNCTION_DESC = {
                 ))
               )
               , React.createElement('div', {
-                onClick: e=>{e.stopPropagation();setInfoCard(_optionalChain([infoCard, 'optionalAccess', _38 => _38.id])===aiGen.id&&_optionalChain([infoCard, 'optionalAccess', _39 => _39._side])==="ai"?null:{...aiGen,_side:"ai"});},
+                onClick: e=>{e.stopPropagation();setInfoCard(_optionalChain([infoCard, 'optionalAccess', _39 => _39.id])===aiGen.id&&_optionalChain([infoCard, 'optionalAccess', _40 => _40._side])==="ai"?null:{...aiGen,_side:"ai"});},
                 style: {width:90,height:120,borderRadius:7,overflow:"hidden",flexShrink:0,cursor:"pointer",
-                border:_optionalChain([infoCard, 'optionalAccess', _40 => _40.id])===aiGen.id&&_optionalChain([infoCard, 'optionalAccess', _41 => _41._side])==="ai"?`2px solid #ff4466`:`2px solid ${TYPE_COLOR[aiGen.type]||"#aaa"}`,
+                border:_optionalChain([infoCard, 'optionalAccess', _41 => _41.id])===aiGen.id&&_optionalChain([infoCard, 'optionalAccess', _42 => _42._side])==="ai"?`2px solid #ff4466`:`2px solid ${TYPE_COLOR[aiGen.type]||"#aaa"}`,
                 boxShadow:`0 0 ${aWinning?"16px":"8px"} ${TYPE_GLOW[aiGen.type]||"transparent"}`},}
                 , React.createElement('img', { src: IMGS[aiGen.img.replace('.png','')] || '', alt: aiGen.name, style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
               )
@@ -4514,9 +4508,9 @@ const JUNCTION_DESC = {
             , React.createElement('div', { style: {flex:1,display:"flex",justifyContent:"center",alignItems:"center",gap:8,minHeight:0,marginBottom:5},}
               , React.createElement('div', { style: {flex:1},})
               , React.createElement('div', {
-                onClick: e=>{e.stopPropagation();setInfoCard(_optionalChain([infoCard, 'optionalAccess', _42 => _42.id])===playerGen.id&&_optionalChain([infoCard, 'optionalAccess', _43 => _43._side])==="player"?null:{...playerGen,_side:"player"});},
+                onClick: e=>{e.stopPropagation();setInfoCard(_optionalChain([infoCard, 'optionalAccess', _43 => _43.id])===playerGen.id&&_optionalChain([infoCard, 'optionalAccess', _44 => _44._side])==="player"?null:{...playerGen,_side:"player"});},
                 style: {width:90,height:120,borderRadius:7,overflow:"hidden",flexShrink:0,cursor:"pointer",
-                border:_optionalChain([infoCard, 'optionalAccess', _44 => _44.id])===playerGen.id&&_optionalChain([infoCard, 'optionalAccess', _45 => _45._side])==="player"?`2px solid ${C.cyan}`:`2px solid ${TYPE_COLOR[playerGen.type]||"#aaa"}`,
+                border:_optionalChain([infoCard, 'optionalAccess', _45 => _45.id])===playerGen.id&&_optionalChain([infoCard, 'optionalAccess', _46 => _46._side])==="player"?`2px solid ${C.cyan}`:`2px solid ${TYPE_COLOR[playerGen.type]||"#aaa"}`,
                 boxShadow:`0 0 ${pWinning?"16px":"8px"} ${TYPE_GLOW[playerGen.type]||"transparent"}`},}
                 , React.createElement('img', { src: IMGS[playerGen.img.replace('.png','')] || '', alt: playerGen.name, style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
               )
@@ -4536,13 +4530,13 @@ const JUNCTION_DESC = {
                 return (
                   React.createElement('div', { key: idx, style: {display:"flex",flexDirection:"column",alignItems:"center",gap:1},}
                     , React.createElement('span', { style: {fontSize:7,color:"rgba(80,140,255,0.6)",fontFamily:"monospace",
-                      visibility:card?"visible":"hidden",lineHeight:1},}, _optionalChain([card, 'optionalAccess', _46 => _46.name, 'optionalAccess', _47 => _47.split, 'call', _48 => _48(" "), 'access', _49 => _49[0]])||"")
+                      visibility:card?"visible":"hidden",lineHeight:1},}, _optionalChain([card, 'optionalAccess', _47 => _47.name, 'optionalAccess', _48 => _48.split, 'call', _49 => _49(" "), 'access', _50 => _50[0]])||"")
                     , React.createElement('div', {
-                      onClick: e=>{e.stopPropagation();if(card)setInfoCard(_optionalChain([infoCard, 'optionalAccess', _50 => _50.id])===card.id&&_optionalChain([infoCard, 'optionalAccess', _51 => _51._side])==="player"?null:{...card,_side:"player"});},
+                      onClick: e=>{e.stopPropagation();if(card)setInfoCard(_optionalChain([infoCard, 'optionalAccess', _51 => _51.id])===card.id&&_optionalChain([infoCard, 'optionalAccess', _52 => _52._side])==="player"?null:{...card,_side:"player"});},
                       style: {width:"100%",maxWidth:62,aspectRatio:"3/4",borderRadius:5,overflow:"hidden",margin:"0 auto",
                       border:card?`1.5px solid ${tc}`:"none",visibility:card?"visible":"hidden",
                       cursor:card?"pointer":"default",
-                      boxShadow:_optionalChain([infoCard, 'optionalAccess', _52 => _52.id])===_optionalChain([card, 'optionalAccess', _53 => _53.id])&&_optionalChain([infoCard, 'optionalAccess', _54 => _54._side])==="player"?`0 0 8px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _55 => _55.type])]||"transparent"}`:"none"},}
+                      boxShadow:_optionalChain([infoCard, 'optionalAccess', _53 => _53.id])===_optionalChain([card, 'optionalAccess', _54 => _54.id])&&_optionalChain([infoCard, 'optionalAccess', _55 => _55._side])==="player"?`0 0 8px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _56 => _56.type])]||"transparent"}`:"none"},}
                       , card&&React.createElement('img', { src: IMGS[card.img.replace('.png','')] || '', alt: card.name, style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
                     )
                   )
@@ -4593,7 +4587,7 @@ const JUNCTION_DESC = {
                   , React.createElement('span', { onClick: ()=>setShowLog(false), style: {cursor:"pointer",color:C.textMuted,fontSize:15},}, "✕")
                 )
                 , battleLog.length===0
-                  ? React.createElement('div', { style: {fontSize:12,color:C.textMuted,fontFamily:"monospace"},}, "No events yet."  )
+                  ? React.createElement('div', { style: {fontSize:12,color:C.textMuted,fontFamily:"monospace"},}, isPT?"Nenhum evento ainda.":"No events yet.")
                   : battleLog.map((e,i)=>{
                     const txt = typeof e==="string" ? e : (e.text||"");
                     const objColor = typeof e==="object" && e.color ? e.color : null;
@@ -4621,7 +4615,7 @@ const JUNCTION_DESC = {
               background:"rgba(245,166,35,0.12)",border:"1px solid rgba(245,166,35,0.5)",
               borderRadius:9,cursor:"pointer",color:C.accent,
               fontFamily:"monospace",fontSize:13,fontWeight:700,letterSpacing:"0.08em",
-            },}, "🔄 Play Again"  )
+            },}, isPT?"🔄 Jogar Novamente":"🔄 Play Again")
           ) : (
             React.createElement('button', { onClick: advanceTurn, style: {
               flex:1,padding:"13px 0",
@@ -4651,9 +4645,9 @@ const JUNCTION_DESC = {
                 )
                 /* YOUR JUNCTIONS */
                 , React.createElement('div', { style: {fontSize:10,color:C.cyan,fontFamily:"monospace",fontWeight:700,
-                  borderLeft:`2px solid ${C.cyan}`,paddingLeft:6,marginBottom:6},}, "YOUR JUNCTIONS" )
+                  borderLeft:`2px solid ${C.cyan}`,paddingLeft:6,marginBottom:6},}, _yourJuncs)
                 , bState.pJunctions.length===0
-                  ? React.createElement('div', { style: {fontSize:11,color:C.textMuted,fontFamily:"monospace",marginBottom:8,paddingLeft:4},}, "None active" )
+                  ? React.createElement('div', { style: {fontSize:11,color:C.textMuted,fontFamily:"monospace",marginBottom:8,paddingLeft:4},}, _noneActive)
                   : bState.pJunctions.map((j,i)=>(
                     React.createElement('div', { key: i, style: {marginBottom:7,paddingLeft:4,borderLeft:"2px solid rgba(0,245,255,0.25)"},}
                       , React.createElement('div', { style: {fontSize:12,color:"rgba(0,245,255,0.95)",fontFamily:"monospace",fontWeight:700},}, "⚡ " , j)
@@ -4663,9 +4657,9 @@ const JUNCTION_DESC = {
                 
                 /* AI JUNCTIONS */
                 , React.createElement('div', { style: {fontSize:10,color:"#ff4466",fontFamily:"monospace",fontWeight:700,
-                  borderLeft:"2px solid #ff4466",paddingLeft:6,marginTop:4,marginBottom:6},}, "AI JUNCTIONS" )
+                  borderLeft:"2px solid #ff4466",paddingLeft:6,marginTop:4,marginBottom:6},}, _aiJuncs)
                 , bState.aJunctions.length===0
-                  ? React.createElement('div', { style: {fontSize:11,color:C.textMuted,fontFamily:"monospace",paddingLeft:4},}, "None active" )
+                  ? React.createElement('div', { style: {fontSize:11,color:C.textMuted,fontFamily:"monospace",paddingLeft:4},}, _noneActive)
                   : bState.aJunctions.map((j,i)=>(
                     React.createElement('div', { key: i, style: {marginBottom:7,paddingLeft:4,borderLeft:"2px solid rgba(255,60,80,0.25)"},}
                       , React.createElement('div', { style: {fontSize:12,color:"rgba(255,110,130,0.95)",fontFamily:"monospace",fontWeight:700},}, "⚡ " , j)
@@ -4902,5 +4896,5 @@ function App() {
   );
 }
 
-const __root = ReactDOM.createRoot(document.getElementById('root'));
+const __root = ReactDOM.createRoot(document.getElementById("root"));
 __root.render(React.createElement(App));
