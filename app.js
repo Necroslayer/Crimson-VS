@@ -1,6 +1,6 @@
  function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }const { useState, createContext, useContext, useEffect, useRef } = React;
 
-const CVS_VERSION = "v0.5.32";
+const CVS_VERSION = "v0.5.33";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
@@ -2482,7 +2482,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     else if(!pDefStance&&!aDefStance){
       if(trinityWinner==="player") log.push("YOU won the Trinity Duel — YOU go first");
       else if(trinityWinner==="ai") log.push("AI won the Trinity Duel — AI goes first");
-      else log.push("Trinity Duel Draw — turn order randomized");
+      else log.push("Trinity Duel — drawn multiple times, turn order randomized");
     }
     log.push("━━ BATTLE START ━━");
     log.push(`${firstTurn==="player"?"YOU":"AI"} go first`);
@@ -3015,20 +3015,25 @@ function ArenaPlaceholder({ onBack, difficulty }) {
       // AI picks by difficulty
       let aiPick;
       if (difficulty === "easy") {
-        // Easy: random
         aiPick = TYPES[Math.floor(Math.random()*3)].key;
       } else if (difficulty === "hard") {
         // Hard: tries to counter player's pick
         const counter = TYPES.find(t => t.beats === playerPick);
         aiPick = counter ? counter.key : TYPES[Math.floor(Math.random()*3)].key;
       } else {
-        // Normal: random
         aiPick = TYPES[Math.floor(Math.random()*3)].key;
       }
       const result = trinityBeats(playerPick, aiPick);
-      setTrinityChoice(playerPick);
-      setTrinityAiChoice(aiPick);
-      setTrinityWinner(result);
+      if (result === "draw") {
+        // Show draw briefly then reset picks so buttons reappear
+        setTrinityChoice(playerPick);
+        setTrinityAiChoice(aiPick);
+        setTrinityWinner("draw");
+      } else {
+        setTrinityChoice(playerPick);
+        setTrinityAiChoice(aiPick);
+        setTrinityWinner(result);
+      }
     }
 
     const pType = TYPES.find(t => t.key === trinityChoice);
@@ -3118,25 +3123,21 @@ function ArenaPlaceholder({ onBack, difficulty }) {
           )
 
           /* Result message */
-          , resolved && (
+          , resolved && trinityWinner !== "draw" && (
             React.createElement('div', { style: {textAlign:"center",padding:"10px 20px",borderRadius:10,
-              background:trinityWinner==="player"?"rgba(0,200,80,0.08)":trinityWinner==="ai"?"rgba(255,40,60,0.08)":"rgba(255,200,0,0.08)",
-              border:`1px solid ${trinityWinner==="player"?"rgba(68,238,136,0.3)":trinityWinner==="ai"?"rgba(255,40,60,0.3)":"rgba(255,200,0,0.3)"}`,
+              background:trinityWinner==="player"?"rgba(0,200,80,0.08)":"rgba(255,40,60,0.08)",
+              border:`1px solid ${trinityWinner==="player"?"rgba(68,238,136,0.3)":"rgba(255,40,60,0.3)"}`,
               maxWidth:320},}
               , React.createElement('div', { style: {fontSize:12,fontFamily:"monospace",fontWeight:700,
-                color:trinityWinner==="player"?"#44ee88":trinityWinner==="ai"?"#ff4466":"#ffcc00",
+                color:trinityWinner==="player"?"#44ee88":"#ff4466",
                 marginBottom:3},}
                 , trinityWinner==="player"
                   ? "You go first in the General Battle!"
-                  : trinityWinner==="ai"
-                  ? "AI goes first in the General Battle!"
-                  : "Draw — turn order will be randomized!"
+                  : "AI goes first in the General Battle!"
               )
               , pType && aType && (
                 React.createElement('div', { style: {fontSize:10,fontFamily:"monospace",color:C.textMuted},}
-                  , trinityWinner==="draw"
-                    ? `Both chose ${pType.key}`
-                    : trinityWinner==="player"
+                  , trinityWinner==="player"
                     ? `${pType.key} beats ${aType.key}`
                     : `${aType.key} beats ${pType.key}`
                 )
@@ -3144,11 +3145,25 @@ function ArenaPlaceholder({ onBack, difficulty }) {
             )
           )
 
-          /* Pick buttons — shown before pick; hidden after */
-          , !resolved && (
-            React.createElement('div', { style: {display:"flex",flexDirection:"column",alignItems:"center",gap:10,width:"100%",maxWidth:320},}
-              , React.createElement('div', { style: {fontSize:11,fontFamily:"monospace",color:C.textMuted,marginBottom:4},}, "Choose your Trinity type:"
+          /* Draw message — prompt to play again */
+          , resolved && trinityWinner === "draw" && (
+            React.createElement('div', { style: {textAlign:"center",padding:"10px 20px",borderRadius:10,
+              background:"rgba(255,200,0,0.08)",
+              border:"1px solid rgba(255,200,0,0.3)",
+              maxWidth:320},}
+              , React.createElement('div', { style: {fontSize:14,fontFamily:"monospace",fontWeight:900,
+                color:"#ffcc00",marginBottom:4},}, "⚡ DRAW!" )
+              , React.createElement('div', { style: {fontSize:11,fontFamily:"monospace",color:C.textMuted},}, "Both chose "
+                  , _optionalChain([pType, 'optionalAccess', _7 => _7.key]), " — play again to decide!"
+              )
+            )
+          )
 
+          /* Pick buttons — shown before pick OR after a draw */
+          , (!resolved || trinityWinner === "draw") && (
+            React.createElement('div', { style: {display:"flex",flexDirection:"column",alignItems:"center",gap:10,width:"100%",maxWidth:320},}
+              , React.createElement('div', { style: {fontSize:11,fontFamily:"monospace",color:C.textMuted,marginBottom:4},}
+                , trinityWinner === "draw" ? "Choose again:" : "Choose your Trinity type:"
               )
               , TYPES.map(t => (
                 React.createElement('button', { key: t.key, onClick: () => pickAndReveal(t.key), style: {
@@ -3164,8 +3179,8 @@ function ArenaPlaceholder({ onBack, difficulty }) {
             )
           )
 
-          /* Continue button — shown after pick */
-          , resolved && (
+          /* Continue button — only shown after a decisive result */
+          , resolved && trinityWinner !== "draw" && (
             React.createElement('button', { onClick: () => setPhase("reveal"), style: {
               padding:"13px 40px",
               background:"rgba(245,166,35,0.12)",border:"1px solid rgba(245,166,35,0.5)",
@@ -3294,7 +3309,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
         /* AI banned yours */
         , React.createElement('div', { style: {...S.callout, marginBottom:12, borderColor:"rgba(255,68,80,0.3)", background:"rgba(255,68,80,0.06)"},}
           , React.createElement('span', null, "🤖")
-          , React.createElement('span', null, "AI banned your: "   , React.createElement('strong', { style: {color:"#ff6677"},}, _optionalChain([aiBan, 'optionalAccess', _7 => _7.name])))
+          , React.createElement('span', null, "AI banned your: "   , React.createElement('strong', { style: {color:"#ff6677"},}, _optionalChain([aiBan, 'optionalAccess', _8 => _8.name])))
         )
 
         /* AI pool — player picks one to ban */
@@ -3303,7 +3318,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
         )
         , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:8},}
           , aiPool.map(u => {
-            const isBanned = _optionalChain([playerBan, 'optionalAccess', _8 => _8.id]) === u.id;
+            const isBanned = _optionalChain([playerBan, 'optionalAccess', _9 => _9.id]) === u.id;
             const tc = TYPE_COLOR[u.type] || "#aaa";
             return (
               React.createElement('div', { key: u.id, onClick: () => setPlayerBan(u),
@@ -3578,7 +3593,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
           , React.createElement('div', { style: {flex:1, ...S.callout},}
             , React.createElement('span', null, "🃏")
             , React.createElement('span', { style: {fontSize:11, color:C.textSub, fontFamily:"monospace", overflow:"hidden",
-              textOverflow:"ellipsis", whiteSpace:"nowrap"},}, _optionalChain([playerDeck, 'optionalAccess', _9 => _9.name]))
+              textOverflow:"ellipsis", whiteSpace:"nowrap"},}, _optionalChain([playerDeck, 'optionalAccess', _10 => _10.name]))
           )
         )
 
@@ -3702,8 +3717,8 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     }
 
     function ClashCard({ card, revealed, side, dimmed }) {
-      const tc = TYPE_COLOR[_optionalChain([card, 'optionalAccess', _10 => _10.type])] || "#aaa";
-      const tg = TYPE_GLOW[_optionalChain([card, 'optionalAccess', _11 => _11.type])]  || "transparent";
+      const tc = TYPE_COLOR[_optionalChain([card, 'optionalAccess', _11 => _11.type])] || "#aaa";
+      const tg = TYPE_GLOW[_optionalChain([card, 'optionalAccess', _12 => _12.type])]  || "transparent";
       return (
         React.createElement('div', { style: {
           width:80, height:107, borderRadius:8, overflow:"hidden", flexShrink:0,
@@ -3845,7 +3860,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                   return (
                     React.createElement('div', { key: idx, style: {display:"flex", flexDirection:"column", alignItems:"center", gap:1},}
                       , React.createElement('div', {
-                        onClick: e=>{e.stopPropagation();if(card&&(isActive||isResolved)){const c2={...card,_side:"ai"};setInfoCard(_optionalChain([infoCard, 'optionalAccess', _12 => _12.id])===c2.id&&_optionalChain([infoCard, 'optionalAccess', _13 => _13._side])==="ai"?null:c2);}},
+                        onClick: e=>{e.stopPropagation();if(card&&(isActive||isResolved)){const c2={...card,_side:"ai"};setInfoCard(_optionalChain([infoCard, 'optionalAccess', _13 => _13.id])===c2.id&&_optionalChain([infoCard, 'optionalAccess', _14 => _14._side])==="ai"?null:c2);}},
                         style: {
                         width:"100%", maxWidth:72, aspectRatio:"3/4", borderRadius:5,
                         overflow:"hidden", margin:"0 auto", position:"relative",
@@ -3854,7 +3869,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                               : fizzle    ? "1.5px solid #ffcc00"
                               : isResolved ? "1px solid rgba(255,80,80,0.3)"
                               : "1px solid rgba(255,50,70,0.35)",
-                        boxShadow: isActive ? `0 0 10px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _14 => _14.type])]||"transparent"}` : "none",
+                        boxShadow: isActive ? `0 0 10px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _15 => _15.type])]||"transparent"}` : "none",
                         opacity: isResolved && !won && !fizzle ? 0.28 : 1,
                         transition:"all 0.3s",
                         cursor: (isActive||isResolved) && card ? "pointer" : "default",
@@ -3913,7 +3928,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
               borderBottom:"1px solid rgba(80,32,160,0.5)",
               display:"flex", alignItems:"center", justifyContent:"space-between"},}
               , React.createElement('span', { style: {fontSize:9,fontWeight:700,fontFamily:"monospace",color:C.accent},}
-                , _optionalChain([POS_LABELS, 'access', _15 => _15[clashStep], 'optionalAccess', _16 => _16.toUpperCase, 'call', _17 => _17()]), " CLASH ("  , clashStep+1, "/3)"
+                , _optionalChain([POS_LABELS, 'access', _16 => _16[clashStep], 'optionalAccess', _17 => _17.toUpperCase, 'call', _18 => _18()]), " CLASH ("  , clashStep+1, "/3)"
               )
               , React.createElement('span', { style: {fontSize:9,fontFamily:"monospace"},}
                 , React.createElement('span', { style: {color:"#44ee88",fontWeight:700},}, pScore)
@@ -3963,7 +3978,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                     React.createElement('div', { key: idx, style: {display:"flex", flexDirection:"column", alignItems:"center", gap:1},}
                       , React.createElement('span', { style: {fontSize:6,color:isActive?"rgba(245,166,35,0.9)":won?"rgba(68,238,136,0.6)":"rgba(80,140,255,0.4)",fontFamily:"monospace"},}, POS_LABELS[idx])
                       , React.createElement('div', {
-                        onClick: e=>{e.stopPropagation();if(card&&(isActive||isResolved)){const c2={...card,_side:"player"};setInfoCard(_optionalChain([infoCard, 'optionalAccess', _18 => _18.id])===c2.id&&_optionalChain([infoCard, 'optionalAccess', _19 => _19._side])==="player"?null:c2);}},
+                        onClick: e=>{e.stopPropagation();if(card&&(isActive||isResolved)){const c2={...card,_side:"player"};setInfoCard(_optionalChain([infoCard, 'optionalAccess', _19 => _19.id])===c2.id&&_optionalChain([infoCard, 'optionalAccess', _20 => _20._side])==="player"?null:c2);}},
                         style: {
                         width:"100%", maxWidth:72, aspectRatio:"3/4", borderRadius:5,
                         overflow:"hidden", margin:"0 auto", position:"relative",
@@ -3972,7 +3987,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                               : fizzle    ? "1.5px solid #ffcc00"
                               : isResolved ? "1px solid rgba(80,200,100,0.3)"
                               : "1px solid rgba(80,120,255,0.35)",
-                        boxShadow: isActive ? `0 0 10px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _20 => _20.type])]||"transparent"}` : "none",
+                        boxShadow: isActive ? `0 0 10px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _21 => _21.type])]||"transparent"}` : "none",
                         opacity: isResolved && !won && !fizzle ? 0.28 : 1,
                         transition:"all 0.3s",
                         cursor: (isActive||isResolved) && card ? "pointer" : "default",
@@ -4387,9 +4402,9 @@ const JUNCTION_DESC = {
       );
     };
 
-    const maxPHP = _optionalChain([playerGen, 'optionalAccess', _21 => _21.hp]) || 1, maxAHP = _optionalChain([aiGen, 'optionalAccess', _22 => _22.hp]) || 1;
-    const pWinning = (_optionalChain([bState, 'optionalAccess', _23 => _23.pHP])||0) > (_optionalChain([bState, 'optionalAccess', _24 => _24.aHP])||0);
-    const aWinning = (_optionalChain([bState, 'optionalAccess', _25 => _25.aHP])||0) > (_optionalChain([bState, 'optionalAccess', _26 => _26.pHP])||0);
+    const maxPHP = _optionalChain([playerGen, 'optionalAccess', _22 => _22.hp]) || 1, maxAHP = _optionalChain([aiGen, 'optionalAccess', _23 => _23.hp]) || 1;
+    const pWinning = (_optionalChain([bState, 'optionalAccess', _24 => _24.pHP])||0) > (_optionalChain([bState, 'optionalAccess', _25 => _25.aHP])||0);
+    const aWinning = (_optionalChain([bState, 'optionalAccess', _26 => _26.aHP])||0) > (_optionalChain([bState, 'optionalAccess', _27 => _27.pHP])||0);
 
     return (
       React.createElement('div', { style: {width:"100%",height:"100vh",display:"flex",flexDirection:"column",overflow:"hidden"},
@@ -4428,15 +4443,15 @@ const JUNCTION_DESC = {
                 return (
                   React.createElement('div', { key: idx, style: {display:"flex",flexDirection:"column",alignItems:"center",gap:1},}
                     , React.createElement('div', {
-                      onClick: e=>{e.stopPropagation();if(card)setInfoCard(_optionalChain([infoCard, 'optionalAccess', _27 => _27.id])===card.id&&_optionalChain([infoCard, 'optionalAccess', _28 => _28._side])==="ai"?null:{...card,_side:"ai"});},
+                      onClick: e=>{e.stopPropagation();if(card)setInfoCard(_optionalChain([infoCard, 'optionalAccess', _28 => _28.id])===card.id&&_optionalChain([infoCard, 'optionalAccess', _29 => _29._side])==="ai"?null:{...card,_side:"ai"});},
                       style: {width:"100%",maxWidth:62,aspectRatio:"3/4",borderRadius:5,overflow:"hidden",margin:"0 auto",
                       border:card?`1.5px solid ${tc}`:"none",visibility:card?"visible":"hidden",
                       cursor:card?"pointer":"default",
-                      boxShadow:_optionalChain([infoCard, 'optionalAccess', _29 => _29.id])===_optionalChain([card, 'optionalAccess', _30 => _30.id])&&_optionalChain([infoCard, 'optionalAccess', _31 => _31._side])==="ai"?`0 0 8px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _32 => _32.type])]||"transparent"}`:"none"},}
+                      boxShadow:_optionalChain([infoCard, 'optionalAccess', _30 => _30.id])===_optionalChain([card, 'optionalAccess', _31 => _31.id])&&_optionalChain([infoCard, 'optionalAccess', _32 => _32._side])==="ai"?`0 0 8px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _33 => _33.type])]||"transparent"}`:"none"},}
                       , card&&React.createElement('img', { src: IMGS[card.img.replace('.png','')] || '', alt: card.name, style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
                     )
                     , React.createElement('span', { style: {fontSize:7,color:"rgba(255,110,130,0.6)",fontFamily:"monospace",
-                      visibility:card?"visible":"hidden",lineHeight:1},}, _optionalChain([card, 'optionalAccess', _33 => _33.name, 'optionalAccess', _34 => _34.split, 'call', _35 => _35(" "), 'access', _36 => _36[0]])||"")
+                      visibility:card?"visible":"hidden",lineHeight:1},}, _optionalChain([card, 'optionalAccess', _34 => _34.name, 'optionalAccess', _35 => _35.split, 'call', _36 => _36(" "), 'access', _37 => _37[0]])||"")
                   )
                 );
               })
@@ -4451,9 +4466,9 @@ const JUNCTION_DESC = {
                 ))
               )
               , React.createElement('div', {
-                onClick: e=>{e.stopPropagation();setInfoCard(_optionalChain([infoCard, 'optionalAccess', _37 => _37.id])===aiGen.id&&_optionalChain([infoCard, 'optionalAccess', _38 => _38._side])==="ai"?null:{...aiGen,_side:"ai"});},
+                onClick: e=>{e.stopPropagation();setInfoCard(_optionalChain([infoCard, 'optionalAccess', _38 => _38.id])===aiGen.id&&_optionalChain([infoCard, 'optionalAccess', _39 => _39._side])==="ai"?null:{...aiGen,_side:"ai"});},
                 style: {width:90,height:120,borderRadius:7,overflow:"hidden",flexShrink:0,cursor:"pointer",
-                border:_optionalChain([infoCard, 'optionalAccess', _39 => _39.id])===aiGen.id&&_optionalChain([infoCard, 'optionalAccess', _40 => _40._side])==="ai"?`2px solid #ff4466`:`2px solid ${TYPE_COLOR[aiGen.type]||"#aaa"}`,
+                border:_optionalChain([infoCard, 'optionalAccess', _40 => _40.id])===aiGen.id&&_optionalChain([infoCard, 'optionalAccess', _41 => _41._side])==="ai"?`2px solid #ff4466`:`2px solid ${TYPE_COLOR[aiGen.type]||"#aaa"}`,
                 boxShadow:`0 0 ${aWinning?"16px":"8px"} ${TYPE_GLOW[aiGen.type]||"transparent"}`},}
                 , React.createElement('img', { src: IMGS[aiGen.img.replace('.png','')] || '', alt: aiGen.name, style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
               )
@@ -4483,9 +4498,9 @@ const JUNCTION_DESC = {
             , React.createElement('div', { style: {flex:1,display:"flex",justifyContent:"center",alignItems:"center",gap:8,minHeight:0,marginBottom:5},}
               , React.createElement('div', { style: {flex:1},})
               , React.createElement('div', {
-                onClick: e=>{e.stopPropagation();setInfoCard(_optionalChain([infoCard, 'optionalAccess', _41 => _41.id])===playerGen.id&&_optionalChain([infoCard, 'optionalAccess', _42 => _42._side])==="player"?null:{...playerGen,_side:"player"});},
+                onClick: e=>{e.stopPropagation();setInfoCard(_optionalChain([infoCard, 'optionalAccess', _42 => _42.id])===playerGen.id&&_optionalChain([infoCard, 'optionalAccess', _43 => _43._side])==="player"?null:{...playerGen,_side:"player"});},
                 style: {width:90,height:120,borderRadius:7,overflow:"hidden",flexShrink:0,cursor:"pointer",
-                border:_optionalChain([infoCard, 'optionalAccess', _43 => _43.id])===playerGen.id&&_optionalChain([infoCard, 'optionalAccess', _44 => _44._side])==="player"?`2px solid ${C.cyan}`:`2px solid ${TYPE_COLOR[playerGen.type]||"#aaa"}`,
+                border:_optionalChain([infoCard, 'optionalAccess', _44 => _44.id])===playerGen.id&&_optionalChain([infoCard, 'optionalAccess', _45 => _45._side])==="player"?`2px solid ${C.cyan}`:`2px solid ${TYPE_COLOR[playerGen.type]||"#aaa"}`,
                 boxShadow:`0 0 ${pWinning?"16px":"8px"} ${TYPE_GLOW[playerGen.type]||"transparent"}`},}
                 , React.createElement('img', { src: IMGS[playerGen.img.replace('.png','')] || '', alt: playerGen.name, style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
               )
@@ -4505,13 +4520,13 @@ const JUNCTION_DESC = {
                 return (
                   React.createElement('div', { key: idx, style: {display:"flex",flexDirection:"column",alignItems:"center",gap:1},}
                     , React.createElement('span', { style: {fontSize:7,color:"rgba(80,140,255,0.6)",fontFamily:"monospace",
-                      visibility:card?"visible":"hidden",lineHeight:1},}, _optionalChain([card, 'optionalAccess', _45 => _45.name, 'optionalAccess', _46 => _46.split, 'call', _47 => _47(" "), 'access', _48 => _48[0]])||"")
+                      visibility:card?"visible":"hidden",lineHeight:1},}, _optionalChain([card, 'optionalAccess', _46 => _46.name, 'optionalAccess', _47 => _47.split, 'call', _48 => _48(" "), 'access', _49 => _49[0]])||"")
                     , React.createElement('div', {
-                      onClick: e=>{e.stopPropagation();if(card)setInfoCard(_optionalChain([infoCard, 'optionalAccess', _49 => _49.id])===card.id&&_optionalChain([infoCard, 'optionalAccess', _50 => _50._side])==="player"?null:{...card,_side:"player"});},
+                      onClick: e=>{e.stopPropagation();if(card)setInfoCard(_optionalChain([infoCard, 'optionalAccess', _50 => _50.id])===card.id&&_optionalChain([infoCard, 'optionalAccess', _51 => _51._side])==="player"?null:{...card,_side:"player"});},
                       style: {width:"100%",maxWidth:62,aspectRatio:"3/4",borderRadius:5,overflow:"hidden",margin:"0 auto",
                       border:card?`1.5px solid ${tc}`:"none",visibility:card?"visible":"hidden",
                       cursor:card?"pointer":"default",
-                      boxShadow:_optionalChain([infoCard, 'optionalAccess', _51 => _51.id])===_optionalChain([card, 'optionalAccess', _52 => _52.id])&&_optionalChain([infoCard, 'optionalAccess', _53 => _53._side])==="player"?`0 0 8px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _54 => _54.type])]||"transparent"}`:"none"},}
+                      boxShadow:_optionalChain([infoCard, 'optionalAccess', _52 => _52.id])===_optionalChain([card, 'optionalAccess', _53 => _53.id])&&_optionalChain([infoCard, 'optionalAccess', _54 => _54._side])==="player"?`0 0 8px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _55 => _55.type])]||"transparent"}`:"none"},}
                       , card&&React.createElement('img', { src: IMGS[card.img.replace('.png','')] || '', alt: card.name, style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
                     )
                   )
