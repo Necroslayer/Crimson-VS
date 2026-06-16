@@ -1,6 +1,6 @@
-const CACHE = "crimson-vs-v7";
+const CACHE = "crimson-vs-v8";
 const PRECACHE = [
-  "./", "./index.html", "./app.js", "./imgs.js",
+  "./", "./index.html", "./app.js?v=2", "./imgs.js?v=2",
   "./manifest.json", "./icons/icon-192.png", "./icons/icon-512.png",
   "https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js",

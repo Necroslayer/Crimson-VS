@@ -2,22 +2,22 @@
 
 const CVS_VERSION = "v0.5.32";
 
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 const IMGS = window.__CRIMSON_IMGS__ || {};
 
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 // TRANSLATIONS
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 const translations = {
   en: {
-    menu: { play:"Arena", deckBuilder:"Deck Builder", guide:"Guide & Rules", options:"Options", tagline:"ALTIMIT Mine OS \u2014 Arena System" },
+    menu: { play:"Arena", deckBuilder:"Deck Builder", guide:"Guide & Rules", options:"Options", tagline:"ALTIMIT Mine OS — Arena System" },
     gameMode: {
       title:"Select Game Mode", back:"Back",
-      vsAI:"VS  \u2014  Artificial Intelligence",
+      vsAI:"VS  —  Artificial Intelligence",
       vsAIDesc:"Face a CPU opponent. Test your deck, learn the mechanics, and dominate the arena.",
-      vsPlayer:"VS  \u2014  Player",
+      vsPlayer:"VS  —  Player",
       vsPlayerDesc:"Challenge a friend locally or online. Multiplayer mode coming soon.",
       comingSoon:"Coming Soon",
       difficulty:"AI Difficulty",
@@ -25,7 +25,7 @@ const translations = {
       start:"Enter the Arena",
     },
     options: { title:"Options", language:"Language", languageDesc:"Select interface language", sound:"Sound Effects", music:"Background Music",
- difficulty:"AI Difficulty", difficultyEasy:"Easy", difficultyNormal:"Normal", difficultyHard:"Hard", back:"Back", version:"Version 0.1.0 \u2014 Vanilla" },
+ difficulty:"AI Difficulty", difficultyEasy:"Easy", difficultyNormal:"Normal", difficultyHard:"Hard", back:"Back", version:"Version 0.1.0 — Vanilla" },
     guide: {
       title:"Guide & Rules", back:"Back",
       chapters:{
@@ -33,43 +33,43 @@ const translations = {
         clash:"The Clash", battle:"General Battle",
         timing:"Battle Timing", junction:"Junction Abilities", deckRules:"Deck Rules",
       },
-      overview:{ title:"What is Crimson VS?", body:"Crimson VS is a tactical card game set inside the ALTIMIT Mine OS virtual world from .hack//G.U. Two players face off using General cards and Unit support cards, combining strategic pre-game decisions with automated combat resolution. All battles are resolved automatically and mathematically \u2014 there is no luck, only strategy." },
+      overview:{ title:"What is Crimson VS?", body:"Crimson VS is a tactical card game set inside the ALTIMIT Mine OS virtual world from .hack//G.U. Two players face off using General cards and Unit support cards, combining strategic pre-game decisions with automated combat resolution. All battles are resolved automatically and mathematically — there is no luck, only strategy." },
       cards:{
         title:"Card Types",
-        generalName:"General Cards (001\u2013025)",
-        generalDesc:"Leaders of the arena. Each General has HP (health points), AP (attack power), and Chr (Charisma \u2014 the max total Pts of the 3 final units). If HP hits 0, you lose instantly.",
-        unitName:"Unit Cards (026\u2013085)",
+        generalName:"General Cards (001–025)",
+        generalDesc:"Leaders of the arena. Each General has HP (health points), AP (attack power), and Chr (Charisma — the max total Pts of the 3 final units). If HP hits 0, you lose instantly.",
+        unitName:"Unit Cards (026–085)",
         unitDesc:"Support units placed behind your General. Each has Pts (cost points), a Trinity Type (Assault / Shield / Snipe), and a Junction Ability that activates only if the unit survives the Clash.",
         typeTitle:"Trinity Type Triangle",
         typeDesc:"Types create a rock-paper-scissors advantage used as tiebreaker in the Clash:",
-        typeList:["\u2694 Assault beats \u1f6e1 Shield","\u1f6e1 Shield beats \u1f985 Snipe","\u1f985 Snipe beats \u2694 Assault"],
+        typeList:["⚔ Assault beats 🛡 Shield","🛡 Shield beats 🦅 Snipe","🦅 Snipe beats ⚔ Assault"],
       },
       phases:{
-        title:"Game Flow \u2014 Pre-Clash",
+        title:"Game Flow — Pre-Clash",
         steps:[
-          "Step 1 \u2014 General Reveal: Both players place their General face-up simultaneously.",
-          "Step 2 \u2014 Pool Reveal: Each player reveals all 5 support units publicly.",
-          "Step 3 \u2014 Ban Phase: Each player bans 1 enemy unit permanently. 4 units remain per side.",
-          "Step 4 \u2014 The Cut: Each player secretly chooses 3 of their 4 units. The 4th is discarded face-down.",
-          "Step 5 \u2014 Layout: The 3 chosen units are shuffled and placed face-down in positions Left, Center, Right.",
+          "Step 1 — General Reveal: Both players place their General face-up simultaneously.",
+          "Step 2 — Pool Reveal: Each player reveals all 5 support units publicly.",
+          "Step 3 — Ban Phase: Each player bans 1 enemy unit permanently. 4 units remain per side.",
+          "Step 4 — The Cut: Each player secretly chooses 3 of their 4 units. The 4th is discarded face-down.",
+          "Step 5 — Layout: The 3 chosen units are shuffled and placed face-down in positions Left, Center, Right.",
         ],
       },
       clash:{
-        title:"Phase 1 \u2014 The Clash",
-        body:"Units are revealed and resolved one at a time: Right \u2192 Center \u2192 Left.",
+        title:"Phase 1 — The Clash",
+        body:"Units are revealed and resolved one at a time: Right → Center → Left.",
         rules:[
-          "Higher Pts wins \u2014 the lower-Pts unit is destroyed.",
-          "Equal Pts \u2192 Trinity type advantage decides the winner.",
-          "Equal Pts + Equal Type \u2192 Fizzle: both units destroy each other.",
+          "Higher Pts wins — the lower-Pts unit is destroyed.",
+          "Equal Pts → Trinity type advantage decides the winner.",
+          "Equal Pts + Equal Type → Fizzle: both units destroy each other.",
           "Surviving units carry their Junction Ability into Phase 2.",
         ],
       },
       battle:{
-        title:"Phase 2 \u2014 General Battle",
+        title:"Phase 2 — General Battle",
         body:"After the Clash, Junction Abilities from surviving units are activated, then Generals trade direct attacks.",
         rules:[
           "Junction Abilities trigger first, modifying HP/AP or applying effects.",
-          "Generals alternate attacks \u2014 each deals damage equal to their current AP.",
+          "Generals alternate attacks — each deals damage equal to their current AP.",
           "K.O.: a General reaching 0 HP loses instantly, at any point.",
           "Timeout: after 10 attack turns, the General with more remaining HP wins.",
           "Draw: equal HP after 10 turns = technical draw.",
@@ -82,7 +82,7 @@ const translations = {
           {
             phase:"On Junction (Before Combat Starts)",
             desc:"These effects apply immediately when the ability is junctioned, before any attack turn begins.",
-            abilities:["Vitality Medicine (+5 HP)","Verboten Libation (+7 HP)","Fire Fang (+1 AP)","Flame Fang (+2 AP)","Bone Crunching (+4 AP, -4 HP)","Energy Drain (steal 3 HP)","Divine Punishment (5 dmg to enemy)","Quick Lightning (3 dmg to enemy)","Demonic Spear (7 dmg to enemy)","Hammer of Undoing (5 dmg to both)","Merciless Light (passive: 2 dmg to both each turn)","Border of Zero (both HP \u2192 1)","Change Ring (swap enemy AP\u2194HP)","Estranged Self (remove all enemy junctions)","Charge Ahead (go first)","Mind's Eye (evade next attack)","Mirror of Revenge (reflect dmg for 3 turns)","Time Torrent (skip enemy turn)","Whirlwind Assault (remove 1 Shield junction)","Snipe Thunder (remove 1 Assault junction)","Shield Protection (remove 1 Snipe junction)","Warning Harmony (remove 1 random enemy junction if \u22652)","Grief of Comrade (+2 HP per enemy junction)","All At Once (+2 AP per friendly junction)"],
+            abilities:["Vitality Medicine (+5 HP)","Verboten Libation (+7 HP)","Fire Fang (+1 AP)","Flame Fang (+2 AP)","Bone Crunching (+4 AP, -4 HP)","Energy Drain (steal 3 HP)","Divine Punishment (5 dmg to enemy)","Quick Lightning (3 dmg to enemy)","Demonic Spear (7 dmg to enemy)","Hammer of Undoing (5 dmg to both)","Merciless Light (passive: 2 dmg to both each turn)","Border of Zero (both HP → 1)","Change Ring (swap enemy AP↔HP)","Estranged Self (remove all enemy junctions)","Charge Ahead (go first)","Mind's Eye (evade next attack)","Mirror of Revenge (reflect dmg for 3 turns)","Time Torrent (skip enemy turn)","Whirlwind Assault (remove 1 Shield junction)","Snipe Thunder (remove 1 Assault junction)","Shield Protection (remove 1 Snipe junction)","Warning Harmony (remove 1 random enemy junction if ≥2)","Grief of Comrade (+2 HP per enemy junction)","All At Once (+2 AP per friendly junction)"],
           },
           {
             phase:"At the Beginning of Each Turn",
@@ -97,13 +97,13 @@ const translations = {
           {
             phase:"Conditional / Passive",
             desc:"These effects apply under specific conditions throughout the battle.",
-            abilities:["Clenching Teeth (force HP to 1 if it hits 0 \u2014 once)","Suck it up (force HP to 5 if it hits 0 \u2014 once)","Veil of Aura (-2 dmg received permanently)","Spirit Clothes (-1 dmg received permanently)","Emperor's Pride (-1 normal dmg received)","Promised Discretion (cap dmg at 3 per hit)","Detail Oriented (nullify dmg of 1\u20132, normal above 3)","Avatar's Descent (+5 AP for 5 turns, nullify junction dmg)","Trial by Fire (no attack for 4 turns, then +5 AP +6 HP)","Twilight's Call (reactivate all junctions after 5 turns)","Price of Insight (replace itself with random ability)","Meeting of Souls (swap all junctions between generals)","Fused Consciousness (set AP+HP to average of both)","Different Mix (+2 AP+HP if mixed trinity, -2 if same)","Will of Similars (+3 AP+HP if same trinity, -3 if different)","Demon Sword Maxwell (nullify all junction damage received)"],
+            abilities:["Clenching Teeth (force HP to 1 if it hits 0 — once)","Suck it up (force HP to 5 if it hits 0 — once)","Veil of Aura (-2 dmg received permanently)","Spirit Clothes (-1 dmg received permanently)","Emperor's Pride (-1 normal dmg received)","Promised Discretion (cap dmg at 3 per hit)","Detail Oriented (nullify dmg of 1–2, normal above 3)","Avatar's Descent (+5 AP for 5 turns, nullify junction dmg)","Trial by Fire (no attack for 4 turns, then +5 AP +6 HP)","Twilight's Call (reactivate all junctions after 5 turns)","Price of Insight (replace itself with random ability)","Meeting of Souls (swap all junctions between generals)","Fused Consciousness (set AP+HP to average of both)","Different Mix (+2 AP+HP if mixed trinity, -2 if same)","Will of Similars (+3 AP+HP if same trinity, -3 if different)","Demon Sword Maxwell (nullify all junction damage received)"],
           },
         ],
       },
       junction:{
         title:"Junction Abilities Reference",
-        intro:"Complete list of all Junction Abilities from Unit Cards 026\u2013085.",
+        intro:"Complete list of all Junction Abilities from Unit Cards 026–085.",
         note:"Abilities only activate if the unit survives the Clash.",
         list:[
           {name:"AIDA Berserk",effect:"Start of turn: +2 AP, take 2 damage."},
@@ -122,7 +122,7 @@ const translations = {
           {name:"Defensive Stance",effect:"Force your General to go second. -1 damage received."},
           {name:"Demonic Spear",effect:"Deal 7 damage to enemy General immediately."},
           {name:"Demon Sword Maxwell",effect:"Nullify all damage from enemy junction abilities."},
-          {name:"Detail Oriented",effect:"Damage of 1\u20132 is reduced to 0. Damage 3+ is normal."},
+          {name:"Detail Oriented",effect:"Damage of 1–2 is reduced to 0. Damage 3+ is normal."},
           {name:"Different Mix",effect:"+2 AP/HP if junctioned with a different trinity. -2 if same."},
           {name:"Divine Punishment",effect:"Deal 5 damage to enemy General immediately."},
           {name:"Double Trigger",effect:"When you deal damage, add +2 extra."},
@@ -184,8 +184,8 @@ const translations = {
         title:"Deck Construction Rules",
         rules:[
           "Each deck: exactly 1 General + 5 Unit cards.",
-          "Charisma rule: the 3 final units after Ban+Cut must have total Cost \u2264 General's Charisma.",
-          "Charisma is only validated on the final 3 units \u2014 not the full pool of 5.",
+          "Charisma rule: the 3 final units after Ban+Cut must have total Cost ≤ General's Charisma.",
+          "Charisma is only validated on the final 3 units — not the full pool of 5.",
           "Illegal deck (total Cost exceeds Charisma) = instant forfeit loss.",
           "Each player secretly chooses which 3 of 4 units to keep after the ban phase.",
           "The discarded 4th unit is never revealed to the opponent.",
@@ -201,112 +201,112 @@ const translations = {
       charisma:"Charisma", cost:"Cost", rarity:"Rarity", type:"Type", junction:"Junction",
       filterAll:"All", filterAssault:"Assault", filterShield:"Shield", filterSnipe:"Snipe",
       rarityAll:"All Rarities", search:"Search cards...",
-      validDeck:"Valid deck", invalidDeck:"Invalid \u2014 charisma exceeded",
+      validDeck:"Valid deck", invalidDeck:"Invalid — charisma exceeded",
       hp:"HP", ap:"AP", charLabel:"Char.",
       confirmDelete:"Delete this deck?",
       enterName:"Enter deck name...",
     },
   },
   pt: {
-    menu: { play:"Arena", deckBuilder:"Construtor de Deck", guide:"Guia e Regras", options:"Op\u00e7\u00f5es", tagline:"ALTIMIT Mine OS \u2014 Sistema de Arena" },
+    menu: { play:"Arena", deckBuilder:"Construtor de Deck", guide:"Guia e Regras", options:"Opções", tagline:"ALTIMIT Mine OS — Sistema de Arena" },
     gameMode: {
       title:"Selecionar Modo de Jogo", back:"Voltar",
-      vsAI:"VS  \u2014  Intelig\u00eancia Artificial",
-      vsAIDesc:"Enfrente um oponente CPU. Teste seu deck, aprenda as mec\u00e2nicas e domine a arena.",
-      vsPlayer:"VS  \u2014  Jogador",
+      vsAI:"VS  —  Inteligência Artificial",
+      vsAIDesc:"Enfrente um oponente CPU. Teste seu deck, aprenda as mecânicas e domine a arena.",
+      vsPlayer:"VS  —  Jogador",
       vsPlayerDesc:"Desafie um amigo localmente ou online. Modo multiplayer em breve.",
       comingSoon:"Em Breve",
       difficulty:"Dificuldade da IA",
-      easy:"F\u00e1cil", normal:"Normal", hard:"Dif\u00edcil",
+      easy:"Fácil", normal:"Normal", hard:"Difícil",
       start:"Entrar na Arena",
     },
-    options: { title:"Op\u00e7\u00f5es", language:"Idioma", languageDesc:"Selecione o idioma da interface", sound:"Efeitos Sonoros", music:"M\u00fasica de Fundo",
- difficulty:"Dificuldade da IA", difficultyEasy:"F\u00e1cil", difficultyNormal:"Normal", difficultyHard:"Dif\u00edcil", back:"Voltar", version:"Vers\u00e3o 0.1.0 \u2014 Vanilla" },
+    options: { title:"Opções", language:"Idioma", languageDesc:"Selecione o idioma da interface", sound:"Efeitos Sonoros", music:"Música de Fundo",
+ difficulty:"Dificuldade da IA", difficultyEasy:"Fácil", difficultyNormal:"Normal", difficultyHard:"Difícil", back:"Voltar", version:"Versão 0.1.0 — Vanilla" },
     guide: {
       title:"Guia e Regras", back:"Voltar",
       chapters:{
-        overview:"Vis\u00e3o Geral", cards:"Tipos de Carta", phases:"Fases do Jogo",
+        overview:"Visão Geral", cards:"Tipos de Carta", phases:"Fases do Jogo",
         clash:"O Clash", battle:"Batalha dos Generais",
         timing:"Timing de Batalha", junction:"Junction Abilities", deckRules:"Regras de Deck",
       },
-      overview:{ title:"O que \u00e9 Crimson VS?", body:"Crimson VS \u00e9 um jogo t\u00e1tico de cartas ambientado dentro do mundo virtual ALTIMIT Mine OS de .hack//G.U. Dois jogadores se enfrentam usando cartas de General e cartas de Unidade de suporte, combinando decis\u00f5es estrat\u00e9gicas pr\u00e9-jogo com resolu\u00e7\u00e3o autom\u00e1tica de combate. Todas as batalhas s\u00e3o resolvidas automaticamente \u2014 sem sorte, apenas estrat\u00e9gia." },
+      overview:{ title:"O que é Crimson VS?", body:"Crimson VS é um jogo tático de cartas ambientado dentro do mundo virtual ALTIMIT Mine OS de .hack//G.U. Dois jogadores se enfrentam usando cartas de General e cartas de Unidade de suporte, combinando decisões estratégicas pré-jogo com resolução automática de combate. Todas as batalhas são resolvidas automaticamente — sem sorte, apenas estratégia." },
       cards:{
         title:"Tipos de Carta",
-        generalName:"Cartas de General (001\u2013025)",
-        generalDesc:"L\u00edderes da arena. Cada General tem HP (pontos de vida), AP (poder de ataque) e Carisma (custo m\u00e1ximo total das 3 unidades finais). Se o HP chegar a 0, voc\u00ea perde instantaneamente.",
-        unitName:"Cartas de Unidade (026\u2013085)",
-        unitDesc:"Unidades de suporte posicionadas atr\u00e1s do seu General. Possuem Custo, Tipo Trinity (Assault / Shield / Snipe) e uma Junction Ability que s\u00f3 ativa se a unidade sobreviver ao Clash.",
-        typeTitle:"Tri\u00e2ngulo de Vantagens Trinity",
+        generalName:"Cartas de General (001–025)",
+        generalDesc:"Líderes da arena. Cada General tem HP (pontos de vida), AP (poder de ataque) e Carisma (custo máximo total das 3 unidades finais). Se o HP chegar a 0, você perde instantaneamente.",
+        unitName:"Cartas de Unidade (026–085)",
+        unitDesc:"Unidades de suporte posicionadas atrás do seu General. Possuem Custo, Tipo Trinity (Assault / Shield / Snipe) e uma Junction Ability que só ativa se a unidade sobreviver ao Clash.",
+        typeTitle:"Triângulo de Vantagens Trinity",
         typeDesc:"Os tipos criam uma vantagem de pedra-papel-tesoura usada como desempate no Clash:",
-        typeList:["\u2694 Assault vence \u1f6e1 Shield","\u1f6e1 Shield vence \u1f985 Snipe","\u1f985 Snipe vence \u2694 Assault"],
+        typeList:["⚔ Assault vence 🛡 Shield","🛡 Shield vence 🦅 Snipe","🦅 Snipe vence ⚔ Assault"],
       },
       phases:{
-        title:"Fluxo do Jogo \u2014 Pr\u00e9-Clash",
+        title:"Fluxo do Jogo — Pré-Clash",
         steps:[
-          "Passo 1 \u2014 Revela\u00e7\u00e3o do General: Ambos os jogadores revelam seus Generais simultaneamente.",
-          "Passo 2 \u2014 Revela\u00e7\u00e3o do Pool: Cada jogador revela suas 5 unidades de suporte publicamente.",
-          "Passo 3 \u2014 Fase de Ban: Cada jogador bane 1 unidade inimiga permanentemente. Restam 4 unidades por lado.",
-          "Passo 4 \u2014 The Cut: Cada jogador seleciona secretamente 3 das 4 unidades restantes. A 4\u00aa \u00e9 descartada sem ser revelada.",
-          "Passo 5 \u2014 Layout: As 3 unidades escolhidas s\u00e3o embaralhadas e posicionadas viradas para baixo nas posi\u00e7\u00f5es Esquerda, Centro e Direita.",
+          "Passo 1 — Revelação do General: Ambos os jogadores revelam seus Generais simultaneamente.",
+          "Passo 2 — Revelação do Pool: Cada jogador revela suas 5 unidades de suporte publicamente.",
+          "Passo 3 — Fase de Ban: Cada jogador bane 1 unidade inimiga permanentemente. Restam 4 unidades por lado.",
+          "Passo 4 — The Cut: Cada jogador seleciona secretamente 3 das 4 unidades restantes. A 4ª é descartada sem ser revelada.",
+          "Passo 5 — Layout: As 3 unidades escolhidas são embaralhadas e posicionadas viradas para baixo nas posições Esquerda, Centro e Direita.",
         ],
       },
       clash:{
-        title:"Fase 1 \u2014 O Clash",
-        body:"As unidades s\u00e3o reveladas e resolvidas uma a uma: Direita \u2192 Centro \u2192 Esquerda.",
+        title:"Fase 1 — O Clash",
+        body:"As unidades são reveladas e resolvidas uma a uma: Direita → Centro → Esquerda.",
         rules:[
-          "Maior Custo vence \u2014 a unidade de menor Custo \u00e9 destru\u00edda.",
-          "Custo igual \u2192 vantagem de tipo Trinity decide o vencedor.",
-          "Pts igual + Tipo igual \u2192 Fizzle: ambas as unidades se destroem mutuamente.",
+          "Maior Custo vence — a unidade de menor Custo é destruída.",
+          "Custo igual → vantagem de tipo Trinity decide o vencedor.",
+          "Pts igual + Tipo igual → Fizzle: ambas as unidades se destroem mutuamente.",
           "Unidades sobreviventes levam sua Junction Ability para a Fase 2.",
         ],
       },
       battle:{
-        title:"Fase 2 \u2014 Batalha dos Generais",
-        body:"Ap\u00f3s o Clash, as Junction Abilities das unidades sobreviventes s\u00e3o ativadas e os Generais trocam ataques diretos.",
+        title:"Fase 2 — Batalha dos Generais",
+        body:"Após o Clash, as Junction Abilities das unidades sobreviventes são ativadas e os Generais trocam ataques diretos.",
         rules:[
           "Junction Abilities disparam primeiro, modificando HP/AP ou aplicando efeitos.",
-          "Generais se alternam nos ataques \u2014 cada um causa dano igual ao seu AP atual.",
+          "Generais se alternam nos ataques — cada um causa dano igual ao seu AP atual.",
           "K.O.: um General que chega a 0 HP perde instantaneamente, em qualquer momento.",
-          "Timeout: ap\u00f3s 10 turnos de ataque, o General com mais HP restante vence.",
-          "Empate: HP igual ap\u00f3s 10 turnos = empate t\u00e9cnico.",
+          "Timeout: após 10 turnos de ataque, o General com mais HP restante vence.",
+          "Empate: HP igual após 10 turnos = empate técnico.",
         ],
       },
       timing:{
         title:"Timing dos Efeitos de Batalha",
-        intro:"As Junction Abilities disparam em momentos espec\u00edficos durante a Batalha dos Generais. Entender o timing \u00e9 essencial para a estrat\u00e9gia.",
+        intro:"As Junction Abilities disparam em momentos específicos durante a Batalha dos Generais. Entender o timing é essencial para a estratégia.",
         phases:[
           {
-            phase:"Na Jun\u00e7\u00e3o (Antes do Combate Come\u00e7ar)",
-            desc:"Esses efeitos se aplicam imediatamente quando a habilidade \u00e9 juntionada, antes de qualquer turno de ataque.",
-            abilities:["Vitality Medicine (+5 HP)","Verboten Libation (+7 HP)","Fire Fang (+1 AP)","Flame Fang (+2 AP)","Bone Crunching (+4 AP, -4 HP)","Energy Drain (roubar 3 HP do inimigo)","Divine Punishment (5 de dano ao inimigo)","Quick Lightning (3 de dano ao inimigo)","Demonic Spear (7 de dano ao inimigo)","Hammer of Undoing (5 de dano em ambos)","Border of Zero (HP de ambos \u2192 1)","Change Ring (trocar AP\u2194HP do inimigo)","Estranged Self (remover todos os junctions inimigos)","Charge Ahead (ir primeiro)","Mind's Eye (esquivar do pr\u00f3ximo ataque)","Mirror of Revenge (refletir dano por 3 turnos)","Time Torrent (pular turno inimigo)","Whirlwind Assault (remover 1 junction Shield)","Snipe Thunder (remover 1 junction Assault)","Shield Protection (remover 1 junction Snipe)","Warning Harmony (remover 1 junction inimigo aleat\u00f3rio se \u22652)","Grief of Comrade (+2 HP por junction inimigo)","All At Once (+2 AP por junction aliado)"],
+            phase:"Na Junção (Antes do Combate Começar)",
+            desc:"Esses efeitos se aplicam imediatamente quando a habilidade é juntionada, antes de qualquer turno de ataque.",
+            abilities:["Vitality Medicine (+5 HP)","Verboten Libation (+7 HP)","Fire Fang (+1 AP)","Flame Fang (+2 AP)","Bone Crunching (+4 AP, -4 HP)","Energy Drain (roubar 3 HP do inimigo)","Divine Punishment (5 de dano ao inimigo)","Quick Lightning (3 de dano ao inimigo)","Demonic Spear (7 de dano ao inimigo)","Hammer of Undoing (5 de dano em ambos)","Border of Zero (HP de ambos → 1)","Change Ring (trocar AP↔HP do inimigo)","Estranged Self (remover todos os junctions inimigos)","Charge Ahead (ir primeiro)","Mind's Eye (esquivar do próximo ataque)","Mirror of Revenge (refletir dano por 3 turnos)","Time Torrent (pular turno inimigo)","Whirlwind Assault (remover 1 junction Shield)","Snipe Thunder (remover 1 junction Assault)","Shield Protection (remover 1 junction Snipe)","Warning Harmony (remover 1 junction inimigo aleatório se ≥2)","Grief of Comrade (+2 HP por junction inimigo)","All At Once (+2 AP por junction aliado)"],
           },
           {
-            phase:"No In\u00edcio de Cada Turno",
-            desc:"Esses efeitos disparam no in\u00edcio de cada turno de ataque.",
-            abilities:["Vengeful Arrow (1 dano ao inimigo no seu turno)","Tragic Arrow (2 dano ao inimigo no seu turno)","Energy Genome (+1 HP no in\u00edcio do seu turno)","Immortal Genome (+2 HP no in\u00edcio do seu turno)","Folset's Trial (+1 AP, -1 HP no in\u00edcio do seu turno)","Filling Hollow (remover 1 junction aleat\u00f3rio de ambos por turno)","Gathering of the Strong (1 dano ao inimigo por 5 turnos)","Light of Annihilation (3 dano em ambos todo turno)","First Strike (1 dano em ambos no in\u00edcio de cada turno)","Anu's Karma (+3 HP no fim do seu turno se for segundo)","Aurora Tears (+2 AP no fim do seu turno se for primeiro)","Harmonic Rhythm (+2 AP in\u00edcio do turno se primeiro / +4 HP se segundo)","AIDA Corrosion (+1 AP, -1 HP in\u00edcio do turno)","AIDA Berserk (+2 AP, -2 HP in\u00edcio do turno)","Rendezvous (+10 HP no in\u00edcio do combate, -10 HP no turno 8)","Mobilize the Troops (+1 HP por turno ap\u00f3s 5 turnos)"],
+            phase:"No Início de Cada Turno",
+            desc:"Esses efeitos disparam no início de cada turno de ataque.",
+            abilities:["Vengeful Arrow (1 dano ao inimigo no seu turno)","Tragic Arrow (2 dano ao inimigo no seu turno)","Energy Genome (+1 HP no início do seu turno)","Immortal Genome (+2 HP no início do seu turno)","Folset's Trial (+1 AP, -1 HP no início do seu turno)","Filling Hollow (remover 1 junction aleatório de ambos por turno)","Gathering of the Strong (1 dano ao inimigo por 5 turnos)","Light of Annihilation (3 dano em ambos todo turno)","First Strike (1 dano em ambos no início de cada turno)","Anu's Karma (+3 HP no fim do seu turno se for segundo)","Aurora Tears (+2 AP no fim do seu turno se for primeiro)","Harmonic Rhythm (+2 AP início do turno se primeiro / +4 HP se segundo)","AIDA Corrosion (+1 AP, -1 HP início do turno)","AIDA Berserk (+2 AP, -2 HP início do turno)","Rendezvous (+10 HP no início do combate, -10 HP no turno 8)","Mobilize the Troops (+1 HP por turno após 5 turnos)"],
           },
           {
             phase:"Em Ataque / Eventos de Dano",
             desc:"Esses efeitos disparam quando seu General causa ou recebe dano.",
-            abilities:["Blades Crossing (+1 dano extra ao atacar)","Double Trigger (+2 dano extra ao atacar)","Massacre Pulse (+1 AP cada vez que voc\u00ea ataca)","Cross Counter (1 dano ao inimigo quando voc\u00ea recebe dano)","Momentary Glory (+3 AP / -3 AP inimigo por 1 turno, depois inverte)","Quickdance (-3 AP mas ataca mesmo no turno inimigo)","Reckless Rewards (+2 AP, mas +1 dano recebido)","Ingenious Scheme (refletir todo dano por 2 turnos)"],
+            abilities:["Blades Crossing (+1 dano extra ao atacar)","Double Trigger (+2 dano extra ao atacar)","Massacre Pulse (+1 AP cada vez que você ataca)","Cross Counter (1 dano ao inimigo quando você recebe dano)","Momentary Glory (+3 AP / -3 AP inimigo por 1 turno, depois inverte)","Quickdance (-3 AP mas ataca mesmo no turno inimigo)","Reckless Rewards (+2 AP, mas +1 dano recebido)","Ingenious Scheme (refletir todo dano por 2 turnos)"],
           },
           {
             phase:"Condicionais / Passivos",
-            desc:"Esses efeitos se aplicam sob condi\u00e7\u00f5es espec\u00edficas ao longo da batalha.",
-            abilities:["Clenching Teeth (for\u00e7a HP para 1 se chegar a 0 \u2014 uma vez)","Suck it up (for\u00e7a HP para 5 se chegar a 0 \u2014 uma vez)","Veil of Aura (-2 dano recebido permanentemente)","Spirit Clothes (-1 dano recebido permanentemente)","Emperor's Pride (-1 dano normal recebido)","Promised Discretion (limita dano recebido a 3 por hit)","Detail Oriented (anula dano 1\u20132; dano 3+ \u00e9 normal)","Avatar's Descent (+5 AP por 5 turnos, anula dano de junctions inimigos)","Trial by Fire (n\u00e3o pode atacar por 4 turnos; depois +5 AP +6 HP)","Twilight's Call (reativa todos os junctions ap\u00f3s 5 turnos)","Price of Insight (substitui a si mesmo por uma ability aleat\u00f3ria)","Meeting of Souls (troca todos os junctions entre os dois Generais)","Fused Consciousness (define AP+HP como a m\u00e9dia de ambos)","Different Mix (+2 AP/HP se trinity diferente; -2 se igual)","Will of Similars (+3 AP/HP se mesmo trinity; -3 se diferente)","Demon Sword Maxwell (anula todo dano de junctions inimigos)"],
+            desc:"Esses efeitos se aplicam sob condições específicas ao longo da batalha.",
+            abilities:["Clenching Teeth (força HP para 1 se chegar a 0 — uma vez)","Suck it up (força HP para 5 se chegar a 0 — uma vez)","Veil of Aura (-2 dano recebido permanentemente)","Spirit Clothes (-1 dano recebido permanentemente)","Emperor's Pride (-1 dano normal recebido)","Promised Discretion (limita dano recebido a 3 por hit)","Detail Oriented (anula dano 1–2; dano 3+ é normal)","Avatar's Descent (+5 AP por 5 turnos, anula dano de junctions inimigos)","Trial by Fire (não pode atacar por 4 turnos; depois +5 AP +6 HP)","Twilight's Call (reativa todos os junctions após 5 turnos)","Price of Insight (substitui a si mesmo por uma ability aleatória)","Meeting of Souls (troca todos os junctions entre os dois Generais)","Fused Consciousness (define AP+HP como a média de ambos)","Different Mix (+2 AP/HP se trinity diferente; -2 se igual)","Will of Similars (+3 AP/HP se mesmo trinity; -3 se diferente)","Demon Sword Maxwell (anula todo dano de junctions inimigos)"],
           },
         ],
       },
       junction:{
-        title:"Refer\u00eancia de Junction Abilities",
-        intro:"Lista completa de todas as Junction Abilities das Cartas de Unidade 026\u2013085.",
-        note:"As habilidades s\u00f3 ativam se a unidade sobreviver ao Clash.",
+        title:"Referência de Junction Abilities",
+        intro:"Lista completa de todas as Junction Abilities das Cartas de Unidade 026–085.",
+        note:"As habilidades só ativam se a unidade sobreviver ao Clash.",
         list:[
-          {name:"AIDA Berserk",effect:"In\u00edcio do turno: +2 AP, recebe 2 de dano."},
-          {name:"AIDA Corrosion",effect:"In\u00edcio do seu turno: +1 AP, recebe 1 de dano."},
-          {name:"All At Once",effect:"+2 AP para cada carta juntionada que voc\u00ea possui."},
-          {name:"Anu's Karma",effect:"+3 HP no fim do seu turno se voc\u00ea for segundo."},
-          {name:"Aurora Tears",effect:"+2 AP no fim do seu turno se voc\u00ea for primeiro."},
+          {name:"AIDA Berserk",effect:"Início do turno: +2 AP, recebe 2 de dano."},
+          {name:"AIDA Corrosion",effect:"Início do seu turno: +1 AP, recebe 1 de dano."},
+          {name:"All At Once",effect:"+2 AP para cada carta juntionada que você possui."},
+          {name:"Anu's Karma",effect:"+3 HP no fim do seu turno se você for segundo."},
+          {name:"Aurora Tears",effect:"+2 AP no fim do seu turno se você for primeiro."},
           {name:"Avatar's Descent",effect:"+5 AP por 5 turnos. Anula todo dano de junctions inimigos."},
           {name:"Blades Crossing",effect:"Cada vez que causar dano, causa +1 extra."},
           {name:"Bone Crunching",effect:"+4 AP, -4 HP imediatamente."},
@@ -314,77 +314,77 @@ const translations = {
           {name:"Change Ring",effect:"Troca AP e HP do General inimigo."},
           {name:"Charge Ahead",effect:"Seu General vai primeiro. Cancelado se ambos tiverem."},
           {name:"Clenching Teeth",effect:"Uma vez: se HP chegar a 0, restaura para 1."},
-          {name:"Cross Counter",effect:"Quando voc\u00ea recebe dano, causa 1 de dano ao inimigo."},
-          {name:"Defensive Stance",effect:"For\u00e7a seu General a ir segundo. -1 dano recebido."},
+          {name:"Cross Counter",effect:"Quando você recebe dano, causa 1 de dano ao inimigo."},
+          {name:"Defensive Stance",effect:"Força seu General a ir segundo. -1 dano recebido."},
           {name:"Demonic Spear",effect:"Causa 7 de dano ao General inimigo imediatamente."},
           {name:"Demon Sword Maxwell",effect:"Anula todo dano de junctions inimigos."},
-          {name:"Detail Oriented",effect:"Dano 1\u20132 \u00e9 reduzido a 0. Dano 3+ \u00e9 normal."},
+          {name:"Detail Oriented",effect:"Dano 1–2 é reduzido a 0. Dano 3+ é normal."},
           {name:"Different Mix",effect:"+2 AP/HP se juntionado com trinity diferente. -2 se igual."},
           {name:"Divine Punishment",effect:"Causa 5 de dano ao General inimigo imediatamente."},
           {name:"Double Trigger",effect:"Quando causar dano, adiciona +2 extra."},
           {name:"Emperor's Pride",effect:"-1 em todo dano normal recebido."},
           {name:"Energy Drain",effect:"Rouba 3 HP do General inimigo."},
-          {name:"Energy Genome",effect:"+1 HP no in\u00edcio de cada um dos seus turnos."},
-          {name:"Estranged Self",effect:"Remove todas as junctions inimigas. Voc\u00ea recebe +2 de dano."},
-          {name:"Filling Hollow",effect:"Cada turno seu: remove 1 junction aleat\u00f3ria de ambos os generais."},
+          {name:"Energy Genome",effect:"+1 HP no início de cada um dos seus turnos."},
+          {name:"Estranged Self",effect:"Remove todas as junctions inimigas. Você recebe +2 de dano."},
+          {name:"Filling Hollow",effect:"Cada turno seu: remove 1 junction aleatória de ambos os generais."},
           {name:"Fire Fang",effect:"+1 AP imediatamente."},
-          {name:"First Strike",effect:"1 de dano em ambos os Generais no in\u00edcio de cada turno."},
+          {name:"First Strike",effect:"1 de dano em ambos os Generais no início de cada turno."},
           {name:"First to Action",effect:"Causa 5 de dano ao inimigo. Recebe 1 de dano em cada turno seguinte."},
           {name:"Flame Fang",effect:"+2 AP imediatamente."},
-          {name:"Folset's Trial",effect:"In\u00edcio do seu turno: +1 AP, -1 HP."},
-          {name:"Fused Consciousness",effect:"Define AP e HP de ambos como a m\u00e9dia dos dois."},
+          {name:"Folset's Trial",effect:"Início do seu turno: +1 AP, -1 HP."},
+          {name:"Fused Consciousness",effect:"Define AP e HP de ambos como a média dos dois."},
           {name:"Gabi's Call",effect:"Anula junctions Snipe e Assault do inimigo."},
           {name:"Gathering of the Strong",effect:"Causa 1 de dano ao inimigo por turno durante 5 turnos."},
           {name:"Golden Spear",effect:"Causa 4 de dano ao General inimigo imediatamente."},
           {name:"Grief of Comrade",effect:"+2 HP para cada junction que o inimigo possui."},
           {name:"Hammer of Undoing",effect:"Causa 5 de dano em ambos os Generais imediatamente."},
-          {name:"Harmonic Rhythm",effect:"+2 AP in\u00edcio do turno se primeiro; +4 HP se segundo."},
-          {name:"Immortal Genome",effect:"+2 HP no in\u00edcio de cada um dos seus turnos."},
+          {name:"Harmonic Rhythm",effect:"+2 AP início do turno se primeiro; +4 HP se segundo."},
+          {name:"Immortal Genome",effect:"+2 HP no início de cada um dos seus turnos."},
           {name:"Ingenious Scheme",effect:"Reflete todo dano de volta ao inimigo por 2 turnos."},
           {name:"Kaede's Guard",effect:"Anula junctions Snipe e Shield do inimigo."},
           {name:"Light of Annihilation",effect:"3 de dano em ambos os Generais todo turno."},
-          {name:"Long-awaited Return",effect:"In\u00edcio do seu turno: +1 AP, +2 HP."},
-          {name:"Massacre Pulse",effect:"Cada vez que voc\u00ea atacar, ganha +1 AP."},
+          {name:"Long-awaited Return",effect:"Início do seu turno: +1 AP, +2 HP."},
+          {name:"Massacre Pulse",effect:"Cada vez que você atacar, ganha +1 AP."},
           {name:"Meeting of Souls",effect:"Troca todas as junctions entre os dois Generais."},
-          {name:"Merciless Light",effect:"2 de dano em ambos os Generais no in\u00edcio de cada turno."},
+          {name:"Merciless Light",effect:"2 de dano em ambos os Generais no início de cada turno."},
           {name:"Mind's Eye",effect:"Esquiva de um ataque inimigo (apenas um turno)."},
           {name:"Mirror of Revenge",effect:"Reflete todo dano recebido ao inimigo por 3 turnos."},
-          {name:"Mobilize the Troops",effect:"Ap\u00f3s 5 turnos, cura +1 HP por turno."},
+          {name:"Mobilize the Troops",effect:"Após 5 turnos, cura +1 HP por turno."},
           {name:"Momentary Glory",effect:"+3 AP / -3 AP inimigo por 1 turno, depois -1 AP / +1 AP inimigo por turno."},
           {name:"Pattern of Demons",effect:"Anula 1 junction da unidade inimiga com maior custo."},
-          {name:"Price of Insight",effect:"Substitui esta ability por uma junction aleat\u00f3ria."},
+          {name:"Price of Insight",effect:"Substitui esta ability por uma junction aleatória."},
           {name:"Promised Discretion",effect:"Limita o dano recebido a 3 por hit."},
           {name:"Quickdance",effect:"-3 AP, mas seu General ataca mesmo no turno inimigo."},
           {name:"Quick Lightning",effect:"Causa 3 de dano ao General inimigo imediatamente."},
           {name:"Reckless Rewards",effect:"+2 AP. Cada vez que receber dano, recebe +1 extra."},
-          {name:"Rendezvous",effect:"+10 HP no in\u00edcio do combate. No turno 8, recebe 10 de dano."},
+          {name:"Rendezvous",effect:"+10 HP no início do combate. No turno 8, recebe 10 de dano."},
           {name:"Shield Protection",effect:"Remove 1 junction tipo Snipe do inimigo."},
           {name:"Shooting Squad",effect:"Anula junctions Assault e Shield do inimigo."},
           {name:"Snipe Thunder",effect:"Remove 1 junction tipo Assault do inimigo."},
           {name:"Spirit Clothes",effect:"-1 em todo dano recebido permanentemente."},
           {name:"Suck it up",effect:"Uma vez: se HP chegar a 0, restaura para 5."},
           {name:"Time Torrent",effect:"Pula o turno do General inimigo por 1 rodada."},
-          {name:"Tragic Arrow",effect:"Causa 2 de dano ao inimigo no in\u00edcio do seu turno."},
-          {name:"Trial by Fire",effect:"N\u00e3o pode atacar por 4 turnos. Depois do turno 4: +5 AP, +6 HP."},
-          {name:"Twilight's Call",effect:"Ap\u00f3s 5 turnos, reativa todas as suas junction abilities."},
+          {name:"Tragic Arrow",effect:"Causa 2 de dano ao inimigo no início do seu turno."},
+          {name:"Trial by Fire",effect:"Não pode atacar por 4 turnos. Depois do turno 4: +5 AP, +6 HP."},
+          {name:"Twilight's Call",effect:"Após 5 turnos, reativa todas as suas junction abilities."},
           {name:"Veil of Aura",effect:"-2 em todo dano recebido permanentemente."},
-          {name:"Vengeful Arrow",effect:"Causa 1 de dano ao inimigo no in\u00edcio do seu turno."},
+          {name:"Vengeful Arrow",effect:"Causa 1 de dano ao inimigo no início do seu turno."},
           {name:"Verboten Libation",effect:"+7 HP imediatamente."},
           {name:"Vitality Medicine",effect:"+5 HP imediatamente."},
-          {name:"Warning Harmony",effect:"Se inimigo tem 2+ junctions ativas: remove 1 junction inimiga aleat\u00f3ria."},
+          {name:"Warning Harmony",effect:"Se inimigo tem 2+ junctions ativas: remove 1 junction inimiga aleatória."},
           {name:"Whirlwind Assault",effect:"Remove 1 junction tipo Shield do inimigo."},
           {name:"Will of Similars",effect:"+3 AP/HP se mesmo trinity. -3 se diferente."},
         ],
       },
       deckRules:{
-        title:"Regras de Constru\u00e7\u00e3o de Deck",
+        title:"Regras de Construção de Deck",
         rules:[
           "Cada deck: exatamente 1 General + 5 Cartas de Unidade.",
-          "Regra do Carisma: as 3 unidades finais ap\u00f3s Ban+Cut devem ter Custo total \u2264 Carisma do General.",
-          "O Carisma s\u00f3 \u00e9 validado nas 3 unidades finais \u2014 n\u00e3o no pool de 5.",
-          "Deck ilegal (Custo total excede o Carisma) = derrota por forfeit instant\u00e2nea.",
-          "Cada jogador escolhe secretamente quais 3 das 4 unidades manter ap\u00f3s a fase de ban.",
-          "A 4\u00aa unidade descartada nunca \u00e9 revelada ao oponente.",
+          "Regra do Carisma: as 3 unidades finais após Ban+Cut devem ter Custo total ≤ Carisma do General.",
+          "O Carisma só é validado nas 3 unidades finais — não no pool de 5.",
+          "Deck ilegal (Custo total excede o Carisma) = derrota por forfeit instantânea.",
+          "Cada jogador escolhe secretamente quais 3 das 4 unidades manter após a fase de ban.",
+          "A 4ª unidade descartada nunca é revelada ao oponente.",
         ],
       },
     },
@@ -397,7 +397,7 @@ const translations = {
       charisma:"Carisma", cost:"Custo", rarity:"Raridade", type:"Tipo", junction:"Junction",
       filterAll:"Todos", filterAssault:"Assault", filterShield:"Shield", filterSnipe:"Snipe",
       rarityAll:"Todas as Raridades", search:"Buscar cartas...",
-      validDeck:"Deck v\u00e1lido", invalidDeck:"Inv\u00e1lido \u2014 carisma excedido",
+      validDeck:"Deck válido", invalidDeck:"Inválido — carisma excedido",
       hp:"HP", ap:"AP", charLabel:"Car.",
       confirmDelete:"Excluir este deck?",
       enterName:"Digite o nome do deck...",
@@ -414,17 +414,17 @@ function useT() {
   return (path) => _nullishCoalesce(path.split(".").reduce((o,k) => _optionalChain([o, 'optionalAccess', _2 => _2[k]]), T), () => ( path));
 }
 
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 // PALETTE
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 const C = {
   bg:          "#070436",
   bgDeep:      "#04021f",
-  // hex canvas stays cyan \u2014 background effect only
+  // hex canvas stays cyan — background effect only
   cyan:        "#00f5ff",
   cyanDim:     "rgba(0,245,255,0.55)",
   cyanFaint:   "rgba(0,245,255,0.12)",
-  // UI accent: warm amber \u2014 max contrast on #070436
+  // UI accent: warm amber — max contrast on #070436
   accent:      "#f5a623",
   accentDim:   "rgba(245,166,35,0.65)",
   accentFaint: "rgba(245,166,35,0.13)",
@@ -441,9 +441,9 @@ const C = {
   card:        "rgba(2,4,38,0.7)",
 };
 
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 // HEX NETWORK CANVAS BACKGROUND
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 function HexBackground() {
   const canvasRef = useRef(null);
 
@@ -490,7 +490,7 @@ function HexBackground() {
       });
     }
 
-    // \u2500\u2500 FLOOD FRONTS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    // ── FLOOD FRONTS ──────────────────────────────────────────────────────────
     // Each front: spreads hex-to-hex, carries a Trinity color,
     // leaves a fading trail, limited max active fronts across entire grid
     const MAX_FRONTS   = 8;   // max simultaneous fronts
@@ -641,9 +641,9 @@ function HexBackground() {
       swg.addColorStop(0,"rgba(0,245,255,0)"); swg.addColorStop(0.5,"rgba(0,245,255,0.025)"); swg.addColorStop(1,"rgba(0,245,255,0)");
       ctx.fillStyle = swg; ctx.fillRect(sweepX-60,0,120,H);
 
-      // \u2500\u2500 ADVANCE FLOOD FRONTS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+      // ── ADVANCE FLOOD FRONTS ──────────────────────────────────────────────
       if (nbMap) {
-        // Reset tint on all hexes \u2014 rebuild each frame from fadeMap
+        // Reset tint on all hexes — rebuild each frame from fadeMap
         hexes.forEach(h => { h.tintA = 0; });
 
         // Remove dead fronts (frontier empty AND all faded)
@@ -680,7 +680,7 @@ function HexBackground() {
             f.strength = Math.max(0.3, f.strength - 0.001);
           }
 
-          // Apply tint to hexes \u2014 pick strongest source per hex
+          // Apply tint to hexes — pick strongest source per hex
           f.fadeMap.forEach((a, idx) => {
             const h = hexes[idx];
             if (!h) return;
@@ -695,7 +695,7 @@ function HexBackground() {
         });
       }
 
-      // \u2500\u2500 DRAW HEXAGONS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+      // ── DRAW HEXAGONS ──────────────────────────────────────────────────────
       hexes.forEach(h => {
         h.pulse += h.speed;
         const wave      = (Math.sin(h.pulse) + 1) / 2;
@@ -746,7 +746,7 @@ function HexBackground() {
         }
       });
 
-      // \u2500\u2500 CONNECTION LINES \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+      // ── CONNECTION LINES ──────────────────────────────────────────────────
       connections.forEach(c => {
         c.progress += c.speed;
         if (c.progress > 2) c.progress = -0.5;
@@ -765,7 +765,7 @@ function HexBackground() {
         }
       });
 
-      // \u2500\u2500 DATA PARTICLES \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+      // ── DATA PARTICLES ────────────────────────────────────────────────────
       particles.forEach((p,i) => {
         p.t += p.speed*p.dir;
         if (p.t>1.1||p.t<-0.1) {
@@ -785,7 +785,7 @@ function HexBackground() {
       });
       if (Math.random()<.005 && particles.length<22) spawnParticle();
 
-      // \u2500\u2500 RIPPLES \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+      // ── RIPPLES ──────────────────────────────────────────────────────────
       ripples=ripples.filter(r=>r.alpha>0.01);
       ripples.forEach(r => {
         r.r+=1.1; r.alpha*=.972;
@@ -813,9 +813,9 @@ function HexBackground() {
   );
 }
 
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 // GLOBAL STYLES
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 const GLOBAL_CSS = `
   @keyframes fadeUp   { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
   @keyframes slideIn  { from{opacity:0;transform:translateX(-22px)} to{opacity:1;transform:translateX(0)} }
@@ -841,9 +841,9 @@ const GLOBAL_CSS = `
   ::selection { background:rgba(0,245,255,0.25); color:#00f5ff; }
 `;
 
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 // SHARED STYLE OBJECTS
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 const S = {
   root: {
     width:"100%", minHeight:"100vh", background:"transparent",
@@ -1017,9 +1017,9 @@ const S = {
   },
 };
 
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 // COMPONENTS
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 function StyleTag() {
   return React.createElement('style', null, GLOBAL_CSS);
 }
@@ -1046,16 +1046,16 @@ function Scanline() {
   );
 }
 
-// \u2500\u2500\u2500 MAIN MENU \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─── MAIN MENU ────────────────────────────────
 function MainMenu({ onNav }) {
   const t = useT();
   const { settings } = useSettings();
 
   const items = [
-    { icon:"\u2694",  label:t("menu.play"),        screen:"game"    },
-    { icon:"\u1f0cf", label:t("menu.deckBuilder"), screen:"deck"    },
-    { icon:"\u1f4d6", label:t("menu.guide"),       screen:"guide"   },
-    { icon:"\u2699",  label:t("menu.options"),     screen:"options" },
+    { icon:"⚔",  label:t("menu.play"),        screen:"game"    },
+    { icon:"🃏", label:t("menu.deckBuilder"), screen:"deck"    },
+    { icon:"📖", label:t("menu.guide"),       screen:"guide"   },
+    { icon:"⚙",  label:t("menu.options"),     screen:"options" },
   ];
 
   return (
@@ -1071,7 +1071,7 @@ function MainMenu({ onNav }) {
           /* Logo block */
           , React.createElement('div', { style: { display:"flex", flexDirection:"column", alignItems:"center", gap:0 },}
 
-            /* CRIMSON \u2014 cyan with glow */
+            /* CRIMSON — cyan with glow */
             , React.createElement('div', { style: {
               fontSize:"clamp(38px,11vw,56px)", fontWeight:900,
               letterSpacing:"0.1em", lineHeight:1,
@@ -1082,7 +1082,7 @@ function MainMenu({ onNav }) {
               animation:"crimsonIn 0.7s cubic-bezier(0.22,1,0.36,1) 0.1s both, glowPulse 3.5s ease-in-out 1s infinite",
             },}, "CRIMSON")
 
-            /* VS \u2014 red with glow */
+            /* VS — red with glow */
             , React.createElement('div', { style: {
               fontSize:"clamp(26px,7.5vw,40px)", fontWeight:900,
               letterSpacing:"0.42em",
@@ -1101,7 +1101,7 @@ function MainMenu({ onNav }) {
             fontSize:9, letterSpacing:"0.3em",
             color:C.textMuted,
             fontFamily:"'Courier New',monospace",
-          },}, "\\u30af\\u30ea\\u30e0\\u30bd\\u30f3\\u30d0\\u30fc\\u30b5\\u30b9")
+          },}, "クリムソンバーサス")
 
           /* Tagline */
           , React.createElement('div', { style: {
@@ -1131,16 +1131,16 @@ function MainMenu({ onNav }) {
 
               , React.createElement('span', { style: { fontSize:18, width:24, textAlign:"center", flexShrink:0 },}, item.icon)
               , React.createElement('span', { style: S.btnLabel,}, item.label)
-              , React.createElement('span', { style: S.btnArrow,}, "\\u203a")
+              , React.createElement('span', { style: S.btnArrow,}, "›")
             )
           ))
         )
 
         , React.createElement('div', { style: S.footer,}
           , React.createElement('span', null, CVS_VERSION, " Vanilla" )
-          , React.createElement('span', { style: {opacity:0.4},}, "\\u00b7")
-          , React.createElement('span', null, settings.language === "en" ? "English" : "Portugu\u00eas")
-          , React.createElement('span', { style: {opacity:0.4},}, "\\u00b7")
+          , React.createElement('span', { style: {opacity:0.4},}, "·")
+          , React.createElement('span', null, settings.language === "en" ? "English" : "Português")
+          , React.createElement('span', { style: {opacity:0.4},}, "·")
           , React.createElement('span', { style: {color:C.textMuted},}, "ALTIMIT OS" )
         )
       )
@@ -1148,7 +1148,7 @@ function MainMenu({ onNav }) {
   );
 }
 
-// \u2500\u2500\u2500 OPTIONS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─── OPTIONS ──────────────────────────────────
 function OptionsScreen({ onBack }) {
   const t = useT();
   const { settings, updateSetting } = useSettings();
@@ -1161,7 +1161,7 @@ function OptionsScreen({ onBack }) {
   return (
     React.createElement('div', { style: S.root,}
       , React.createElement('div', { style: {...S.content},}
-        , React.createElement(BackBtn, { label: `\u2039 ${t("options.back")}`, onClick: onBack,} )
+        , React.createElement(BackBtn, { label: `‹ ${t("options.back")}`, onClick: onBack,} )
         , React.createElement('h1', { style: S.screenTitle,}, t("options.title"))
 
         , React.createElement('div', { style: { display:"flex", flexDirection:"column", gap:10, paddingBottom:"2.5rem" },}
@@ -1174,7 +1174,7 @@ function OptionsScreen({ onBack }) {
                 React.createElement('button', { key: lang, className: "seg-btn",
                   style: S.segBtn(settings.language === lang),
                   onClick: () => updateSetting("language", lang),}
-                  , lang === "en" ? "\u1f1ec\u1f1e7 English" : "\u1f1e7\u1f1f7 Portugu\u00eas"
+                  , lang === "en" ? "🇬🇧 English" : "🇧🇷 Português"
                 )
               ))
             )
@@ -1194,7 +1194,7 @@ function OptionsScreen({ onBack }) {
   );
 }
 
-// \u2500\u2500\u2500 GUIDE \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─── GUIDE ────────────────────────────────────
 function GuideScreen({ onBack }) {
   const t = useT();
   const [chapter, setChapter] = useState("overview");
@@ -1218,7 +1218,7 @@ function GuideScreen({ onBack }) {
   return (
     React.createElement('div', { style: S.root,}
       , React.createElement('div', { style: {...S.content},}
-        , React.createElement(BackBtn, { label: `\u2039 ${t("guide.back")}`, onClick: onBack,} )
+        , React.createElement(BackBtn, { label: `‹ ${t("guide.back")}`, onClick: onBack,} )
         , React.createElement('h1', { style: S.screenTitle,}, t("guide.title"))
 
         , React.createElement('div', { style: { display:"flex", flexWrap:"wrap", gap:5, margin:"0.5rem 0 0.75rem" },}
@@ -1229,19 +1229,19 @@ function GuideScreen({ onBack }) {
           ))
         )
 
-        /* All chapters rendered always \u2014 CSS display:none hides inactive ones, no remount */
+        /* All chapters rendered always — CSS display:none hides inactive ones, no remount */
         , React.createElement('div', { style: { position:"relative" },}
 
-          /* \u2500\u2500 OVERVIEW \u2500\u2500 */
+          /* ── OVERVIEW ── */
           , React.createElement('div', { style: { display: chapter==="overview" ? "flex" : "none", flexDirection:"column", gap:12, paddingBottom:"2.5rem" },}
             , React.createElement('div', { style: {...S.card, display:"flex", flexDirection:"column", gap:8},}
               , React.createElement('div', { style: {fontSize:14, fontWeight:700, color:C.accent},}, t("guide.overview.title"))
               , React.createElement('p', { style: S.body,}, t("guide.overview.body"))
             )
-            , React.createElement('div', { style: S.callout,}, React.createElement('span', null, "\\u26a0"), React.createElement('span', null, ".hack//G.U. \\u2014 "  , React.createElement('strong', null, "ALTIMIT Mine OS"  )))
+            , React.createElement('div', { style: S.callout,}, React.createElement('span', null, "⚠"), React.createElement('span', null, ".hack//G.U. — "  , React.createElement('strong', null, "ALTIMIT Mine OS"  )))
           )
 
-          /* \u2500\u2500 CARDS \u2500\u2500 */
+          /* ── CARDS ── */
           , React.createElement('div', { style: { display: chapter==="cards" ? "flex" : "none", flexDirection:"column", gap:12, paddingBottom:"2.5rem" },}
             , React.createElement('div', { style: {...S.card, display:"flex", flexDirection:"column", gap:8},}
               , React.createElement('div', { style: {fontSize:13, fontWeight:700, color:C.gold},}, t("guide.cards.generalName"))
@@ -1258,22 +1258,22 @@ function GuideScreen({ onBack }) {
               , React.createElement('div', { style: {fontSize:12, fontWeight:700, color:C.accent, marginTop:4},}, t("guide.cards.typeTitle"))
               , React.createElement('p', { style: {...S.body, fontSize:12},}, t("guide.cards.typeDesc"))
               , React.createElement('div', { style: {display:"flex", gap:6},}
-                , [["rgba(255,60,60,0.12)","rgba(255,60,60,0.35)","#ff7766","\u2694 Assault"],
-                  ["rgba(60,120,255,0.12)","rgba(60,120,255,0.35)","#88aaff","\u1f6e1 Shield"],
-                  ["rgba(0,200,120,0.12)","rgba(0,200,120,0.35)","#44ee99","\u1f985 Snipe"]].map(([bg,bd,col,lbl])=>(
+                , [["rgba(255,60,60,0.12)","rgba(255,60,60,0.35)","#ff7766","⚔ Assault"],
+                  ["rgba(60,120,255,0.12)","rgba(60,120,255,0.35)","#88aaff","🛡 Shield"],
+                  ["rgba(0,200,120,0.12)","rgba(0,200,120,0.35)","#44ee99","🦅 Snipe"]].map(([bg,bd,col,lbl])=>(
                   React.createElement('div', { key: lbl, style: {flex:1, padding:"7px 0", textAlign:"center", background:bg, border:`1px solid ${bd}`, borderRadius:6, color:col, fontSize:11, fontWeight:600, fontFamily:"monospace"},}, lbl)
                 ))
               )
               , t("guide.cards.typeList").map((line,i) => (
                 React.createElement('div', { key: i, style: {...S.outcome},}
-                  , React.createElement('span', { style: {color:"#f5a623", fontSize:12, width:14},}, "\\u203a")
+                  , React.createElement('span', { style: {color:"#f5a623", fontSize:12, width:14},}, "›")
                   , React.createElement('span', { style: {fontSize:12},}, line)
                 )
               ))
             )
           )
 
-          /* \u2500\u2500 PHASES \u2500\u2500 */
+          /* ── PHASES ── */
           , React.createElement('div', { style: { display: chapter==="phases" ? "flex" : "none", flexDirection:"column", gap:12, paddingBottom:"2.5rem" },}
             , React.createElement('div', { style: {...S.card, display:"flex", flexDirection:"column", gap:10},}
               , React.createElement('div', { style: {fontSize:14, fontWeight:700, color:C.accent},}, t("guide.phases.title"))
@@ -1286,7 +1286,7 @@ function GuideScreen({ onBack }) {
             )
           )
 
-          /* \u2500\u2500 CLASH \u2500\u2500 */
+          /* ── CLASH ── */
           , React.createElement('div', { style: { display: chapter==="clash" ? "flex" : "none", flexDirection:"column", gap:12, paddingBottom:"2.5rem" },}
             , React.createElement('div', { style: {...S.card, display:"flex", flexDirection:"column", gap:8},}
               , React.createElement('div', { style: {fontSize:14, fontWeight:700, color:C.accent},}, t("guide.clash.title"))
@@ -1296,21 +1296,21 @@ function GuideScreen({ onBack }) {
               , ["Right","Center","Left"].map((pos,i)=>(
                 React.createElement('span', { key: pos, style: {display:"inline-flex", alignItems:"center", gap:8},}
                   , React.createElement('span', { style: {padding:"6px 10px", background:C.accentFaint, border:`1px solid ${C.border}`, borderRadius:6, fontSize:11, fontWeight:700, color:C.accent},}, pos)
-                  , i<2 && React.createElement('span', { style: {color:C.textMuted, fontSize:14},}, "\\u2192")
+                  , i<2 && React.createElement('span', { style: {color:C.textMuted, fontSize:14},}, "→")
                 )
               ))
             )
             , React.createElement('div', { style: {...S.card, display:"flex", flexDirection:"column", gap:8},}
               , t("guide.clash.rules").map((r,i)=>(
                 React.createElement('div', { key: i, style: S.outcome,}
-                  , React.createElement('span', { style: {color:["#44ee88","#f0c040","#ff4466","#88aaff"][i], fontSize:14, width:20, textAlign:"center"},}, ["\u2713","\u25b3","\u2715","\u2192"][i])
+                  , React.createElement('span', { style: {color:["#44ee88","#f0c040","#ff4466","#88aaff"][i], fontSize:14, width:20, textAlign:"center"},}, ["✓","△","✕","→"][i])
                   , React.createElement('span', null, r)
                 )
               ))
             )
           )
 
-          /* \u2500\u2500 BATTLE \u2500\u2500 */
+          /* ── BATTLE ── */
           , React.createElement('div', { style: { display: chapter==="battle" ? "flex" : "none", flexDirection:"column", gap:12, paddingBottom:"2.5rem" },}
             , React.createElement('div', { style: {...S.card, display:"flex", flexDirection:"column", gap:8},}
               , React.createElement('div', { style: {fontSize:14, fontWeight:700, color:C.accent},}, t("guide.battle.title"))
@@ -1326,7 +1326,7 @@ function GuideScreen({ onBack }) {
             )
           )
 
-          /* \u2500\u2500 TIMING \u2500\u2500 */
+          /* ── TIMING ── */
           , React.createElement('div', { style: { display: chapter==="timing" ? "flex" : "none", flexDirection:"column", gap:12, paddingBottom:"2.5rem" },}
             , React.createElement('div', { style: {...S.card},}
               , React.createElement('div', { style: {fontSize:14, fontWeight:700, color:C.accent, marginBottom:6},}, t("guide.timing.title"))
@@ -1348,7 +1348,7 @@ function GuideScreen({ onBack }) {
                       , React.createElement('span', { style: {fontSize:13, fontWeight:700, color:col, fontFamily:"monospace"},}, ph.phase)
                       , React.createElement('span', { style: { fontSize:9, padding:"2px 7px", borderRadius:10, background:`${col}22`, color:col, border:`1px solid ${col}44`, fontFamily:"monospace" },}, ph.abilities.length)
                     )
-                    , React.createElement('span', { style: { fontSize:16, color:col, opacity:0.7, transform: isOpen ? "rotate(180deg)" : "none", lineHeight:1 },}, "\\u2304")
+                    , React.createElement('span', { style: { fontSize:16, color:col, opacity:0.7, transform: isOpen ? "rotate(180deg)" : "none", lineHeight:1 },}, "⌄")
                   )
                   , isOpen && (
                     React.createElement('div', { style: {padding:"10px 14px 14px", display:"flex", flexDirection:"column", gap:8},}
@@ -1365,12 +1365,12 @@ function GuideScreen({ onBack }) {
             })
           )
 
-          /* \u2500\u2500 JUNCTION \u2500\u2500 */
+          /* ── JUNCTION ── */
           , React.createElement('div', { style: { display: chapter==="junction" ? "flex" : "none", flexDirection:"column", gap:12, paddingBottom:"2.5rem" },}
             , React.createElement('div', { style: {...S.card},}
               , React.createElement('div', { style: {fontSize:14, fontWeight:700, color:C.accent, marginBottom:4},}, t("guide.junction.title"))
               , React.createElement('p', { style: {...S.body, fontSize:12},}, t("guide.junction.intro"))
-              , React.createElement('div', { style: S.callout,}, React.createElement('span', null, "\\u2139"), React.createElement('span', null, t("guide.junction.note")))
+              , React.createElement('div', { style: S.callout,}, React.createElement('span', null, "ℹ"), React.createElement('span', null, t("guide.junction.note")))
             )
             , React.createElement('input', { value: jSearch, onChange: e=>setJSearch(e.target.value), placeholder: "Search abilities..." ,
               style: { width:"100%", background:"rgba(0,10,60,0.5)", border:`1px solid ${C.border}`, borderRadius:8, padding:"8px 12px", color:C.textPrimary, fontFamily:"monospace", fontSize:12, outline:"none" },}
@@ -1387,7 +1387,7 @@ function GuideScreen({ onBack }) {
             )
           )
 
-          /* \u2500\u2500 DECK RULES \u2500\u2500 */
+          /* ── DECK RULES ── */
           , React.createElement('div', { style: { display: chapter==="deckRules" ? "flex" : "none", flexDirection:"column", gap:12, paddingBottom:"2.5rem" },}
             , React.createElement('div', { style: {...S.card},}
               , React.createElement('div', { style: {fontSize:14, fontWeight:700, color:C.accent, marginBottom:6},}, t("guide.deckRules.title"))
@@ -1401,8 +1401,8 @@ function GuideScreen({ onBack }) {
               )
             )
             , React.createElement('div', { style: S.callout,}
-              , React.createElement('span', null, "\\u26a0")
-              , React.createElement('span', null, "Charisma validation applies only to the final 3 units after Ban + Cut \\u2014 not the full pool of 5."                   )
+              , React.createElement('span', null, "⚠")
+              , React.createElement('span', null, "Charisma validation applies only to the final 3 units after Ban + Cut — not the full pool of 5."                   )
             )
           )
 
@@ -1412,9 +1412,9 @@ function GuideScreen({ onBack }) {
   );
 }
 
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 // CARD DATA
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 const GENERALS_DATA = [
   {id:1,num:"001",name:"Haseo at Dawn",charisma:12,hp:16,ap:3,type:"Assault",rarity:"Ultra Rare",img:"No_001_Haseo_at_Dawn.png"},
   {id:2,num:"002",name:"Kite",charisma:10,hp:16,ap:3,type:"Assault",rarity:"Super Rare",img:"No_002_Kite.png"},
@@ -1513,9 +1513,9 @@ const TYPE_COLOR   = { "Assault":"#ff4455", "Shield":"#4488ff", "Snipe":"#44cc66
 const TYPE_GLOW    = { "Assault":"rgba(255,50,60,0.5)", "Shield":"rgba(50,120,255,0.5)", "Snipe":"rgba(50,200,80,0.5)" };
 const STAR_IMG     = IMGS["Star_Rarity"]||"";
 
-// \u2500\u2500\u2500 SVG HEXAGON HELPER \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─── SVG HEXAGON HELPER ───────────────────────
 function Hex({ size, bg, border, children, style={} }) {
-  // Flat-top hexagon using SVG clip \u2014 exact match to card example
+  // Flat-top hexagon using SVG clip — exact match to card example
   const id = `hex-${bg.replace(/[^a-z0-9]/gi,'')}-${size}`;
   return (
     React.createElement('div', { style: {
@@ -1547,7 +1547,7 @@ function Hex({ size, bg, border, children, style={} }) {
   );
 }
 
-// \u2500\u2500\u2500 UNIT CARD \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─── UNIT CARD ────────────────────────────────
 function UnitCard({ card, selected, onToggle, disabled, ineligible }) {
   const stars  = RARITY_STARS[card.rarity] || 1;
   const tColor = TYPE_COLOR[card.type]  || "#aaa";
@@ -1584,7 +1584,7 @@ function UnitCard({ card, selected, onToggle, disabled, ineligible }) {
         style: { position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" },}
       )
 
-      /* Ineligible overlay \u2014 cost exceeds general chr */
+      /* Ineligible overlay — cost exceeds general chr */
       , ineligible && (
         React.createElement('div', { style: {position:"absolute",inset:0,background:"rgba(180,0,0,0.35)",
           display:"flex",alignItems:"center",justifyContent:"center",zIndex:10},}
@@ -1594,17 +1594,17 @@ function UnitCard({ card, selected, onToggle, disabled, ineligible }) {
         )
       )
 
-      /* \u2500\u2500 TOP-LEFT: Cost hex + Trinity hex side by side, larger \u2500\u2500 */
+      /* ── TOP-LEFT: Cost hex + Trinity hex side by side, larger ── */
       , React.createElement('div', { style: { position:"absolute", top:5, left:5, display:"flex", flexDirection:"row", gap:1, zIndex:3, alignItems:"center" },}
 
-        /* Cost hexagon \u2014 purple solid, FIRST (left) */
+        /* Cost hexagon — purple solid, FIRST (left) */
         , React.createElement(Hex, { size: 36, bg: "#7a1fc8", border: "#c060ff",}
           , React.createElement('span', { style: { fontSize:18, fontWeight:900, color:"#fff", fontFamily:"monospace", lineHeight:1 },}
             , card.cost
           )
         )
 
-        /* Trinity hexagon \u2014 color per type, SECOND (right) */
+        /* Trinity hexagon — color per type, SECOND (right) */
         , React.createElement(Hex, { size: 36,
           bg: card.type==="Assault" ? "#0a1a40" : card.type==="Shield" ? "#2a1e00" : "#2a0808",
           border: card.type==="Assault" ? "#66bbff" : card.type==="Shield" ? "#ffdd44" : "#ff3333",}
@@ -1623,7 +1623,7 @@ function UnitCard({ card, selected, onToggle, disabled, ineligible }) {
 
       )
 
-      /* \u2500\u2500 TOP-RIGHT: UNIT tag \u2500\u2500 */
+      /* ── TOP-RIGHT: UNIT tag ── */
       , React.createElement('div', { style: {
         position:"absolute", top:6, right:6, zIndex:3,
         fontSize:10, fontWeight:700, color:"#fff",
@@ -1631,13 +1631,13 @@ function UnitCard({ card, selected, onToggle, disabled, ineligible }) {
         textShadow:"0 1px 4px rgba(0,0,0,0.9)",
       },}, "UNIT")
 
-      /* \u2500\u2500 BOTTOM OVERLAY \u2500\u2500 */
+      /* ── BOTTOM OVERLAY ── */
       , React.createElement('div', { style: {
         position:"absolute", bottom:0, left:0, right:0, zIndex:2,
         background:"linear-gradient(transparent 0%, rgba(6,3,24,0.6) 30%, rgba(6,3,24,0.95) 60%)",
       },}
 
-        /* Name bar \u2014 purple gradient, >>> num name */
+        /* Name bar — purple gradient, >>> num name */
         , React.createElement('div', { style: {
           background:"linear-gradient(90deg, rgba(120,40,180,0.92), rgba(80,20,140,0.85))",
           padding:"4px 7px",
@@ -1652,7 +1652,7 @@ function UnitCard({ card, selected, onToggle, disabled, ineligible }) {
           },}, card.name)
         )
 
-        /* Junction bar \u2014 grey "CrimsonVS" style with bold underlined text */
+        /* Junction bar — grey "CrimsonVS" style with bold underlined text */
         , React.createElement('div', { style: {
           background:"linear-gradient(90deg, rgba(140,130,150,0.85), rgba(100,90,120,0.8))",
           padding:"3px 6px",
@@ -1684,12 +1684,12 @@ function UnitCard({ card, selected, onToggle, disabled, ineligible }) {
           background:"rgba(4,2,20,0.9)",
         },}
 
-          /* AP hex \u2014 cyan/blue */
+          /* AP hex — cyan/blue */
           , React.createElement(Hex, { size: 30, bg: "#0066cc", border: "#44aaff",}
             , React.createElement('span', { style: { fontSize:9, fontWeight:900, color:"#fff", fontFamily:"monospace" },}, "AP")
           )
 
-          /* Rarity bar \u2014 dark bar with stars centered */
+          /* Rarity bar — dark bar with stars centered */
           , React.createElement('div', { style: {
             flex:1, height:22,
             background:"rgba(30,25,50,0.9)",
@@ -1698,13 +1698,13 @@ function UnitCard({ card, selected, onToggle, disabled, ineligible }) {
             display:"flex", alignItems:"center", justifyContent:"center", gap:2,
           },}
             , Array.from({length:stars}).map((_,i) => (
-              React.createElement('img', { key: i, src: STAR_IMG, alt: "\\u2605",
+              React.createElement('img', { key: i, src: STAR_IMG, alt: "★",
                 style: { width:13, height:13, objectFit:"contain" },}
               )
             ))
           )
 
-          /* HP hex \u2014 red */
+          /* HP hex — red */
           , React.createElement(Hex, { size: 30, bg: "#cc1133", border: "#ff4466",}
             , React.createElement('span', { style: { fontSize:9, fontWeight:900, color:"#fff", fontFamily:"monospace" },}, "HP")
           )
@@ -1720,13 +1720,13 @@ function UnitCard({ card, selected, onToggle, disabled, ineligible }) {
           display:"flex", alignItems:"center", justifyContent:"center",
           fontSize:9, fontWeight:900, color:"#fff",
           boxShadow:`0 0 8px ${tColor}`,
-        },}, "\\u2713")
+        },}, "✓")
       )
     )
   );
 }
 
-// \u2500\u2500\u2500 GENERAL CARD \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─── GENERAL CARD ─────────────────────────────
 function GeneralCard({ card, selected, onSelect }) {
   const tColor = TYPE_COLOR[card.type]  || "#aaa";
   const tGlow  = TYPE_GLOW[card.type]   || "transparent";
@@ -1757,13 +1757,13 @@ function GeneralCard({ card, selected, onSelect }) {
 
       /* Top-left: Charisma hex (left) + Trinity hex (right), larger */
       , React.createElement('div', { style: { position:"absolute", top:5, left:5, display:"flex", flexDirection:"row", gap:1, zIndex:3, alignItems:"center" },}
-        /* Charisma hexagon \u2014 purple, FIRST (left) */
+        /* Charisma hexagon — purple, FIRST (left) */
         , React.createElement(Hex, { size: 36, bg: "#7a1fc8", border: "#c060ff",}
           , React.createElement('span', { style: { fontSize:16, fontWeight:900, color:"#fff", fontFamily:"monospace", lineHeight:1 },}
             , card.charisma
           )
         )
-        /* Trinity hexagon \u2014 color per type, SECOND (right) */
+        /* Trinity hexagon — color per type, SECOND (right) */
         , React.createElement(Hex, { size: 36,
           bg: card.type==="Assault" ? "#0a1a40" : card.type==="Shield" ? "#2a1e00" : "#2a0808",
           border: card.type==="Assault" ? "#66bbff" : card.type==="Shield" ? "#ffdd44" : "#ff3333",}
@@ -1814,7 +1814,7 @@ function GeneralCard({ card, selected, onSelect }) {
           )
           , React.createElement('div', { style: { display:"flex", gap:2, alignItems:"center" },}
             , Array.from({length:stars}).map((_,i) => (
-              React.createElement('img', { key: i, src: STAR_IMG, alt: "\\u2605",
+              React.createElement('img', { key: i, src: STAR_IMG, alt: "★",
                 style: { width:10, height:10, objectFit:"contain" },})
             ))
           )
@@ -1828,17 +1828,17 @@ function GeneralCard({ card, selected, onSelect }) {
           display:"flex", alignItems:"center", justifyContent:"center",
           fontSize:9, fontWeight:900, color:"#fff",
           boxShadow:`0 0 8px ${tColor}`,
-        },}, "\\u2713")
+        },}, "✓")
       )
     )
   );
 }
 
-// \u2500\u2500\u2500 DECK BUILDER \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─── DECK BUILDER ─────────────────────────────
 function DeckBuilderScreen({ onBack }) {
   const t = useT();
 
-  // Load decks instantly from localStorage \u2014 no delay, no external calls
+  // Load decks instantly from localStorage — no delay, no external calls
   const [view, setView]             = useState("list");
   const [decks, setDecks]           = useState(() => {
     try {
@@ -1850,7 +1850,7 @@ function DeckBuilderScreen({ onBack }) {
   const [deckName, setDeckName]       = useState("");
   const [confirmDel, setConfirmDel]   = useState(null);
 
-  // Persist to localStorage on every change \u2014 synchronous, instant
+  // Persist to localStorage on every change — synchronous, instant
   useEffect(() => {
     try { localStorage.setItem("cvs_decks", JSON.stringify(decks)); }
     catch (e3) { /* quota exceeded or unavailable */ }
@@ -1932,11 +1932,11 @@ function DeckBuilderScreen({ onBack }) {
     return true;
   });
 
-  // \u2500\u2500 LIST VIEW \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ── LIST VIEW ──────────────────────────────
   if (view === "list") return (
     React.createElement('div', { style: S.root,}
       , React.createElement('div', { style: {...S.content, paddingBottom:"2rem"},}
-        , React.createElement(BackBtn, { label: `\u2039 ${t("deckBuilder.back")}`, onClick: onBack,})
+        , React.createElement(BackBtn, { label: `‹ ${t("deckBuilder.back")}`, onClick: onBack,})
         , React.createElement('h1', { style: S.screenTitle,}, t("deckBuilder.title"))
 
         , React.createElement('button', { onClick: startNew, style: {
@@ -1946,7 +1946,7 @@ function DeckBuilderScreen({ onBack }) {
           fontWeight:700, cursor:"pointer", letterSpacing:"0.05em",
           display:"flex", alignItems:"center", justifyContent:"center", gap:8,
           transition:"all 0.18s",
-        },}, "\\uff0b " , t("deckBuilder.newDeck"))
+        },}, "＋ " , t("deckBuilder.newDeck"))
 
         , React.createElement('div', { style: {...S.label},}, t("deckBuilder.savedDecks"))
 
@@ -1969,7 +1969,7 @@ function DeckBuilderScreen({ onBack }) {
                   , React.createElement('div', null
                     , React.createElement('div', { style: { fontSize:15, fontWeight:700, color:C.textPrimary, fontFamily:"monospace" },}, deck.name)
                     , React.createElement('div', { style: { fontSize:11, color: isValid ? "#44ee88" : "#ff4455", fontFamily:"monospace", marginTop:2 },}
-                      , isValid ? `\u2713 ${t("deckBuilder.validDeck")}` : `\u2715 ${t("deckBuilder.invalidDeck")}`
+                      , isValid ? `✓ ${t("deckBuilder.validDeck")}` : `✕ ${t("deckBuilder.invalidDeck")}`
                     )
                   )
                   , React.createElement('div', { style: { display:"flex", gap:6 },}
@@ -1989,7 +1989,7 @@ function DeckBuilderScreen({ onBack }) {
                 /* Preview: general larger left + 5 units smaller right, same row height */
                 , React.createElement('div', { style: { display:"flex", gap:4, height:80, alignItems:"stretch" },}
 
-                  /* General \u2014 fixed width, full row height */
+                  /* General — fixed width, full row height */
                   , gen && (
                     React.createElement('div', { style: {
                       width:60, flexShrink:0, height:"100%",
@@ -2002,7 +2002,7 @@ function DeckBuilderScreen({ onBack }) {
                     )
                   )
 
-                  /* 5 Units \u2014 fill remaining space, same height */
+                  /* 5 Units — fill remaining space, same height */
                   , units.map(u => (
                     React.createElement('div', { key: u.id, style: {
                       flex:1, height:"100%", minWidth:0,
@@ -2052,18 +2052,18 @@ function DeckBuilderScreen({ onBack }) {
     )
   );
 
-  // \u2500\u2500 EDIT VIEW \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ── EDIT VIEW ──────────────────────────────
   return (
     React.createElement('div', { style: S.root,}
       , React.createElement('div', { style: { position:"relative", zIndex:1, display:"flex", flexDirection:"row", height:"100vh", overflow:"hidden" },}
 
-        /* \u2500\u2500\u2500 LEFT PANEL: card browser \u2500\u2500\u2500 */
+        /* ─── LEFT PANEL: card browser ─── */
         , React.createElement('div', { style: { flex:1, display:"flex", flexDirection:"column", minWidth:0, borderRight:`1px solid ${C.border}` },}
 
           /* Header */
           , React.createElement('div', { style: { padding:"10px 12px 0", flexShrink:0 },}
             , React.createElement('div', { style: { display:"flex", alignItems:"center", gap:8, marginBottom:8 },}
-              , React.createElement('button', { onClick: () => setView("list"), style: { ...S.backBtn, marginTop:0, padding:"5px 10px", fontSize:12 },}, "\\u2039")
+              , React.createElement('button', { onClick: () => setView("list"), style: { ...S.backBtn, marginTop:0, padding:"5px 10px", fontSize:12 },}, "‹")
               , React.createElement('input', {
                 value: deckName,
                 onChange: e => setDeckName(e.target.value),
@@ -2088,7 +2088,7 @@ function DeckBuilderScreen({ onBack }) {
               , [["general", t("deckBuilder.general")], ["units", t("deckBuilder.units")]].map(([key, label]) => (
                 React.createElement('button', { key: key, onClick: () => setTab(key), style: {
                   ...S.tab(tab === key), fontSize:13, padding:"7px 18px",
-                },}, label, " " , key==="general" && selGeneral ? " \u2713" : key==="units" ? ` ${selUnits.length}/5` : "")
+                },}, label, " " , key==="general" && selGeneral ? " ✓" : key==="units" ? ` ${selUnits.length}/5` : "")
               ))
             )
 
@@ -2104,7 +2104,7 @@ function DeckBuilderScreen({ onBack }) {
                   style: { width:22, height:22, objectFit:"cover", borderRadius:3 },})
                 , React.createElement('span', { style: { color:C.textSub, flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" },}, selGeneral.name)
                 , React.createElement('span', { style: { color: totalCost > charisma ? "#ff6677" : "#44ee88", flexShrink:0 },}, "C "
-                   , totalCost, "/", charisma, " " , totalCost > charisma ? "\u2715" : selUnits.length === 5 ? "\u2713" : `(${selUnits.length}/5)`
+                   , totalCost, "/", charisma, " " , totalCost > charisma ? "✕" : selUnits.length === 5 ? "✓" : `(${selUnits.length}/5)`
                 )
               )
             )
@@ -2123,7 +2123,7 @@ function DeckBuilderScreen({ onBack }) {
               , React.createElement('button', {
                 onClick: () => setRar(r => r==="All"?"Ultra Rare":r==="Ultra Rare"?"Super Rare":r==="Super Rare"?"Rare":r==="Rare"?"Common":"All"),
                 style: { ...S.tab(filterRar !== "All"), fontSize:12, padding:"6px 13px" },}
-                , filterRar === "All" ? "\u2605 All" : "\u2605".repeat(RARITY_STARS[filterRar]||1)+" "+filterRar.replace(" Rare","R").replace("Super ","SR").replace("Ultra ","UR").replace("Common","C")
+                , filterRar === "All" ? "★ All" : "★".repeat(RARITY_STARS[filterRar]||1)+" "+filterRar.replace(" Rare","R").replace("Super ","SR").replace("Ultra ","UR").replace("Common","C")
               )
             )
             , React.createElement('input', {
@@ -2137,7 +2137,7 @@ function DeckBuilderScreen({ onBack }) {
             )
           )
 
-          /* Card grid \u2014 scrollable */
+          /* Card grid — scrollable */
           , React.createElement('div', { style: { flex:1, overflowY:"auto", padding:"0 10px 16px" },}
             , tab === "general" && (
               React.createElement('div', { style: { display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:5 },}
@@ -2167,7 +2167,7 @@ function DeckBuilderScreen({ onBack }) {
           )
         )
 
-        /* \u2500\u2500\u2500 RIGHT PANEL: deck pool \u2500\u2500\u2500 */
+        /* ─── RIGHT PANEL: deck pool ─── */
         , React.createElement('div', { style: {
           width:"22vw", maxWidth:110, minWidth:72, flexShrink:0,
           display:"flex", flexDirection:"column",
@@ -2189,7 +2189,7 @@ function DeckBuilderScreen({ onBack }) {
             /* General label */
             , React.createElement('div', { style: { fontSize:8, color:C.textMuted, fontFamily:"monospace", letterSpacing:"0.06em", marginBottom:3, textAlign:"center" },}, "GEN")
 
-            /* General slot \u2014 image only, ratio via paddingBottom trick */
+            /* General slot — image only, ratio via paddingBottom trick */
             , React.createElement('div', { onClick: () => selGeneral && setTab("general"),
               style: {
                 position:"relative", width:"100%", paddingBottom:"133%",
@@ -2225,7 +2225,7 @@ function DeckBuilderScreen({ onBack }) {
               , selUnits.length, "/5"
             )
 
-            /* 5 unit slots \u2014 image only, same paddingBottom trick */
+            /* 5 unit slots — image only, same paddingBottom trick */
             , Array.from({length:5}).map((_,i) => {
               const u = selUnits[i];
               return (
@@ -2267,11 +2267,11 @@ function DeckBuilderScreen({ onBack }) {
   );
 }
 
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-// ARENA \u2014 MODULE 1: PREPARATION
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
+// ARENA — MODULE 1: PREPARATION
+// ─────────────────────────────────────────────
 
-// AI deck builder \u2014 picks a valid general + 5 units
+// AI deck builder — picks a valid general + 5 units
 function buildAIDeck(difficulty) {
   // Pick random general
   const gen = GENERALS_DATA[Math.floor(Math.random() * GENERALS_DATA.length)];
@@ -2298,7 +2298,7 @@ function buildAIDeck(difficulty) {
   return { general: gen, units: pool.slice(0, 5) };
 }
 
-// \u2500\u2500\u2500 CARD INFO POPUP \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─── CARD INFO POPUP ────────────────────────────────────────────────────────
 function CardInfoBox({ card, onClose, isGen, bState }) {
   if (!card) return null;
   const tc  = TYPE_COLOR[card.type] || "#aaa";
@@ -2351,19 +2351,19 @@ function CardInfoBox({ card, onClose, isGen, bState }) {
       , React.createElement('span', { onClick: onClose,
         style: {cursor:"pointer",color:C.textMuted,fontSize:16,flexShrink:0,
           lineHeight:1,padding:"2px 4px",borderRadius:4,
-          background:"rgba(255,255,255,0.06)"},}, "\\u2715")
+          background:"rgba(255,255,255,0.06)"},}, "✕")
     )
   );
 }
 
 
 function ArenaPlaceholder({ onBack, difficulty }) {
-  // \u2500\u2500 PHASES \u2500\u2500
-  // "select"  \u2192 pick saved deck
-  // "reveal"  \u2192 show both generals + unit pools side by side
-  // "ban"     \u2192 player picks 1 enemy unit to ban
-  // "cut"     \u2192 player picks 3 of 4 remaining units
-  // "confirm" \u2192 layout summary before entering battle
+  // ── PHASES ──
+  // "select"  → pick saved deck
+  // "reveal"  → show both generals + unit pools side by side
+  // "ban"     → player picks 1 enemy unit to ban
+  // "cut"     → player picks 3 of 4 remaining units
+  // "confirm" → layout summary before entering battle
   const [phase, setPhase]         = useState("select");
 
   // Player deck
@@ -2396,10 +2396,10 @@ function ArenaPlaceholder({ onBack, difficulty }) {
   const [clashResults, setClashResults] = useState([]);
   const [survivors,    setSurvivors]    = useState({player:[],ai:[]});
   const [showLog,      setShowLog]      = useState(false); // false | "clash" | "junction"
-  // Persistent logs \u2014 survive across all phases
+  // Persistent logs — survive across all phases
   const [battleLog,    setBattleLog]    = useState([]);    // clash event log entries
   const [junctionLog,  setJunctionLog]  = useState([]);    // junction entries [{card, side, confirmed}]
-  // Battle state \u2014 declared at root to avoid conditional hook violation
+  // Battle state — declared at root to avoid conditional hook violation
   const [battleReady,  setBattleReady]  = useState(false);
   const [bState,       setBState]       = useState(null);
   const [battleOver,   setBattleOver]   = useState(null); // {winner:"player"|"ai"|"draw", reason}
@@ -2418,13 +2418,13 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     } catch (e4) {}
   }, []);
 
-  // Initialize battle \u2014 must be at root level (Rules of Hooks)
+  // Initialize battle — must be at root level (Rules of Hooks)
   useEffect(() => {
     if (phase !== "battle" || battleReady || !playerGen || !aiGen) return;
 
     const pS = { hp:playerGen.hp, ap:playerGen.ap, junctions:[...survivors.player.map(u=>u.junction)] };
     const aS = { hp:aiGen.hp, ap:aiGen.ap, junctions:[...survivors.ai.map(u=>u.junction)] };
-    const log = ["\u2501\u2501 JUNCTION PHASE \u2501\u2501"];
+    const log = ["━━ JUNCTION PHASE ━━"];
 
     const applyJ = (jName, owner, opponent, oL) => {
       const eL = oL==="YOU"?"AI":"YOU";
@@ -2437,12 +2437,12 @@ function ArenaPlaceholder({ onBack, difficulty }) {
         case "Energy Drain":        owner.hp+=3; opponent.hp-=3; log.push(`${oL}: Energy Drain steal 3 HP from ${eL}`); break;
         case "Divine Punishment":   opponent.hp-=5; log.push(`${oL}: Divine Punishment 5 dmg to ${eL}`); break;
         case "Quick Lightning":     opponent.hp-=3; log.push(`${oL}: Quick Lightning 3 dmg to ${eL}`); break;
-        case "First to Action":     opponent.hp-=5; log.push(`${oL}: First to Action \u2014 5 dmg to ${eL} (takes +1 dmg/turn from now)`); break;
+        case "First to Action":     opponent.hp-=5; log.push(`${oL}: First to Action — 5 dmg to ${eL} (takes +1 dmg/turn from now)`); break;
         case "Demonic Spear":       opponent.hp-=7; log.push(`${oL}: Demonic Spear 7 dmg to ${eL}`); break;
         case "Golden Spear":        opponent.hp-=4; log.push(`${oL}: Golden Spear 4 dmg to ${eL}`); break;
         case "Hammer of Undoing":   owner.hp-=5; opponent.hp-=5; log.push(`${oL}: Hammer of Undoing 5 dmg to both`); break;
-        case "Border of Zero":      owner.hp=1; opponent.hp=1; log.push(`${oL}: Border of Zero both HP\u21921`); break;
-        case "Change Ring":         { const t=opponent.ap; opponent.ap=opponent.hp; opponent.hp=t; log.push(`${oL}: Change Ring swap ${eL} AP\u2194HP`); break; }
+        case "Border of Zero":      owner.hp=1; opponent.hp=1; log.push(`${oL}: Border of Zero both HP→1`); break;
+        case "Change Ring":         { const t=opponent.ap; opponent.ap=opponent.hp; opponent.hp=t; log.push(`${oL}: Change Ring swap ${eL} AP↔HP`); break; }
         case "Reckless Rewards":    owner.ap+=2; log.push(`${oL}: Reckless Rewards +2 AP`); break;
         case "Grief of Comrade":    { const b=opponent.junctions.length*2; owner.hp+=b; log.push(`${oL}: Grief of Comrade +${b} HP`); break; }
         case "All At Once":         { const b=owner.junctions.length*2; owner.ap+=b; log.push(`${oL}: All At Once +${b} AP`); break; }
@@ -2470,21 +2470,21 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     // Trinity mini-game result overrides random; Charge Ahead still overrides trinity
     let firstTurn = trinityWinner==="player" ? "player" : trinityWinner==="ai" ? "ai" : (Math.random()<0.5?"player":"ai");
 
-    // Defensive Stance forces SECOND \u2014 applied before Charge Ahead check
-    if(pDefStance&&!aDefStance){ firstTurn="ai"; log.push("YOU: Defensive Stance \u2014 YOU go second (-1 dmg received)"); }
-    if(aDefStance&&!pDefStance){ firstTurn="player"; log.push("AI: Defensive Stance \u2014 AI goes second (-1 dmg received)"); }
+    // Defensive Stance forces SECOND — applied before Charge Ahead check
+    if(pDefStance&&!aDefStance){ firstTurn="ai"; log.push("YOU: Defensive Stance — YOU go second (-1 dmg received)"); }
+    if(aDefStance&&!pDefStance){ firstTurn="player"; log.push("AI: Defensive Stance — AI goes second (-1 dmg received)"); }
     // If both have Defensive Stance, cancel each other
-    if(pDefStance&&aDefStance){ log.push("Both: Defensive Stance \u2014 mutual cancel, order unchanged"); }
+    if(pDefStance&&aDefStance){ log.push("Both: Defensive Stance — mutual cancel, order unchanged"); }
 
     // Charge Ahead overrides Defensive Stance
-    if(pCharge&&!aCharge){ firstTurn="player"; log.push("YOU: Charge Ahead \u2014 YOU go first (overrides Defensive Stance)"); }
-    else if(aCharge&&!pCharge){ firstTurn="ai"; log.push("AI: Charge Ahead \u2014 AI goes first (overrides Defensive Stance)"); }
+    if(pCharge&&!aCharge){ firstTurn="player"; log.push("YOU: Charge Ahead — YOU go first (overrides Defensive Stance)"); }
+    else if(aCharge&&!pCharge){ firstTurn="ai"; log.push("AI: Charge Ahead — AI goes first (overrides Defensive Stance)"); }
     else if(!pDefStance&&!aDefStance){
-      if(trinityWinner==="player") log.push("YOU won the Trinity Duel \u2014 YOU go first");
-      else if(trinityWinner==="ai") log.push("AI won the Trinity Duel \u2014 AI goes first");
-      else log.push("Trinity Duel Draw \u2014 turn order randomized");
+      if(trinityWinner==="player") log.push("YOU won the Trinity Duel — YOU go first");
+      else if(trinityWinner==="ai") log.push("AI won the Trinity Duel — AI goes first");
+      else log.push("Trinity Duel Draw — turn order randomized");
     }
-    log.push("\u2501\u2501 BATTLE START \u2501\u2501");
+    log.push("━━ BATTLE START ━━");
     log.push(`${firstTurn==="player"?"YOU":"AI"} go first`);
 
     setBattleLog(l => [...l, ...log]);
@@ -2498,7 +2498,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     setBattleReady(true);
   }, [phase, battleReady]);
 
-  // \u2500\u2500 HELPERS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ── HELPERS ────────────────────────────────────────────────────────────────
   function shuffle(arr) {
     const a = [...arr];
     for (let i = a.length-1; i > 0; i--) {
@@ -2508,7 +2508,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     return a;
   }
 
-  // \u2500\u2500 AI HELPERS \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ── AI HELPERS ──────────────────────────────────────────────────────────────
 
   // Check if a pool of 5 is "ban-safe":
   // No matter which 1 unit the player bans, at least one valid trio of 3 remains
@@ -2637,7 +2637,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
         allCombos.sort((a,b) => b.cost - a.cost);
         return allCombos[0].trio;
       }
-      // Last resort: cheapest 3 (pool was not ban-safe \u2014 shouldn't happen)
+      // Last resort: cheapest 3 (pool was not ban-safe — shouldn't happen)
       return [...remaining].sort((a,b) => a.cost - b.cost).slice(0, 3);
     }
 
@@ -2646,7 +2646,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     return validCombos[Math.floor(Math.random() * validCombos.length)].trio;
   }
 
-  // \u2500\u2500 STEP 1: SELECT DECK \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ── STEP 1: SELECT DECK ────────────────────────────────────────────────────
   function pickDeck(deck) {
     const gen   = GENERALS_DATA.find(g => g.id === deck.generalId);
     const allUnits = UNITS_DATA.filter(u => deck.unitIds.includes(u.id));
@@ -2656,7 +2656,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     // If any units were filtered out, deck is invalid
     if (units.length !== 5) return;
 
-    // Build AI deck \u2014 retry until guaranteed ban-safe
+    // Build AI deck — retry until guaranteed ban-safe
     let ai = buildAIDeckLocal();
     let safetyTries = 0;
     while (!poolIsBanSafe(ai.pool, ai.gen.charisma) && safetyTries < 20) {
@@ -2690,7 +2690,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     setPhase("trinity");
   }
 
-  // \u2500\u2500 STEP 2 \u2192 3: REVEAL \u2192 BAN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ── STEP 2 → 3: REVEAL → BAN ──────────────────────────────────────────────
   function startBan() {
     // AI immediately picks its ban
     const banned = aiPickBan(playerPool);
@@ -2708,7 +2708,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     setPhase("cut");
   }
 
-  // \u2500\u2500 STEP 3 \u2192 4: CUT \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ── STEP 3 → 4: CUT ───────────────────────────────────────────────────────
   function toggleCut(unit) {
     if (playerCut.find(u => u.id === unit.id)) {
       // Deselect
@@ -2741,7 +2741,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     const playerCost = playerCut.reduce((s,u) => s+u.cost, 0);
     if (playerCost > playerGen.charisma) return;
 
-    // AI picks cut \u2014 use aiPickCut then verify, fallback to forceValidTrio
+    // AI picks cut — use aiPickCut then verify, fallback to forceValidTrio
     let aiChosen = aiPickCut(aiRemaining, aiGen);
     let aiCost  = aiChosen.reduce((s,u) => s+u.cost, 0);
     // Hard enforcement: keep retrying until valid
@@ -2790,7 +2790,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     setPhase("confirm");
   }
 
-  // \u2500\u2500 CARD IMAGE HELPER \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ── CARD IMAGE HELPER ──────────────────────────────────────────────────────
   function CardImg({ card, size=52, height, border, glow, dimmed=false, onClick, selected=false }) {
     const h = height || Math.round(size * 1.33);
     const tc = TYPE_COLOR[card.type] || "#aaa";
@@ -2816,13 +2816,13 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     );
   }
 
-  // \u2500\u2500 SHARED HEADER \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ── SHARED HEADER ──────────────────────────────────────────────────────────
   const PHASE_LABELS = { reveal:"Reveal", ban:"Ban Phase", cut:"The Cut", confirm:"Ready", clash:"Clash", battle:"Battle" };
   const PHASE_STEPS  = ["trinity","reveal","ban","cut","confirm","clash","battle"];
   function PhaseHeader({ back, hideBack }) {
     return (
       React.createElement('div', { style: {flexShrink:0, padding:"8px 14px 0", width:"100%"},}
-        /* Phase steps row \u2014 compact */
+        /* Phase steps row — compact */
         , React.createElement('div', { style: {display:"flex", alignItems:"center", gap:6, marginBottom:8},}
           , !hideBack && (
             React.createElement('button', { onClick: back, style: {
@@ -2831,7 +2831,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
               background:"rgba(255,40,60,0.08)", border:"1px solid rgba(255,40,60,0.35)",
               color:"#ff4466", fontFamily:"monospace", fontSize:10, fontWeight:700,
               flexShrink:0,
-            },}, "\\u1f3f3 Surrender" )
+            },}, "🏳 Surrender" )
           )
           , React.createElement('div', { style: {flex:1, display:"flex", gap:3, justifyContent:"center", alignItems:"center"},}
             , PHASE_STEPS.map((p,i) => {
@@ -2845,14 +2845,14 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                     background: active ? "rgba(0,245,255,0.14)" : done ? "rgba(68,238,136,0.1)" : "rgba(0,0,0,0.2)",
                     border:`1px solid ${active ? "rgba(0,245,255,0.5)" : done ? "rgba(68,238,136,0.3)" : "rgba(255,255,255,0.07)"}`,
                     color: active ? C.cyan : done ? "#44ee88" : C.textMuted,
-                  },}, done ? "\u2713" : PHASE_LABELS[p])
-                  , i < PHASE_STEPS.length-1 && React.createElement('span', { style: {color:"rgba(255,255,255,0.12)", fontSize:7},}, "\\u203a")
+                  },}, done ? "✓" : PHASE_LABELS[p])
+                  , i < PHASE_STEPS.length-1 && React.createElement('span', { style: {color:"rgba(255,255,255,0.12)", fontSize:7},}, "›")
                 )
               );
             })
           )
         )
-        /* Generals bar \u2014 bigger */
+        /* Generals bar — bigger */
         , playerGen && aiGen && (
           React.createElement('div', { style: {display:"flex", gap:8, alignItems:"center", marginBottom:8,
             background:"rgba(0,10,40,0.6)", border:`1px solid ${C.border}`,
@@ -2873,7 +2873,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                   , React.createElement('span', { style: {fontSize:10, color:"#44ee88", fontFamily:"monospace", fontWeight:700},}, "HP " , playerGen.hp)
                   , React.createElement('span', { style: {fontSize:10, color:"#ff8844", fontFamily:"monospace", fontWeight:700},}, "AP " , playerGen.ap)
                 )
-                , React.createElement('div', { style: {fontSize:9, color:"#cc88ff", fontFamily:"monospace"},}, "Chr " , playerGen.charisma, " \\u00b7 "  , playerGen.type)
+                , React.createElement('div', { style: {fontSize:9, color:"#cc88ff", fontFamily:"monospace"},}, "Chr " , playerGen.charisma, " · "  , playerGen.type)
               )
             )
             /* VS */
@@ -2889,7 +2889,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                   , React.createElement('span', { style: {fontSize:10, color:"#44ee88", fontFamily:"monospace", fontWeight:700},}, "HP " , aiGen.hp)
                   , React.createElement('span', { style: {fontSize:10, color:"#ff8844", fontFamily:"monospace", fontWeight:700},}, "AP " , aiGen.ap)
                 )
-                , React.createElement('div', { style: {fontSize:9, color:"#cc88ff", fontFamily:"monospace"},}, aiGen.type, " \\u00b7 Chr "   , aiGen.charisma)
+                , React.createElement('div', { style: {fontSize:9, color:"#cc88ff", fontFamily:"monospace"},}, aiGen.type, " · Chr "   , aiGen.charisma)
               )
               , React.createElement('div', { style: {width:42, height:56, flexShrink:0, borderRadius:6, overflow:"hidden",
                 border:`2px solid ${TYPE_COLOR[aiGen.type]||"#aaa"}`,
@@ -2904,25 +2904,25 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     );
   }
 
-  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ─────────────────────────────────────────────────────────────────────────
   // PHASE: SELECT DECK
-  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ─────────────────────────────────────────────────────────────────────────
   if (phase === "select") return (
     React.createElement('div', { style: S.root,}
       , React.createElement('div', { style: {...S.content, paddingBottom:"2rem"},}
-        , React.createElement(BackBtn, { label: "\\u2039 Back" , onClick: onBack,} )
+        , React.createElement(BackBtn, { label: "‹ Back" , onClick: onBack,} )
         , React.createElement('h1', { style: S.screenTitle,}, "Select Your Deck"  )
         , savedDecks.length === 0 ? (
           React.createElement('div', { style: {...S.card, textAlign:"center", padding:"2.5rem 1rem",
             display:"flex", flexDirection:"column", gap:12, alignItems:"center"},}
-            , React.createElement('div', { style: {fontSize:36, opacity:0.3},}, "\\u1f0cf")
+            , React.createElement('div', { style: {fontSize:36, opacity:0.3},}, "🃏")
             , React.createElement('div', { style: {fontSize:13, color:C.textMuted, fontFamily:"monospace"},}, "No decks saved yet."   )
             , React.createElement('div', { style: {fontSize:11, color:C.textMuted, fontFamily:"monospace"},}, "Build a deck first in the Deck Builder."       )
             , React.createElement('button', { onClick: onBack, style: {
               marginTop:4, padding:"8px 20px",
               background:"rgba(245,166,35,0.1)", border:`1px solid ${C.borderMid}`,
               borderRadius:8, color:C.accent, fontFamily:"monospace", fontSize:12, cursor:"pointer",
-            },}, "\\u2190 Go Back"  )
+            },}, "← Go Back"  )
           )
         ) : (
           React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:10},}
@@ -2956,7 +2956,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                       padding:"2px 8px", borderRadius:10,
                       background: valid ? "rgba(68,238,136,0.08)" : "rgba(255,68,85,0.08)",
                       border:`1px solid ${valid ? "rgba(68,238,136,0.25)" : "rgba(255,68,85,0.25)"}`,
-                    },}, valid ? `\u2713 Pts ${cost}/${_optionalChain([gen, 'optionalAccess', _5 => _5.charisma])}` : `\u2715 Pts ${cost}/${_optionalChain([gen, 'optionalAccess', _6 => _6.charisma])}`)
+                    },}, valid ? `✓ Pts ${cost}/${_optionalChain([gen, 'optionalAccess', _5 => _5.charisma])}` : `✕ Pts ${cost}/${_optionalChain([gen, 'optionalAccess', _6 => _6.charisma])}`)
                   )
                   , React.createElement('div', { style: {display:"flex", gap:5, alignItems:"flex-start"},}
                     , gen && (
@@ -2992,17 +2992,17 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     )
   );
 
-  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-  // PHASE: REVEAL \u2014 both pools shown side by side
-  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-  // PHASE: TRINITY DUEL \u2014 determine who goes first in General Battle
-  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ─────────────────────────────────────────────────────────────────────────
+  // PHASE: REVEAL — both pools shown side by side
+  // ─────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // PHASE: TRINITY DUEL — determine who goes first in General Battle
+  // ─────────────────────────────────────────────────────────────────────────
   if (phase === "trinity") {
     const TYPES = [
-      { key:"Assault", label:"\u2694 Assault", beats:"Shield",  color:"#ff4466", bg:"rgba(255,40,60,0.12)",  border:"rgba(255,40,60,0.5)",  glow:"rgba(255,40,60,0.3)"  },
-      { key:"Shield",  label:"\u1f6e1 Shield",  beats:"Snipe",   color:"#3399ff", bg:"rgba(40,100,255,0.12)", border:"rgba(40,100,255,0.5)", glow:"rgba(40,100,255,0.3)" },
-      { key:"Snipe",   label:"\u1f985 Snipe",   beats:"Assault", color:"#44ee88", bg:"rgba(68,238,136,0.12)", border:"rgba(68,238,136,0.5)", glow:"rgba(68,238,136,0.3)" },
+      { key:"Assault", label:"⚔ Assault", beats:"Shield",  color:"#ff4466", bg:"rgba(255,40,60,0.12)",  border:"rgba(255,40,60,0.5)",  glow:"rgba(255,40,60,0.3)"  },
+      { key:"Shield",  label:"🛡 Shield",  beats:"Snipe",   color:"#3399ff", bg:"rgba(40,100,255,0.12)", border:"rgba(40,100,255,0.5)", glow:"rgba(40,100,255,0.3)" },
+      { key:"Snipe",   label:"🦅 Snipe",   beats:"Assault", color:"#44ee88", bg:"rgba(68,238,136,0.12)", border:"rgba(68,238,136,0.5)", glow:"rgba(68,238,136,0.3)" },
     ];
 
     function trinityBeats(a, b) {
@@ -3042,7 +3042,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
         /* Header */
         , React.createElement('div', { style: {flexShrink:0,padding:"14px 16px 0",textAlign:"center"},}
           , React.createElement('div', { style: {fontFamily:"monospace",fontSize:16,fontWeight:900,color:C.accent,
-            letterSpacing:"0.12em",marginBottom:4,textShadow:`0 0 16px rgba(245,166,35,0.5)`},}, "\\u26a1 TRINITY DUEL \\u26a1"
+            letterSpacing:"0.12em",marginBottom:4,textShadow:`0 0 16px rgba(245,166,35,0.5)`},}, "⚡ TRINITY DUEL ⚡"
 
           )
           , React.createElement('div', { style: {fontFamily:"monospace",fontSize:11,color:C.textMuted,marginBottom:2},}, "Winner goes first in the General Battle"
@@ -3050,7 +3050,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
           )
           , React.createElement('div', { style: {fontFamily:"monospace",fontSize:10,color:C.textSub,
             padding:"3px 10px",borderRadius:5,display:"inline-block",
-            background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)"},}, "\\u2694 beats \\u1f6e1  \\u00b7  \\u1f6e1 beats \\u1f985  \\u00b7  \\u1f985 beats \\u2694"
+            background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)"},}, "⚔ beats 🛡  ·  🛡 beats 🦅  ·  🦅 beats ⚔"
 
           )
         )
@@ -3058,7 +3058,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
         , React.createElement('div', { style: {flex:1,display:"flex",flexDirection:"column",
           alignItems:"center",justifyContent:"center",padding:"0 16px",gap:20},}
 
-          /* Versus display \u2014 before pick shows question marks, after shows picks */
+          /* Versus display — before pick shows question marks, after shows picks */
           , React.createElement('div', { style: {display:"flex",alignItems:"center",gap:16,width:"100%",maxWidth:360},}
             /* Player pick */
             , React.createElement('div', { style: {flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:6},}
@@ -3087,7 +3087,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                 React.createElement('div', { style: {textAlign:"center"},}
                   , React.createElement('div', { style: {fontSize:24,fontWeight:900,
                     color:trinityWinner==="player"?"#44ee88":trinityWinner==="ai"?"#ff4466":"#ffcc00"},}
-                    , trinityWinner==="player"?"\u2713":trinityWinner==="ai"?"\u2715":"\u26a1"
+                    , trinityWinner==="player"?"✓":trinityWinner==="ai"?"✕":"⚡"
                   )
                   , React.createElement('div', { style: {fontSize:10,fontFamily:"monospace",fontWeight:700,
                     color:trinityWinner==="player"?"#44ee88":trinityWinner==="ai"?"#ff4466":"#ffcc00"},}
@@ -3130,7 +3130,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                   ? "You go first in the General Battle!"
                   : trinityWinner==="ai"
                   ? "AI goes first in the General Battle!"
-                  : "Draw \u2014 turn order will be randomized!"
+                  : "Draw — turn order will be randomized!"
               )
               , pType && aType && (
                 React.createElement('div', { style: {fontSize:10,fontFamily:"monospace",color:C.textMuted},}
@@ -3144,7 +3144,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
             )
           )
 
-          /* Pick buttons \u2014 shown before pick; hidden after */
+          /* Pick buttons — shown before pick; hidden after */
           , !resolved && (
             React.createElement('div', { style: {display:"flex",flexDirection:"column",alignItems:"center",gap:10,width:"100%",maxWidth:320},}
               , React.createElement('div', { style: {fontSize:11,fontFamily:"monospace",color:C.textMuted,marginBottom:4},}, "Choose your Trinity type:"
@@ -3164,7 +3164,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
             )
           )
 
-          /* Continue button \u2014 shown after pick */
+          /* Continue button — shown after pick */
           , resolved && (
             React.createElement('button', { onClick: () => setPhase("reveal"), style: {
               padding:"13px 40px",
@@ -3172,7 +3172,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
               borderRadius:10,cursor:"pointer",color:C.accent,
               fontFamily:"monospace",fontSize:14,fontWeight:700,letterSpacing:"0.08em",
               textShadow:`0 0 10px rgba(245,166,35,0.5)`,
-            },}, "Continue \\u2192 Reveal"  )
+            },}, "Continue → Reveal"  )
           )
         )
       )
@@ -3193,7 +3193,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
               textAlign:"center", textShadow:`0 0 8px rgba(0,245,255,0.4)`},}, "Your Units" )
             , React.createElement('div', { style: {fontSize:9, fontFamily:"monospace", textAlign:"center", marginBottom:8,
               padding:"3px 6px", borderRadius:5, background:"rgba(0,100,200,0.07)",
-              border:"1px solid rgba(0,180,255,0.2)", color:"rgba(150,220,255,0.9)"},}, "Pool of 5 \\u2014 Chr "
+              border:"1px solid rgba(0,180,255,0.2)", color:"rgba(150,220,255,0.9)"},}, "Pool of 5 — Chr "
                    , React.createElement('strong', { style: {color:"#ff8844"},}, playerGen.charisma), " (3 chosen must fit)"
             )
             , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:7},}
@@ -3231,7 +3231,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
               textAlign:"center", textShadow:"0 0 8px rgba(255,40,80,0.4)"},}, "AI Units" )
             , React.createElement('div', { style: {fontSize:9, fontFamily:"monospace", textAlign:"center", marginBottom:8,
               padding:"3px 6px", borderRadius:5, background:"rgba(255,40,60,0.07)",
-              border:"1px solid rgba(255,40,60,0.2)", color:"rgba(255,150,150,0.9)"},}, "Pool of 5 \\u2014 Chr "
+              border:"1px solid rgba(255,40,60,0.2)", color:"rgba(255,150,150,0.9)"},}, "Pool of 5 — Chr "
                    , React.createElement('strong', { style: {color:"#ff8844"},}, aiGen.charisma), " (3 chosen must fit)"
             )
             , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:7},}
@@ -3264,7 +3264,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
           )
         )
       )
-      /* Bottom button \u2014 sticky, NOT fixed */
+      /* Bottom button — sticky, NOT fixed */
       , React.createElement('div', { style: {flexShrink:0, padding:"10px 14px", background:"rgba(2,4,38,0.95)",
         borderTop:`1px solid ${C.border}`, width:"100%"},}
         , React.createElement('button', { onClick: startBan, style: {
@@ -3274,14 +3274,14 @@ function ArenaPlaceholder({ onBack, difficulty }) {
           fontFamily:"monospace", fontSize:14, fontWeight:700, letterSpacing:"0.08em",
           textShadow:`0 0 10px rgba(0,245,255,0.5)`,
           boxShadow:"0 0 16px rgba(0,245,255,0.07)",
-        },}, "\\u2694 Ban Phase \\u2192"   )
+        },}, "⚔ Ban Phase →"   )
       )
     )
   );
 
-  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-  // PHASE: BAN \u2014 player picks 1 enemy unit to ban
-  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ─────────────────────────────────────────────────────────────────────────
+  // PHASE: BAN — player picks 1 enemy unit to ban
+  // ─────────────────────────────────────────────────────────────────────────
   if (phase === "ban") return (
     React.createElement('div', { style: {width:"100%", height:"100vh", display:"flex", flexDirection:"column"},}
       , React.createElement(PhaseHeader, { back: () => setPhase("reveal"),} )
@@ -3293,11 +3293,11 @@ function ArenaPlaceholder({ onBack, difficulty }) {
 
         /* AI banned yours */
         , React.createElement('div', { style: {...S.callout, marginBottom:12, borderColor:"rgba(255,68,80,0.3)", background:"rgba(255,68,80,0.06)"},}
-          , React.createElement('span', null, "\\u1f916")
+          , React.createElement('span', null, "🤖")
           , React.createElement('span', null, "AI banned your: "   , React.createElement('strong', { style: {color:"#ff6677"},}, _optionalChain([aiBan, 'optionalAccess', _7 => _7.name])))
         )
 
-        /* AI pool \u2014 player picks one to ban */
+        /* AI pool — player picks one to ban */
         , React.createElement('div', { style: {fontSize:11, color:C.textMuted, fontFamily:"monospace", marginBottom:8, letterSpacing:"0.06em"},}, "TAP TO BAN:"
 
         )
@@ -3334,14 +3334,14 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                   , React.createElement('div', { style: {fontSize:10, color:C.textSub, fontFamily:"monospace",
                     whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"},}, u.junction)
                 )
-                , isBanned && React.createElement('div', { style: {flexShrink:0, fontSize:20, color:"#ff4466", fontWeight:900},}, "\\u2715")
+                , isBanned && React.createElement('div', { style: {flexShrink:0, fontSize:20, color:"#ff4466", fontWeight:900},}, "✕")
               )
             );
           })
         )
       )
 
-      /* Confirm ban \u2014 sticky bottom */
+      /* Confirm ban — sticky bottom */
       , React.createElement('div', { style: {flexShrink:0, padding:"8px 14px", background:"rgba(2,4,38,0.95)",
         borderTop:`1px solid ${C.border}`, width:"100%"},}
         , React.createElement('button', {
@@ -3357,15 +3357,15 @@ function ArenaPlaceholder({ onBack, difficulty }) {
             pointerEvents: playerBan ? "auto" : "none",
             opacity: playerBan ? 1 : 0.5,
           },}
-          , playerBan ? `\u2715 Ban "${playerBan.name}" \u2192` : "\u26a0 Select a unit to ban first"
+          , playerBan ? `✕ Ban "${playerBan.name}" →` : "⚠ Select a unit to ban first"
         )
       )
     )
   );
 
-  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-  // PHASE: CUT \u2014 player picks 3 of 4 remaining units
-  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ─────────────────────────────────────────────────────────────────────────
+  // PHASE: CUT — player picks 3 of 4 remaining units
+  // ─────────────────────────────────────────────────────────────────────────
   if (phase === "cut") {
     const cutCost = playerCut.reduce((s,u) => s+u.cost, 0);
     const cutValid = playerCut.length === 3 && cutCost <= playerGen.charisma;
@@ -3373,7 +3373,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
       React.createElement('div', { style: {width:"100%", height:"100vh", display:"flex", flexDirection:"column", overflow:"hidden"},}
         , React.createElement(PhaseHeader, { back: () => setPhase("ban"),} )
 
-        /* Header info \u2014 compact, no scroll */
+        /* Header info — compact, no scroll */
         , React.createElement('div', { style: {flexShrink:0, padding:"6px 14px 0"},}
           , React.createElement('h1', { style: {...S.screenTitle, marginBottom:3, fontSize:18},}, "The Cut" )
           , React.createElement('p', { style: {...S.body, textAlign:"center", marginBottom:6, fontSize:11},}, "Choose "
@@ -3391,12 +3391,12 @@ function ArenaPlaceholder({ onBack, difficulty }) {
             )
             , React.createElement('span', { style: {fontSize:12, fontFamily:"monospace",
               color: cutCost > playerGen.charisma ? "#ff4455" : "#44ee88", fontWeight:700},}, "Pts "
-               , cutCost, " / Chr "   , playerGen.charisma, " " , cutCost > playerGen.charisma ? "\u2715" : playerCut.length===3 ? "\u2713" : ""
+               , cutCost, " / Chr "   , playerGen.charisma, " " , cutCost > playerGen.charisma ? "✕" : playerCut.length===3 ? "✓" : ""
             )
           )
         )
 
-        /* Units \u2014 flex:1, no scroll, each unit grows equally */
+        /* Units — flex:1, no scroll, each unit grows equally */
         , React.createElement('div', { style: {flex:1, display:"flex", flexDirection:"column", gap:6,
           padding:"0 12px", overflow:"hidden", justifyContent:"space-evenly"},}
           , playerRemaining.map(u => {
@@ -3416,7 +3416,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                   transition:"all 0.15s",
                   flex:1, minHeight:0,
                 },}
-                /* Card image \u2014 bigger */
+                /* Card image — bigger */
                 , React.createElement('div', { style: {width:58, height:77, flexShrink:0, borderRadius:6, overflow:"hidden",
                   border:`2px solid ${chosen ? C.cyan : tc}`,
                   boxShadow:`0 0 8px ${chosen ? "rgba(0,245,255,0.3)" : TYPE_GLOW[u.type]||"transparent"}`},}
@@ -3440,7 +3440,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                   border:`2px solid ${chosen ? C.cyan : "rgba(255,255,255,0.15)"}`,
                   display:"flex", alignItems:"center", justifyContent:"center",
                   fontSize:13, fontWeight:900, color: chosen ? "#000" : "transparent",
-                  transition:"all 0.15s"},}, "\\u2713")
+                  transition:"all 0.15s"},}, "✓")
               )
             );
           })
@@ -3456,16 +3456,16 @@ function ArenaPlaceholder({ onBack, difficulty }) {
             color: cutValid ? C.cyan : C.textMuted,
             fontFamily:"monospace", fontSize:14, fontWeight:700, letterSpacing:"0.08em",
           },}
-            , cutValid ? "Lock In Selection \u2192" : playerCut.length < 3 ? `Pick ${3-playerCut.length} more` : "\u2715 Pts exceed Chr limit"
+            , cutValid ? "Lock In Selection →" : playerCut.length < 3 ? `Pick ${3-playerCut.length} more` : "✕ Pts exceed Chr limit"
           )
         )
       )
     );
   }
 
-  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-  // PHASE: CONFIRM / READY \u2014 layout summary
-  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ─────────────────────────────────────────────────────────────────────────
+  // PHASE: CONFIRM / READY — layout summary
+  // ─────────────────────────────────────────────────────────────────────────
   if (phase === "confirm") return (
     React.createElement('div', { style: {width:"100%", height:"100vh", display:"flex", flexDirection:"column"},}
       , React.createElement(PhaseHeader, { back: () => setPhase("cut"),} )
@@ -3490,20 +3490,20 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                   background:valid?"rgba(68,238,136,0.08)":"rgba(255,40,60,0.08)",
                   border:`1px solid ${valid?"rgba(68,238,136,0.25)":"rgba(255,40,60,0.25)"}`,
                   padding:"2px 7px", borderRadius:5},}, "Pts "
-                   , pPts, " / Chr "   , playerGen.charisma, " " , valid?"\u2713":"\u2715"
+                   , pPts, " / Chr "   , playerGen.charisma, " " , valid?"✓":"✕"
                 )
               )
             );
           })()
           , React.createElement('div', { style: {display:"flex", gap:6, alignItems:"flex-end"},}
-            /* General \u2014 90\u00d7120 */
+            /* General — 90×120 */
             , React.createElement('div', { style: {width:90, height:120, flexShrink:0, borderRadius:7, overflow:"hidden",
               border:`2px solid ${TYPE_COLOR[playerGen.type]||"#aaa"}`,
               boxShadow:`0 0 14px ${TYPE_GLOW[playerGen.type]||"transparent"}`},}
               , React.createElement('img', { src: IMGS[playerGen.img.replace('.png','')] || '', alt: playerGen.name,
                 style: {width:"100%", height:"100%", objectFit:"cover", display:"block"},})
             )
-            /* 3 face-down units \u2014 58\u00d777 \u2014 Back_1 */
+            /* 3 face-down units — 58×77 — Back_1 */
             , ["L","C","R"].map(pos => (
               React.createElement('div', { key: pos, style: {display:"flex", flexDirection:"column", alignItems:"center", gap:2},}
                 , React.createElement('div', { style: {fontSize:8, color:C.textMuted, fontFamily:"monospace", fontWeight:700},}, pos)
@@ -3516,7 +3516,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
               )
             ))
           )
-          , React.createElement('div', { style: {marginTop:5, fontSize:8, color:C.textMuted, fontFamily:"monospace"},}, "Units shuffled \\u2014 hidden until Clash"
+          , React.createElement('div', { style: {marginTop:5, fontSize:8, color:C.textMuted, fontFamily:"monospace"},}, "Units shuffled — hidden until Clash"
 
           )
         )
@@ -3538,20 +3538,20 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                   background:valid?"rgba(68,238,136,0.08)":"rgba(255,40,60,0.08)",
                   border:`1px solid ${valid?"rgba(68,238,136,0.25)":"rgba(255,40,60,0.25)"}`,
                   padding:"2px 7px", borderRadius:5},}, "Pts "
-                   , aiPts, " / Chr "   , aiGen.charisma, " " , valid?"\u2713":"\u2715"
+                   , aiPts, " / Chr "   , aiGen.charisma, " " , valid?"✓":"✕"
                 )
               )
             );
           })()
           , React.createElement('div', { style: {display:"flex", gap:6, alignItems:"flex-end"},}
-            /* General \u2014 90\u00d7120 */
+            /* General — 90×120 */
             , React.createElement('div', { style: {width:90, height:120, flexShrink:0, borderRadius:7, overflow:"hidden",
               border:`2px solid ${TYPE_COLOR[aiGen.type]||"#aaa"}`,
               boxShadow:`0 0 14px ${TYPE_GLOW[aiGen.type]||"transparent"}`},}
               , React.createElement('img', { src: IMGS[aiGen.img.replace('.png','')] || '', alt: aiGen.name,
                 style: {width:"100%", height:"100%", objectFit:"cover", display:"block"},})
             )
-            /* 3 face-down units \u2014 58\u00d777 \u2014 Back_2 */
+            /* 3 face-down units — 58×77 — Back_2 */
             , ["L","C","R"].map(pos => (
               React.createElement('div', { key: pos, style: {display:"flex", flexDirection:"column", alignItems:"center", gap:2},}
                 , React.createElement('div', { style: {fontSize:8, color:C.textMuted, fontFamily:"monospace", fontWeight:700},}, pos)
@@ -3572,11 +3572,11 @@ function ArenaPlaceholder({ onBack, difficulty }) {
         /* Summary row */
         , React.createElement('div', { style: {display:"flex", gap:8, marginBottom:10},}
           , React.createElement('div', { style: {flex:1, ...S.callout},}
-            , React.createElement('span', null, "\\u2699")
+            , React.createElement('span', null, "⚙")
             , React.createElement('span', null, "AI: " , React.createElement('strong', { style: {color:C.accent, textTransform:"capitalize"},}, difficulty))
           )
           , React.createElement('div', { style: {flex:1, ...S.callout},}
-            , React.createElement('span', null, "\\u1f0cf")
+            , React.createElement('span', null, "🃏")
             , React.createElement('span', { style: {fontSize:11, color:C.textSub, fontFamily:"monospace", overflow:"hidden",
               textOverflow:"ellipsis", whiteSpace:"nowrap"},}, _optionalChain([playerDeck, 'optionalAccess', _9 => _9.name]))
           )
@@ -3590,16 +3590,16 @@ function ArenaPlaceholder({ onBack, difficulty }) {
           fontFamily:"monospace", fontSize:15, fontWeight:700, letterSpacing:"0.1em",
           textShadow:`0 0 12px rgba(0,245,255,0.6)`,
           boxShadow:"0 0 20px rgba(0,245,255,0.08)",
-        },}, "\\u2694 ENTER THE ARENA"   )
+        },}, "⚔ ENTER THE ARENA"   )
 
-        , React.createElement('button', { style: {...S.backBtn, alignSelf:"center", marginTop:10}, onClick: onBack,}, "\\u2190 Exit Arena"  )
+        , React.createElement('button', { style: {...S.backBtn, alignSelf:"center", marginTop:10}, onClick: onBack,}, "← Exit Arena"  )
       )
     )
   );
 
-  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
-  // PHASE: CLASH \u2014 sequential reveal Right \u2192 Center \u2192 Left
-  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ─────────────────────────────────────────────────────────────────────────
+  // PHASE: CLASH — sequential reveal Right → Center → Left
+  // ─────────────────────────────────────────────────────────────────────────
   if (phase === "clash") {
 
     // Trinity advantage: returns true if typeA beats typeB
@@ -3614,7 +3614,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     function resolveClash(pCard, aCard) {
       if (pCard.cost > aCard.cost)  return "player";
       if (aCard.cost > pCard.cost)  return "ai";
-      // Equal cost \u2014 type decides
+      // Equal cost — type decides
       if (pCard.type === aCard.type) return "fizzle";
       if (beats(pCard.type, aCard.type)) return "player";
       return "ai";
@@ -3639,27 +3639,27 @@ function ArenaPlaceholder({ onBack, difficulty }) {
       const newResults = [...clashResults, newResult];
       setClashResults(newResults);
 
-      // \u2500\u2500 Build log entry \u2500\u2500
+      // ── Build log entry ──
       const fizzle = winner==="fizzle", pWon = winner==="player";
       const logEntry = {
         type: "result",
         text: fizzle
-          ? `\u26a1 ${POS_LABELS[clashStep]}: FIZZLE \u2014 ${pCard.name} (Pts ${pCard.cost} ${pCard.type}) vs ${aCard.name} (Pts ${aCard.cost} ${aCard.type}) \u2014 both destroyed`
+          ? `⚡ ${POS_LABELS[clashStep]}: FIZZLE — ${pCard.name} (Pts ${pCard.cost} ${pCard.type}) vs ${aCard.name} (Pts ${aCard.cost} ${aCard.type}) — both destroyed`
           : pWon
-            ? `\u2713 ${POS_LABELS[clashStep]}: YOU WIN \u2014 ${pCard.name} (Pts ${pCard.cost} ${pCard.type}) defeats ${aCard.name} (Pts ${aCard.cost} ${aCard.type})`
-            : `\u2715 ${POS_LABELS[clashStep]}: AI WINS \u2014 ${aCard.name} (Pts ${aCard.cost} ${aCard.type}) defeats ${pCard.name} (Pts ${pCard.cost} ${pCard.type})`,
+            ? `✓ ${POS_LABELS[clashStep]}: YOU WIN — ${pCard.name} (Pts ${pCard.cost} ${pCard.type}) defeats ${aCard.name} (Pts ${aCard.cost} ${aCard.type})`
+            : `✕ ${POS_LABELS[clashStep]}: AI WINS — ${aCard.name} (Pts ${aCard.cost} ${aCard.type}) defeats ${pCard.name} (Pts ${pCard.cost} ${pCard.type})`,
         color: fizzle?"#ffcc00":pWon?"#44ee88":"#ff6677",
       };
       const extraEntry = (pCard.cost===aCard.cost && !fizzle) ? {
         type:"detail",
         text: beats(pCard.type,aCard.type)
-          ? `  \u2192 Type advantage: ${pCard.type} beats ${aCard.type}`
-          : `  \u2192 Type advantage: ${aCard.type} beats ${pCard.type}`,
+          ? `  → Type advantage: ${pCard.type} beats ${aCard.type}`
+          : `  → Type advantage: ${aCard.type} beats ${pCard.type}`,
         color:"rgba(180,180,255,0.65)",
       } : null;
       setBattleLog(l => [...l, logEntry, ...(extraEntry?[extraEntry]:[])]);
 
-      // \u2500\u2500 Junction log: add confirmed survivors \u2500\u2500
+      // ── Junction log: add confirmed survivors ──
       if (!fizzle) {
         const survivor = pWon ? pCard : aCard;
         const side = pWon ? "player" : "ai";
@@ -3683,21 +3683,21 @@ function ArenaPlaceholder({ onBack, difficulty }) {
           padding:"4px 10px", borderRadius:20, fontSize:11, fontWeight:700,
           background:"rgba(150,100,0,0.2)", border:"1px solid rgba(255,200,0,0.4)",
           color:"#ffcc00", fontFamily:"monospace",
-        },}, "\\u26a1 FIZZLE" )
+        },}, "⚡ FIZZLE" )
       );
       if (winner === "player") return (
         React.createElement('div', { style: {
           padding:"4px 10px", borderRadius:20, fontSize:11, fontWeight:700,
           background:"rgba(0,245,100,0.1)", border:"1px solid rgba(0,245,100,0.4)",
           color:"#44ee88", fontFamily:"monospace",
-        },}, "\\u2713 YOU WIN"  )
+        },}, "✓ YOU WIN"  )
       );
       return (
         React.createElement('div', { style: {
           padding:"4px 10px", borderRadius:20, fontSize:11, fontWeight:700,
           background:"rgba(255,40,60,0.1)", border:"1px solid rgba(255,40,60,0.4)",
           color:"#ff6677", fontFamily:"monospace",
-        },}, "\\u2715 AI WINS"  )
+        },}, "✕ AI WINS"  )
       );
     }
 
@@ -3724,7 +3724,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
       );
     }
 
-    // \u2500\u2500 CLASH DONE \u2014 summary screen \u2500\u2500
+    // ── CLASH DONE — summary screen ──
     if (clashStep === 3) return (
       React.createElement('div', { style: {width:"100%", height:"100vh", display:"flex", flexDirection:"column", overflow:"hidden"},
         onClick: ()=>setInfoCard(null),}
@@ -3761,7 +3761,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                 )
                 , React.createElement('div', { style: {display:"flex", flexDirection:"column", alignItems:"center", gap:1, flexShrink:0, minWidth:44},}
                   , React.createElement('span', { style: {fontSize:9, color:C.textMuted, fontFamily:"monospace", fontWeight:700},}, r.pos)
-                  , React.createElement('span', { style: {fontSize:22, fontWeight:900, color:resultCol, lineHeight:1},}, fizzle?"\u26a1":pWon?"\u2713":"\u2715")
+                  , React.createElement('span', { style: {fontSize:22, fontWeight:900, color:resultCol, lineHeight:1},}, fizzle?"⚡":pWon?"✓":"✕")
                   , React.createElement('span', { style: {fontSize:9, fontWeight:700, color:resultCol, fontFamily:"monospace"},}, fizzle?"FIZZLE":pWon?"YOU":"AI")
                 )
                 , React.createElement('div', { style: {flex:1, minWidth:0, textAlign:"right"},}
@@ -3788,7 +3788,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
             borderRadius:9, cursor:"pointer", color:C.cyan,
             fontFamily:"monospace", fontSize:14, fontWeight:700, letterSpacing:"0.08em",
             textShadow:`0 0 10px rgba(0,245,255,0.5)`,
-          },}, "\\u2694 General Battle \\u2192"   )
+          },}, "⚔ General Battle →"   )
         )
       )
     );
@@ -3803,21 +3803,21 @@ function ArenaPlaceholder({ onBack, difficulty }) {
       const pC = clashStep < 3 ? playerLayout[clashStep] : null;
       const aC = clashStep < 3 ? aiLayout[clashStep] : null;
       if (pC && aC) {
-        entries.push({ type:"current", text:`\u25b6 ${POS_LABELS[clashStep]}: ${pC.name} (Pts ${pC.cost} ${pC.type}) vs ${aC.name} (Pts ${aC.cost} ${aC.type})`, color:C.accent });
+        entries.push({ type:"current", text:`▶ ${POS_LABELS[clashStep]}: ${pC.name} (Pts ${pC.cost} ${pC.type}) vs ${aC.name} (Pts ${aC.cost} ${aC.type})`, color:C.accent });
         entries.push({ type:"junction", text:`  YOU junction: ${pC.junction}`, color:"rgba(0,245,255,0.75)" });
         entries.push({ type:"junction", text:`  AI junction: ${aC.junction}`, color:"rgba(255,80,100,0.75)" });
       }
       return entries;
     };
 
-    // \u2500\u2500 CLASH ACTIVE \u2014 Duel Links arena \u2500\u2500
+    // ── CLASH ACTIVE — Duel Links arena ──
     return (
       React.createElement('div', { style: {width:"100%", height:"100vh", display:"flex", flexDirection:"column"},
         onClick: ()=>setInfoCard(null),}
         , React.createElement(PhaseHeader, { back: () => setPhase("confirm"),} )
         , React.createElement('div', { style: {flex:1, overflowY:"auto", padding:"0 8px 8px", width:"100%", boxSizing:"border-box"},}
 
-          /* \u2500\u2500 ARENA \u2500\u2500 */
+          /* ── ARENA ── */
           , React.createElement('div', { style: {borderRadius:10, overflow:"hidden", marginBottom:8,
             border:"1px solid rgba(60,20,120,0.25)"},}
 
@@ -3832,7 +3832,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                    , React.createElement('b', null, aiGen.hp), " AP "  , React.createElement('b', null, aiGen.ap)
                 )
               )
-              /* AI back row \u2014 3 real unit cards */
+              /* AI back row — 3 real unit cards */
               , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:2, marginBottom:6},}
                 , [0,1,2].map(idx => {
                   const card = aiLayout[idx];
@@ -3877,7 +3877,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                             background:"rgba(0,0,0,0.8)",borderRadius:"50%",
                             width:14,height:14,display:"flex",alignItems:"center",justifyContent:"center",
                             fontSize:9,color:won?"#44ee88":fizzle?"#ffcc00":"#ff4466"},}
-                            , won?"\u2713":fizzle?"\u26a1":"\u2715"
+                            , won?"✓":fizzle?"⚡":"✕"
                           )
                         )
                       )
@@ -3917,13 +3917,13 @@ function ArenaPlaceholder({ onBack, difficulty }) {
               )
               , React.createElement('span', { style: {fontSize:9,fontFamily:"monospace"},}
                 , React.createElement('span', { style: {color:"#44ee88",fontWeight:700},}, pScore)
-                , React.createElement('span', { style: {color:C.textMuted},}, " \\u2014 "  )
+                , React.createElement('span', { style: {color:C.textMuted},}, " — "  )
                 , React.createElement('span', { style: {color:"#ff4466",fontWeight:700},}, aScore)
               )
               , currentResult && (
                 React.createElement('span', { style: {fontSize:12,fontWeight:900,
                   color:currentResult==="fizzle"?"#ffcc00":currentResult==="player"?"#44ee88":"#ff6677"},}
-                  , currentResult==="fizzle"?"\u26a1":currentResult==="player"?"\u2713":"\u2715"
+                  , currentResult==="fizzle"?"⚡":currentResult==="player"?"✓":"✕"
                 )
               )
             )
@@ -3949,7 +3949,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                   )
                 )
               )
-              /* Player back row \u2014 3 real unit cards */
+              /* Player back row — 3 real unit cards */
               , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:2, marginBottom:6},}
                 , [0,1,2].map(idx => {
                   const card = playerLayout[idx];
@@ -3995,7 +3995,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                             background:"rgba(0,0,0,0.8)",borderRadius:"50%",
                             width:14,height:14,display:"flex",alignItems:"center",justifyContent:"center",
                             fontSize:9,color:won?"#44ee88":fizzle?"#ffcc00":"#ff4466"},}
-                            , won?"\u2713":fizzle?"\u26a1":"\u2715"
+                            , won?"✓":fizzle?"⚡":"✕"
                           )
                         )
                       )
@@ -4020,12 +4020,12 @@ function ArenaPlaceholder({ onBack, difficulty }) {
 
 
         , React.createElement(CardInfoBox, { card: infoCard, onClose: ()=>setInfoCard(null), isGen: false,})
-        /* Bottom bar: \u1f4cb Clash Log | \u26a1 Resolve | \u26a1 Junction Log */
+        /* Bottom bar: 📋 Clash Log | ⚡ Resolve | ⚡ Junction Log */
         , React.createElement('div', { style: {flexShrink:0, padding:"8px 10px", background:"rgba(2,4,38,0.97)",
           borderTop:`1px solid ${C.border}`, width:"100%",
           display:"flex", gap:6, alignItems:"center"},}
 
-          /* \u2500\u2500 \u1f4cb CLASH LOG button (left) \u2500\u2500 */
+          /* ── 📋 CLASH LOG button (left) ── */
           , React.createElement('div', { style: {position:"relative", flexShrink:0},}
             , React.createElement('button', { onClick: () => setShowLog(v => v==="clash" ? false : "clash"), style: {
               width:46, height:46, borderRadius:8, flexShrink:0,
@@ -4035,7 +4035,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
               display:"flex", alignItems:"center", justifyContent:"center",
               boxShadow: showLog==="clash" ? "0 0 14px rgba(245,166,35,0.35)" : "none",
               transition:"all 0.15s",
-            },}, "\\u1f4cb")
+            },}, "📋")
             , showLog==="clash" && (
               React.createElement('div', { style: {
                 position:"absolute", bottom:54, left:0,
@@ -4045,8 +4045,8 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                 zIndex:30, boxShadow:"0 -8px 32px rgba(0,0,0,0.85)",
               },}
                 , React.createElement('div', { style: {display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8},}
-                  , React.createElement('span', { style: {fontSize:13,color:C.accent,fontFamily:"monospace",fontWeight:700,letterSpacing:"0.08em"},}, "\\u1f4cb CLASH LOG"  )
-                  , React.createElement('span', { onClick: ()=>setShowLog(false), style: {cursor:"pointer",color:C.textMuted,fontSize:15,padding:"0 3px"},}, "\\u2715")
+                  , React.createElement('span', { style: {fontSize:13,color:C.accent,fontFamily:"monospace",fontWeight:700,letterSpacing:"0.08em"},}, "📋 CLASH LOG"  )
+                  , React.createElement('span', { onClick: ()=>setShowLog(false), style: {cursor:"pointer",color:C.textMuted,fontSize:15,padding:"0 3px"},}, "✕")
                 )
                 , buildLog().length === 0
                   ? React.createElement('div', { style: {fontSize:12,color:C.textMuted,fontFamily:"monospace"},}, "No events yet."  )
@@ -4063,16 +4063,16 @@ function ArenaPlaceholder({ onBack, difficulty }) {
             )
           )
 
-          /* \u2500\u2500 \u26a1 RESOLVE button (center) \u2500\u2500 */
+          /* ── ⚡ RESOLVE button (center) ── */
           , React.createElement('button', { onClick: advanceClash, style: {
             flex:1, padding:"13px 0",
             background:"rgba(245,166,35,0.12)", border:"1px solid rgba(245,166,35,0.5)",
             borderRadius:9, cursor:"pointer", color:C.accent,
             fontFamily:"monospace", fontSize:13, fontWeight:700, letterSpacing:"0.07em",
             textShadow:`0 0 10px rgba(245,166,35,0.5)`,
-          },}, "\\u26a1 Resolve "  , POS_LABELS[clashStep], " \\u2192" )
+          },}, "⚡ Resolve "  , POS_LABELS[clashStep], " →" )
 
-          /* \u2500\u2500 \u26a1 JUNCTION LOG button (right) \u2500\u2500 */
+          /* ── ⚡ JUNCTION LOG button (right) ── */
           , React.createElement('div', { style: {position:"relative", flexShrink:0},}
             , React.createElement('button', { onClick: () => setShowLog(v => v==="junction" ? false : "junction"), style: {
               width:46, height:46, borderRadius:8, flexShrink:0,
@@ -4082,7 +4082,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
               display:"flex", alignItems:"center", justifyContent:"center",
               boxShadow: showLog==="junction" ? "0 0 14px rgba(0,245,255,0.3)" : "none",
               transition:"all 0.15s",
-            },}, "\\u26a1")
+            },}, "⚡")
             , showLog==="junction" && (() => {
               const pC = clashStep < 3 ? playerLayout[clashStep] : null;
               const aC = clashStep < 3 ? aiLayout[clashStep] : null;
@@ -4091,23 +4091,23 @@ function ArenaPlaceholder({ onBack, difficulty }) {
               // Build text entries same style as clash log
               const entries = [];
               if (pC && aC) {
-                entries.push({ text:`\u25b6 ${POS_LABELS[clashStep]} \u2014 CURRENT`, color:C.accent, type:"header" });
-                entries.push({ text:`  YOU \u2014 ${pC.name} (Pts ${pC.cost} ${pC.type})`, color:C.cyan, type:"current" });
+                entries.push({ text:`▶ ${POS_LABELS[clashStep]} — CURRENT`, color:C.accent, type:"header" });
+                entries.push({ text:`  YOU — ${pC.name} (Pts ${pC.cost} ${pC.type})`, color:C.cyan, type:"current" });
                 entries.push({ text:`  Junction: ${pC.junction}`, color:"rgba(0,245,255,0.75)", type:"detail" });
                 entries.push({ text:`  Activates if YOU win this position`, color:"rgba(0,245,255,0.45)", type:"detail" });
-                entries.push({ text:`  AI  \u2014 ${aC.name} (Pts ${aC.cost} ${aC.type})`, color:"#ff4466", type:"current" });
+                entries.push({ text:`  AI  — ${aC.name} (Pts ${aC.cost} ${aC.type})`, color:"#ff4466", type:"current" });
                 entries.push({ text:`  Junction: ${aC.junction}`, color:"rgba(255,80,100,0.75)", type:"detail" });
                 entries.push({ text:`  Activates if AI wins this position`, color:"rgba(255,80,100,0.45)", type:"detail" });
               }
               if (pSurv.length > 0 || aSurv.length > 0) {
-                entries.push({ text:`\u2713 CONFIRMED JUNCTIONS`, color:"#44ee88", type:"header" });
+                entries.push({ text:`✓ CONFIRMED JUNCTIONS`, color:"#44ee88", type:"header" });
                 pSurv.forEach(u => {
-                  entries.push({ text:`  YOU \u2014 ${u.name} (${u.type})`, color:"#44ee88", type:"result" });
-                  entries.push({ text:`  \u2192 ${u.junction}`, color:"rgba(68,238,136,0.7)", type:"detail" });
+                  entries.push({ text:`  YOU — ${u.name} (${u.type})`, color:"#44ee88", type:"result" });
+                  entries.push({ text:`  → ${u.junction}`, color:"rgba(68,238,136,0.7)", type:"detail" });
                 });
                 aSurv.forEach(u => {
-                  entries.push({ text:`  AI  \u2014 ${u.name} (${u.type})`, color:"#ff6677", type:"result" });
-                  entries.push({ text:`  \u2192 ${u.junction}`, color:"rgba(255,100,120,0.7)", type:"detail" });
+                  entries.push({ text:`  AI  — ${u.name} (${u.type})`, color:"#ff6677", type:"result" });
+                  entries.push({ text:`  → ${u.junction}`, color:"rgba(255,100,120,0.7)", type:"detail" });
                 });
               }
               if (entries.length === 0) {
@@ -4122,8 +4122,8 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                   zIndex:30, boxShadow:"0 -8px 32px rgba(0,0,0,0.85)",
                 },}
                   , React.createElement('div', { style: {display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8},}
-                    , React.createElement('span', { style: {fontSize:13,color:C.cyan,fontFamily:"monospace",fontWeight:700,letterSpacing:"0.07em"},}, "\\u26a1 JUNCTION LOG"  )
-                    , React.createElement('span', { onClick: ()=>setShowLog(false), style: {cursor:"pointer",color:C.textMuted,fontSize:15,padding:"0 3px"},}, "\\u2715")
+                    , React.createElement('span', { style: {fontSize:13,color:C.cyan,fontFamily:"monospace",fontWeight:700,letterSpacing:"0.07em"},}, "⚡ JUNCTION LOG"  )
+                    , React.createElement('span', { onClick: ()=>setShowLog(false), style: {cursor:"pointer",color:C.textMuted,fontSize:15,padding:"0 3px"},}, "✕")
                   )
                   , entries.map((e,i) => (
                     React.createElement('div', { key: i, style: {
@@ -4144,9 +4144,9 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     );
   }
 
-  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ─────────────────────────────────────────────────────────────────────────
   // PHASE: GENERAL BATTLE
-  // \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+  // ─────────────────────────────────────────────────────────────────────────
 const JUNCTION_DESC = {
   "AIDA Berserk":        "+2 AP, -2 HP each your turn",
   "AIDA Corrosion":      "+1 AP, -1 HP each your turn",
@@ -4186,7 +4186,7 @@ const JUNCTION_DESC = {
   if (phase === "battle") {
 
 
-    // \u2500\u2500 TURN ENGINE \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    // ── TURN ENGINE ───────────────────────────────────────────────────────
     // Process a single attack turn
     function processTurn(state) {
       const { pHP, pAP, aHP, aAP, turn, currentTurn, pJunctions, aJunctions,
@@ -4197,54 +4197,54 @@ const JUNCTION_DESC = {
       let npEff={...pEffects}, naEff={...aEffects};
       let isPlayer = currentTurn==="player";
 
-      // \u2500\u2500 START OF TURN EFFECTS \u2500\u2500
+      // ── START OF TURN EFFECTS ──
       // Merciless Light (both)
       if(npJ.includes("Merciless Light")||naJ.includes("Merciless Light")){
         npHP-=2; naHP-=2;
-        newLog.push(`\u26a1 Merciless Light \u2014 2 dmg to both`);
+        newLog.push(`⚡ Merciless Light — 2 dmg to both`);
       }
       // First Strike
       if(npJ.includes("First Strike")||naJ.includes("First Strike")){
         npHP-=1; naHP-=1;
-        newLog.push(`\u26a1 First Strike \u2014 1 dmg to both`);
+        newLog.push(`⚡ First Strike — 1 dmg to both`);
       }
       // Light of Annihilation
       if(npJ.includes("Light of Annihilation")||naJ.includes("Light of Annihilation")){
         npHP-=3; naHP-=3;
-        newLog.push(`\u26a1 Light of Annihilation \u2014 3 dmg to both`);
+        newLog.push(`⚡ Light of Annihilation — 3 dmg to both`);
       }
 
       if(isPlayer) {
         // Energy Genome
-        if(npJ.includes("Energy Genome")){ npHP+=1; newLog.push("YOU: Energy Genome \u2014 +1 HP"); }
-        if(npJ.includes("Immortal Genome")){ npHP+=2; newLog.push("YOU: Immortal Genome \u2014 +2 HP"); }
-        if(npJ.includes("Vengeful Arrow")){ naHP-=1; newLog.push("YOU: Vengeful Arrow \u2014 1 dmg to AI"); }
-        if(npJ.includes("Tragic Arrow")){ naHP-=2; newLog.push("YOU: Tragic Arrow \u2014 2 dmg to AI"); }
-        if(npJ.includes("AIDA Corrosion")){ npAP+=1; npHP-=1; newLog.push("YOU: AIDA Corrosion \u2014 +1 AP, -1 HP"); }
-        if(npJ.includes("AIDA Berserk")){ npAP+=2; npHP-=2; newLog.push("YOU: AIDA Berserk \u2014 +2 AP, -2 HP"); }
-        if(npJ.includes("Folset's Trial")){ npAP+=1; npHP-=1; newLog.push("YOU: Folset's Trial \u2014 +1 AP, -1 HP"); }
-        if(npJ.includes("Long-awaited Return")){ npAP+=1; npHP+=2; newLog.push("YOU: Long-awaited Return \u2014 +1 AP, +2 HP"); }
+        if(npJ.includes("Energy Genome")){ npHP+=1; newLog.push("YOU: Energy Genome — +1 HP"); }
+        if(npJ.includes("Immortal Genome")){ npHP+=2; newLog.push("YOU: Immortal Genome — +2 HP"); }
+        if(npJ.includes("Vengeful Arrow")){ naHP-=1; newLog.push("YOU: Vengeful Arrow — 1 dmg to AI"); }
+        if(npJ.includes("Tragic Arrow")){ naHP-=2; newLog.push("YOU: Tragic Arrow — 2 dmg to AI"); }
+        if(npJ.includes("AIDA Corrosion")){ npAP+=1; npHP-=1; newLog.push("YOU: AIDA Corrosion — +1 AP, -1 HP"); }
+        if(npJ.includes("AIDA Berserk")){ npAP+=2; npHP-=2; newLog.push("YOU: AIDA Berserk — +2 AP, -2 HP"); }
+        if(npJ.includes("Folset's Trial")){ npAP+=1; npHP-=1; newLog.push("YOU: Folset's Trial — +1 AP, -1 HP"); }
+        if(npJ.includes("Long-awaited Return")){ npAP+=1; npHP+=2; newLog.push("YOU: Long-awaited Return — +1 AP, +2 HP"); }
         if(npJ.includes("Filling Hollow") && (npJ.length>1||naJ.length>0)){
           const pi=Math.floor(Math.random()*Math.max(1,npJ.length));
           const ai2=Math.floor(Math.random()*Math.max(1,naJ.length));
-          if(npJ.length>0){const r=npJ.splice(pi,1)[0]; newLog.push(`YOU: Filling Hollow \u2014 removed YOUR junction: ${r}`);}
-          if(naJ.length>0){const r=naJ.splice(ai2,1)[0]; newLog.push(`YOU: Filling Hollow \u2014 removed AI junction: ${r}`);}
+          if(npJ.length>0){const r=npJ.splice(pi,1)[0]; newLog.push(`YOU: Filling Hollow — removed YOUR junction: ${r}`);}
+          if(naJ.length>0){const r=naJ.splice(ai2,1)[0]; newLog.push(`YOU: Filling Hollow — removed AI junction: ${r}`);}
         }
-        if(npJ.includes("Reckless Rewards")){ npAP+=2; npEff.recklessTaken=(npEff.recklessTaken||0)+1; newLog.push("YOU: Reckless Rewards \u2014 +2 AP (takes +1 dmg when hit)"); }
-        if(npJ.includes("Harmonic Rhythm")&&npEff.goesFirst){ npAP+=2; newLog.push("YOU: Harmonic Rhythm \u2014 +2 AP (first)"); }
-        if(npJ.includes("Gathering of the Strong")&&turn<=5){ naHP-=1; newLog.push("YOU: Gathering of the Strong \u2014 1 dmg to AI"); }
-        if(npJ.includes("Mobilize the Troops")&&turn>5){ npHP+=1; newLog.push("YOU: Mobilize the Troops \u2014 +1 HP"); }
-        if(npJ.includes("Rendezvous")&&turn===8){ npHP-=10; newLog.push("YOU: Rendezvous \u2014 10 dmg to YOU (turn 8)"); }
-        if(npJ.includes("Trial by Fire")&&turn===5){ npAP+=5; npHP+=6; newLog.push("YOU: Trial by Fire \u2014 +5 AP, +6 HP (turn 5 unlocked)"); }
-        // Anu's Karma (end of your turn when going second) \u2014 handled at end
-        if(npJ.includes("Aurora Tears")&&npEff.goesFirst){ npAP+=2; newLog.push("YOU: Aurora Tears \u2014 +2 AP end of turn"); }
+        if(npJ.includes("Reckless Rewards")){ npAP+=2; npEff.recklessTaken=(npEff.recklessTaken||0)+1; newLog.push("YOU: Reckless Rewards — +2 AP (takes +1 dmg when hit)"); }
+        if(npJ.includes("Harmonic Rhythm")&&npEff.goesFirst){ npAP+=2; newLog.push("YOU: Harmonic Rhythm — +2 AP (first)"); }
+        if(npJ.includes("Gathering of the Strong")&&turn<=5){ naHP-=1; newLog.push("YOU: Gathering of the Strong — 1 dmg to AI"); }
+        if(npJ.includes("Mobilize the Troops")&&turn>5){ npHP+=1; newLog.push("YOU: Mobilize the Troops — +1 HP"); }
+        if(npJ.includes("Rendezvous")&&turn===8){ npHP-=10; newLog.push("YOU: Rendezvous — 10 dmg to YOU (turn 8)"); }
+        if(npJ.includes("Trial by Fire")&&turn===5){ npAP+=5; npHP+=6; newLog.push("YOU: Trial by Fire — +5 AP, +6 HP (turn 5 unlocked)"); }
+        // Anu's Karma (end of your turn when going second) — handled at end
+        if(npJ.includes("Aurora Tears")&&npEff.goesFirst){ npAP+=2; newLog.push("YOU: Aurora Tears — +2 AP end of turn"); }
 
-        // \u2500\u2500 ATTACK \u2500\u2500
+        // ── ATTACK ──
         let skip = false;
         if(npJ.includes("Mind's Eye")&&npEff.mindEyeUsed!==true){
-          // Mind's Eye: evade next INCOMING attack \u2014 handled on receive
+          // Mind's Eye: evade next INCOMING attack — handled on receive
         }
-        if(npJ.includes("Trial by Fire")&&turn<=4){ skip=true; newLog.push("YOU: Trial by Fire \u2014 cannot attack (turn "+(turn)+" of 4)"); }
+        if(npJ.includes("Trial by Fire")&&turn<=4){ skip=true; newLog.push("YOU: Trial by Fire — cannot attack (turn "+(turn)+" of 4)"); }
         if(!skip){
           let dmg = npAP;
           if(npJ.includes("Blades Crossing")) dmg+=1;
@@ -4254,82 +4254,82 @@ const JUNCTION_DESC = {
           if(naJ.includes("Spirit Clothes")) dmg=Math.max(0,dmg-1);
           if(naJ.includes("Veil of Aura")) dmg=Math.max(0,dmg-2);
           if(naJ.includes("Emperor's Pride")) dmg=Math.max(0,dmg-1);
-          if(naJ.includes("Defensive Stance")) { dmg=Math.max(0,dmg-1); newLog.push("AI: Defensive Stance \u2014 -1 dmg"); }
+          if(naJ.includes("Defensive Stance")) { dmg=Math.max(0,dmg-1); newLog.push("AI: Defensive Stance — -1 dmg"); }
           if(naJ.includes("Promised Discretion")) dmg=Math.min(dmg,3);
           if(naJ.includes("Detail Oriented")&&dmg<=2) dmg=0;
           // Mirror/Ingenious reflect
           let reflected=0;
-          if(naJ.includes("Mirror of Revenge")&&(naEff.mirrorTurns||0)>0){ reflected=dmg; dmg=0; npHP-=reflected; newLog.push(`AI: Mirror of Revenge \u2014 reflects ${reflected} dmg back`); naEff.mirrorTurns=(naEff.mirrorTurns||0)-1; }
-          if(naJ.includes("Ingenious Scheme")&&(naEff.schemeTurns||0)>0){ reflected=dmg; dmg=0; npHP-=reflected; newLog.push(`AI: Ingenious Scheme \u2014 reflects ${reflected} dmg back`); naEff.schemeTurns=(naEff.schemeTurns||0)-1; }
+          if(naJ.includes("Mirror of Revenge")&&(naEff.mirrorTurns||0)>0){ reflected=dmg; dmg=0; npHP-=reflected; newLog.push(`AI: Mirror of Revenge — reflects ${reflected} dmg back`); naEff.mirrorTurns=(naEff.mirrorTurns||0)-1; }
+          if(naJ.includes("Ingenious Scheme")&&(naEff.schemeTurns||0)>0){ reflected=dmg; dmg=0; npHP-=reflected; newLog.push(`AI: Ingenious Scheme — reflects ${reflected} dmg back`); naEff.schemeTurns=(naEff.schemeTurns||0)-1; }
           // Apply dmg
-          if(naJ.includes("Reckless Rewards")&&dmg>0){ dmg+=1; newLog.push("AI: Reckless Rewards \u2014 +1 extra dmg taken"); }
-          if(naEff.firstToAction&&dmg>0){ dmg+=1; newLog.push("AI: First to Action penalty \u2014 +1 extra dmg taken"); }
+          if(naJ.includes("Reckless Rewards")&&dmg>0){ dmg+=1; newLog.push("AI: Reckless Rewards — +1 extra dmg taken"); }
+          if(naEff.firstToAction&&dmg>0){ dmg+=1; newLog.push("AI: First to Action penalty — +1 extra dmg taken"); }
           naHP-=dmg;
-          if(dmg>0||reflected>0) newLog.push(`YOU attack \u2014 ${dmg} dmg to AI${reflected>0?" ("+reflected+" reflected)":""}`);
-          if(naJ.includes("Cross Counter")&&dmg>0){ npHP-=1; newLog.push("AI: Cross Counter \u2014 1 dmg to YOU"); }
+          if(dmg>0||reflected>0) newLog.push(`YOU attack — ${dmg} dmg to AI${reflected>0?" ("+reflected+" reflected)":""}`);
+          if(naJ.includes("Cross Counter")&&dmg>0){ npHP-=1; newLog.push("AI: Cross Counter — 1 dmg to YOU"); }
           // Massacre Pulse
-          if(npJ.includes("Massacre Pulse")&&dmg>0){ npAP+=1; newLog.push("YOU: Massacre Pulse \u2014 +1 AP"); }
+          if(npJ.includes("Massacre Pulse")&&dmg>0){ npAP+=1; newLog.push("YOU: Massacre Pulse — +1 AP"); }
         }
-        if(npJ.includes("Quickdance")){ let dmg2=Math.max(0,npAP-3); if(naJ.includes("Spirit Clothes")) dmg2=Math.max(0,dmg2-1); naHP-=dmg2; newLog.push(`YOU: Quickdance \u2014 extra attack ${dmg2} dmg`); }
-        if(npJ.includes("Anu's Karma")&&!npEff.goesFirst){ npHP+=3; newLog.push("YOU: Anu's Karma \u2014 +3 HP (going second)"); }
+        if(npJ.includes("Quickdance")){ let dmg2=Math.max(0,npAP-3); if(naJ.includes("Spirit Clothes")) dmg2=Math.max(0,dmg2-1); naHP-=dmg2; newLog.push(`YOU: Quickdance — extra attack ${dmg2} dmg`); }
+        if(npJ.includes("Anu's Karma")&&!npEff.goesFirst){ npHP+=3; newLog.push("YOU: Anu's Karma — +3 HP (going second)"); }
 
       } else {
-        // AI TURN \u2014 mirror of player
-        if(naJ.includes("Energy Genome")){ naHP+=1; newLog.push("AI: Energy Genome \u2014 +1 HP"); }
-        if(naJ.includes("Immortal Genome")){ naHP+=2; newLog.push("AI: Immortal Genome \u2014 +2 HP"); }
-        if(naJ.includes("Vengeful Arrow")){ npHP-=1; newLog.push("AI: Vengeful Arrow \u2014 1 dmg to YOU"); }
-        if(naJ.includes("Tragic Arrow")){ npHP-=2; newLog.push("AI: Tragic Arrow \u2014 2 dmg to YOU"); }
-        if(naJ.includes("AIDA Corrosion")){ naAP+=1; naHP-=1; newLog.push("AI: AIDA Corrosion \u2014 +1 AP, -1 HP"); }
-        if(naJ.includes("AIDA Berserk")){ naAP+=2; naHP-=2; newLog.push("AI: AIDA Berserk \u2014 +2 AP, -2 HP"); }
-        if(naJ.includes("Folset's Trial")){ naAP+=1; naHP-=1; newLog.push("AI: Folset's Trial \u2014 +1 AP, -1 HP"); }
-        if(naJ.includes("Long-awaited Return")){ naAP+=1; naHP+=2; newLog.push("AI: Long-awaited Return \u2014 +1 AP, +2 HP"); }
+        // AI TURN — mirror of player
+        if(naJ.includes("Energy Genome")){ naHP+=1; newLog.push("AI: Energy Genome — +1 HP"); }
+        if(naJ.includes("Immortal Genome")){ naHP+=2; newLog.push("AI: Immortal Genome — +2 HP"); }
+        if(naJ.includes("Vengeful Arrow")){ npHP-=1; newLog.push("AI: Vengeful Arrow — 1 dmg to YOU"); }
+        if(naJ.includes("Tragic Arrow")){ npHP-=2; newLog.push("AI: Tragic Arrow — 2 dmg to YOU"); }
+        if(naJ.includes("AIDA Corrosion")){ naAP+=1; naHP-=1; newLog.push("AI: AIDA Corrosion — +1 AP, -1 HP"); }
+        if(naJ.includes("AIDA Berserk")){ naAP+=2; naHP-=2; newLog.push("AI: AIDA Berserk — +2 AP, -2 HP"); }
+        if(naJ.includes("Folset's Trial")){ naAP+=1; naHP-=1; newLog.push("AI: Folset's Trial — +1 AP, -1 HP"); }
+        if(naJ.includes("Long-awaited Return")){ naAP+=1; naHP+=2; newLog.push("AI: Long-awaited Return — +1 AP, +2 HP"); }
         if(naJ.includes("Filling Hollow") && (naJ.length>1||npJ.length>0)){
           const ai2=Math.floor(Math.random()*Math.max(1,naJ.length));
           const pi=Math.floor(Math.random()*Math.max(1,npJ.length));
-          if(naJ.length>0){const r=naJ.splice(ai2,1)[0]; newLog.push(`AI: Filling Hollow \u2014 removed AI junction: ${r}`);}
-          if(npJ.length>0){const r=npJ.splice(pi,1)[0]; newLog.push(`AI: Filling Hollow \u2014 removed YOUR junction: ${r}`);}
+          if(naJ.length>0){const r=naJ.splice(ai2,1)[0]; newLog.push(`AI: Filling Hollow — removed AI junction: ${r}`);}
+          if(npJ.length>0){const r=npJ.splice(pi,1)[0]; newLog.push(`AI: Filling Hollow — removed YOUR junction: ${r}`);}
         }
-        if(naJ.includes("Reckless Rewards")){ naAP+=2; naEff.recklessTaken=(naEff.recklessTaken||0)+1; newLog.push("AI: Reckless Rewards \u2014 +2 AP (takes +1 dmg when hit)"); }
-        if(naJ.includes("Harmonic Rhythm")&&naEff.goesFirst){ naAP+=2; newLog.push("AI: Harmonic Rhythm \u2014 +2 AP (goes first)"); }
-        if(naJ.includes("Gathering of the Strong")&&turn<=5){ npHP-=1; newLog.push("AI: Gathering of the Strong \u2014 1 dmg to YOU"); }
-        if(naJ.includes("Mobilize the Troops")&&turn>5){ naHP+=1; newLog.push("AI: Mobilize the Troops \u2014 +1 HP"); }
-        if(naJ.includes("Rendezvous")&&turn===8){ naHP-=10; newLog.push("AI: Rendezvous \u2014 10 dmg to AI (turn 8)"); }
-        if(naJ.includes("Trial by Fire")&&turn===5){ naAP+=5; naHP+=6; newLog.push("AI: Trial by Fire \u2014 +5 AP, +6 HP unlocked"); }
-        if(naJ.includes("Aurora Tears")&&naEff.goesFirst){ naAP+=2; newLog.push("AI: Aurora Tears \u2014 +2 AP (goes first)"); }
+        if(naJ.includes("Reckless Rewards")){ naAP+=2; naEff.recklessTaken=(naEff.recklessTaken||0)+1; newLog.push("AI: Reckless Rewards — +2 AP (takes +1 dmg when hit)"); }
+        if(naJ.includes("Harmonic Rhythm")&&naEff.goesFirst){ naAP+=2; newLog.push("AI: Harmonic Rhythm — +2 AP (goes first)"); }
+        if(naJ.includes("Gathering of the Strong")&&turn<=5){ npHP-=1; newLog.push("AI: Gathering of the Strong — 1 dmg to YOU"); }
+        if(naJ.includes("Mobilize the Troops")&&turn>5){ naHP+=1; newLog.push("AI: Mobilize the Troops — +1 HP"); }
+        if(naJ.includes("Rendezvous")&&turn===8){ naHP-=10; newLog.push("AI: Rendezvous — 10 dmg to AI (turn 8)"); }
+        if(naJ.includes("Trial by Fire")&&turn===5){ naAP+=5; naHP+=6; newLog.push("AI: Trial by Fire — +5 AP, +6 HP unlocked"); }
+        if(naJ.includes("Aurora Tears")&&naEff.goesFirst){ naAP+=2; newLog.push("AI: Aurora Tears — +2 AP (goes first)"); }
 
         let skip = false;
-        if(naJ.includes("Trial by Fire")&&turn<=4){ skip=true; newLog.push("AI: Trial by Fire \u2014 cannot attack (turn "+(turn)+" of 4)"); }
+        if(naJ.includes("Trial by Fire")&&turn<=4){ skip=true; newLog.push("AI: Trial by Fire — cannot attack (turn "+(turn)+" of 4)"); }
         if(!skip){
           let dmg = naAP;
           if(naJ.includes("Blades Crossing")) dmg+=1;
           if(naJ.includes("Double Trigger")) dmg+=2;
-          // Reckless Rewards: AI takes +1 extra dmg when hit \u2014 applied when YOU attack (handled in player turn)
+          // Reckless Rewards: AI takes +1 extra dmg when hit — applied when YOU attack (handled in player turn)
           if(npJ.includes("Spirit Clothes")) dmg=Math.max(0,dmg-1);
           if(npJ.includes("Veil of Aura")) dmg=Math.max(0,dmg-2);
           if(npJ.includes("Emperor's Pride")) dmg=Math.max(0,dmg-1);
-          if(npJ.includes("Defensive Stance")) { dmg=Math.max(0,dmg-1); newLog.push("YOU: Defensive Stance \u2014 -1 dmg"); }
+          if(npJ.includes("Defensive Stance")) { dmg=Math.max(0,dmg-1); newLog.push("YOU: Defensive Stance — -1 dmg"); }
           if(npJ.includes("Promised Discretion")) dmg=Math.min(dmg,3);
           if(npJ.includes("Detail Oriented")&&dmg<=2) dmg=0;
-          if(npJ.includes("Mind's Eye")&&!npEff.mindEyeUsed){ dmg=0; npEff.mindEyeUsed=true; newLog.push("YOU: Mind's Eye \u2014 evaded AI attack"); }
+          if(npJ.includes("Mind's Eye")&&!npEff.mindEyeUsed){ dmg=0; npEff.mindEyeUsed=true; newLog.push("YOU: Mind's Eye — evaded AI attack"); }
           let reflected=0;
-          if(npJ.includes("Mirror of Revenge")&&(npEff.mirrorTurns||0)>0){ reflected=dmg; dmg=0; naHP-=reflected; newLog.push(`YOU: Mirror of Revenge \u2014 reflects ${reflected} dmg back`); npEff.mirrorTurns=(npEff.mirrorTurns||0)-1; }
-          if(npJ.includes("Ingenious Scheme")&&(npEff.schemeTurns||0)>0){ reflected=dmg; dmg=0; naHP-=reflected; newLog.push(`YOU: Ingenious Scheme \u2014 reflects ${reflected} dmg back`); npEff.schemeTurns=(npEff.schemeTurns||0)-1; }
-          if(npJ.includes("Reckless Rewards")&&dmg>0){ dmg+=1; newLog.push("YOU: Reckless Rewards \u2014 +1 extra dmg taken"); }
-          if(npEff.firstToAction&&dmg>0){ dmg+=1; newLog.push("YOU: First to Action penalty \u2014 +1 extra dmg taken"); }
+          if(npJ.includes("Mirror of Revenge")&&(npEff.mirrorTurns||0)>0){ reflected=dmg; dmg=0; naHP-=reflected; newLog.push(`YOU: Mirror of Revenge — reflects ${reflected} dmg back`); npEff.mirrorTurns=(npEff.mirrorTurns||0)-1; }
+          if(npJ.includes("Ingenious Scheme")&&(npEff.schemeTurns||0)>0){ reflected=dmg; dmg=0; naHP-=reflected; newLog.push(`YOU: Ingenious Scheme — reflects ${reflected} dmg back`); npEff.schemeTurns=(npEff.schemeTurns||0)-1; }
+          if(npJ.includes("Reckless Rewards")&&dmg>0){ dmg+=1; newLog.push("YOU: Reckless Rewards — +1 extra dmg taken"); }
+          if(npEff.firstToAction&&dmg>0){ dmg+=1; newLog.push("YOU: First to Action penalty — +1 extra dmg taken"); }
           npHP-=dmg;
-          if(dmg>0||reflected>0) newLog.push(`AI attacks \u2014 ${dmg} dmg to YOU${reflected>0?" ("+reflected+" reflected)":""}`);
-          if(npJ.includes("Cross Counter")&&dmg>0){ naHP-=1; newLog.push("YOU: Cross Counter \u2014 1 dmg to AI"); }
-          if(naJ.includes("Massacre Pulse")&&dmg>0){ naAP+=1; newLog.push("AI: Massacre Pulse \u2014 +1 AP"); }
+          if(dmg>0||reflected>0) newLog.push(`AI attacks — ${dmg} dmg to YOU${reflected>0?" ("+reflected+" reflected)":""}`);
+          if(npJ.includes("Cross Counter")&&dmg>0){ naHP-=1; newLog.push("YOU: Cross Counter — 1 dmg to AI"); }
+          if(naJ.includes("Massacre Pulse")&&dmg>0){ naAP+=1; newLog.push("AI: Massacre Pulse — +1 AP"); }
         }
-        if(naJ.includes("Quickdance")){ let dmg2=Math.max(0,naAP-3); if(npJ.includes("Spirit Clothes")) dmg2=Math.max(0,dmg2-1); npHP-=dmg2; newLog.push(`AI: Quickdance \u2014 extra attack ${dmg2} dmg`); }
-        if(naJ.includes("Anu's Karma")&&!naEff.goesFirst){ naHP+=3; newLog.push("AI: Anu's Karma \u2014 +3 HP (going second)"); }
+        if(naJ.includes("Quickdance")){ let dmg2=Math.max(0,naAP-3); if(npJ.includes("Spirit Clothes")) dmg2=Math.max(0,dmg2-1); npHP-=dmg2; newLog.push(`AI: Quickdance — extra attack ${dmg2} dmg`); }
+        if(naJ.includes("Anu's Karma")&&!naEff.goesFirst){ naHP+=3; newLog.push("AI: Anu's Karma — +3 HP (going second)"); }
       }
 
       // Clenching Teeth / Suck it up
-      if(npHP<=0&&npJ.includes("Clenching Teeth")&&!npEff.clenchUsed){ npHP=1; npEff.clenchUsed=true; newLog.push("YOU: Clenching Teeth \u2014 HP forced to 1"); }
-      if(npHP<=0&&npJ.includes("Suck it up")&&!npEff.suckUsed){ npHP=5; npEff.suckUsed=true; newLog.push("YOU: Suck it up \u2014 HP forced to 5"); }
-      if(naHP<=0&&naJ.includes("Clenching Teeth")&&!naEff.clenchUsed){ naHP=1; naEff.clenchUsed=true; newLog.push("AI: Clenching Teeth \u2014 HP forced to 1"); }
-      if(naHP<=0&&naJ.includes("Suck it up")&&!naEff.suckUsed){ naHP=5; naEff.suckUsed=true; newLog.push("AI: Suck it up \u2014 HP forced to 5"); }
+      if(npHP<=0&&npJ.includes("Clenching Teeth")&&!npEff.clenchUsed){ npHP=1; npEff.clenchUsed=true; newLog.push("YOU: Clenching Teeth — HP forced to 1"); }
+      if(npHP<=0&&npJ.includes("Suck it up")&&!npEff.suckUsed){ npHP=5; npEff.suckUsed=true; newLog.push("YOU: Suck it up — HP forced to 5"); }
+      if(naHP<=0&&naJ.includes("Clenching Teeth")&&!naEff.clenchUsed){ naHP=1; naEff.clenchUsed=true; newLog.push("AI: Clenching Teeth — HP forced to 1"); }
+      if(naHP<=0&&naJ.includes("Suck it up")&&!naEff.suckUsed){ naHP=5; naEff.suckUsed=true; newLog.push("AI: Suck it up — HP forced to 5"); }
 
       const nextTurn = currentTurn==="player" ? "ai" : "player";
       return { pHP:npHP, pAP:npAP, aHP:naHP, aAP:naAP,
@@ -4343,7 +4343,7 @@ const JUNCTION_DESC = {
 
     if (!bState) return (
       React.createElement('div', { style: {width:"100%",height:"100vh",display:"flex",alignItems:"center",justifyContent:"center"},}
-        , React.createElement('div', { style: {color:C.cyan,fontFamily:"monospace",fontSize:14},}, "Initializing battle\\u2026" )
+        , React.createElement('div', { style: {color:C.cyan,fontFamily:"monospace",fontSize:14},}, "Initializing battle…" )
       )
     );
 
@@ -4353,21 +4353,21 @@ const JUNCTION_DESC = {
       // Check win conditions
       if (next.pHP <= 0) {
         setBState(next);
-        setBattleOver({ winner:"ai", reason:"K.O. \u2014 YOUR General was defeated" });
-        setBattleLog(l => [...l, "\u2715 YOU were K.O.'d!"]);
+        setBattleOver({ winner:"ai", reason:"K.O. — YOUR General was defeated" });
+        setBattleLog(l => [...l, "✕ YOU were K.O.'d!"]);
         return;
       }
       if (next.aHP <= 0) {
         setBState(next);
-        setBattleOver({ winner:"player", reason:"K.O. \u2014 AI General was defeated" });
-        setBattleLog(l => [...l, "\u2713 AI was K.O.'d \u2014 YOU WIN!"]);
+        setBattleOver({ winner:"player", reason:"K.O. — AI General was defeated" });
+        setBattleLog(l => [...l, "✓ AI was K.O.'d — YOU WIN!"]);
         return;
       }
       if (next.turn > 10) {
         const winner = next.pHP > next.aHP ? "player" : next.aHP > next.pHP ? "ai" : "draw";
         setBState(next);
-        setBattleOver({ winner, reason: winner==="draw" ? "Draw \u2014 equal HP after 10 turns" : `Timeout \u2014 ${winner==="player"?"YOU":"AI"} wins with more HP` });
-        setBattleLog(l => [...l, `\u23f1 Timeout \u2014 ${winner==="player"?"YOU WIN":"AI WINS"} (HP: YOU ${next.pHP} vs AI ${next.aHP})`]);
+        setBattleOver({ winner, reason: winner==="draw" ? "Draw — equal HP after 10 turns" : `Timeout — ${winner==="player"?"YOU":"AI"} wins with more HP` });
+        setBattleLog(l => [...l, `⏱ Timeout — ${winner==="player"?"YOU WIN":"AI WINS"} (HP: YOU ${next.pHP} vs AI ${next.aHP})`]);
         return;
       }
       // Append turn log entries
@@ -4396,11 +4396,11 @@ const JUNCTION_DESC = {
         onClick: ()=>setInfoCard(null),}
         , React.createElement(PhaseHeader, { back: () => setPhase("clash"), hideBack: !!battleOver,} )
 
-        /* \u2500\u2500 ARENA \u2014 fills remaining height, no scroll \u2500\u2500 */
+        /* ── ARENA — fills remaining height, no scroll ── */
         , React.createElement('div', { style: {flex:1,display:"flex",flexDirection:"column",overflow:"hidden",
           margin:"6px 8px 0",borderRadius:10,border:"1px solid rgba(60,20,120,0.25)"},}
 
-          /* AI FIELD \u2014 status/HP \u2192 units back \u2192 General front */
+          /* AI FIELD — status/HP → units back → General front */
           , React.createElement('div', { style: {flex:1,display:"flex",flexDirection:"column",
             background:aWinning?"rgba(22,3,3,0.85)":"rgba(14,2,2,0.75)",
             padding:"7px 10px 5px",overflow:"hidden"},}
@@ -4420,7 +4420,7 @@ const JUNCTION_DESC = {
                 background:bState.aHP>maxAHP*0.5?"#ff4466":bState.aHP>maxAHP*0.25?"#ffcc00":"#44ee88",
                 width:`${Math.max(0,Math.min(100,(bState.aHP/maxAHP)*100))}%`},})
             )
-            /* AI units \u2014 back row */
+            /* AI units — back row */
             , React.createElement('div', { style: {display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:1,marginBottom:5,flexShrink:0},}
               , [0,1,2].map(idx=>{
                 const r=clashResults[idx]; const card=r&&r.winner==="ai"?r.aCard:null;
@@ -4441,13 +4441,13 @@ const JUNCTION_DESC = {
                 );
               })
             )
-            /* AI General \u2014 front center */
+            /* AI General — front center */
             , React.createElement('div', { style: {flex:1,display:"flex",justifyContent:"center",alignItems:"center",gap:8,minHeight:0},}
               , React.createElement('div', { style: {flex:1,display:"flex",flexDirection:"column",gap:3,alignItems:"flex-end"},}
                 , bState.aJunctions.slice(0,3).map((j,i)=>(
                   React.createElement('span', { key: i, style: {fontSize:9,fontFamily:"monospace",padding:"2px 6px",borderRadius:3,
                     background:"rgba(255,40,60,0.1)",border:"1px solid rgba(255,40,60,0.25)",
-                    color:"rgba(255,110,130,0.95)",whiteSpace:"nowrap"},}, "\\u26a1 " , j)
+                    color:"rgba(255,110,130,0.95)",whiteSpace:"nowrap"},}, "⚡ " , j)
                 ))
               )
               , React.createElement('div', {
@@ -4467,7 +4467,7 @@ const JUNCTION_DESC = {
             display:"flex",alignItems:"center",justifyContent:"space-between"},}
             , React.createElement('span', { style: {fontSize:11,fontWeight:700,fontFamily:"monospace",
               color:bState.currentTurn==="player"?C.cyan:"#ff4466"},}
-              , bState.currentTurn==="player"?"\u25b6 YOUR TURN":"\u25b6 AI TURN"
+              , bState.currentTurn==="player"?"▶ YOUR TURN":"▶ AI TURN"
             )
             , React.createElement('span', { style: {fontSize:10,fontFamily:"monospace",color:C.accent,fontWeight:700},}, "TURN "
                , React.createElement('span', { style: {fontSize:15},}, Math.min(bState.turn,10))
@@ -4475,11 +4475,11 @@ const JUNCTION_DESC = {
             )
           )
 
-          /* PLAYER FIELD \u2014 General front \u2192 units back \u2192 HP \u2192 status */
+          /* PLAYER FIELD — General front → units back → HP → status */
           , React.createElement('div', { style: {flex:1,display:"flex",flexDirection:"column",
             background:pWinning?"rgba(2,12,34,0.85)":"rgba(2,7,20,0.75)",
             padding:"5px 10px 7px",overflow:"hidden"},}
-            /* Player General \u2014 front center */
+            /* Player General — front center */
             , React.createElement('div', { style: {flex:1,display:"flex",justifyContent:"center",alignItems:"center",gap:8,minHeight:0,marginBottom:5},}
               , React.createElement('div', { style: {flex:1},})
               , React.createElement('div', {
@@ -4493,11 +4493,11 @@ const JUNCTION_DESC = {
                 , bState.pJunctions.slice(0,3).map((j,i)=>(
                   React.createElement('span', { key: i, style: {fontSize:9,fontFamily:"monospace",padding:"2px 6px",borderRadius:3,
                     background:"rgba(0,245,255,0.09)",border:"1px solid rgba(0,245,255,0.25)",
-                    color:"rgba(0,210,255,0.95)",whiteSpace:"nowrap"},}, "\\u26a1 " , j)
+                    color:"rgba(0,210,255,0.95)",whiteSpace:"nowrap"},}, "⚡ " , j)
                 ))
               )
             )
-            /* Player units \u2014 back row */
+            /* Player units — back row */
             , React.createElement('div', { style: {display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:1,marginBottom:5,flexShrink:0},}
               , [0,1,2].map(idx=>{
                 const r=clashResults[idx]; const card=r&&r.winner==="player"?r.pCard:null;
@@ -4552,14 +4552,14 @@ const JUNCTION_DESC = {
               border:`1px solid rgba(245,166,35,${showLog==="clash"?0.7:0.3})`,
               cursor:"pointer",color:C.accent,fontSize:20,
               display:"flex",alignItems:"center",justifyContent:"center",
-            },}, "\\u1f4cb")
+            },}, "📋")
             , showLog==="clash" && (
               React.createElement('div', { style: {position:"absolute",bottom:54,left:0,width:290,maxHeight:280,overflowY:"auto",
                 background:"rgba(3,5,36,0.99)",borderRadius:10,border:`1px solid ${C.border}`,
                 padding:"10px 12px",zIndex:30,boxShadow:"0 -8px 32px rgba(0,0,0,0.85)"},}
                 , React.createElement('div', { style: {display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:7},}
-                  , React.createElement('span', { style: {fontSize:13,color:C.accent,fontFamily:"monospace",fontWeight:700},}, "\\u1f4cb BATTLE LOG"  )
-                  , React.createElement('span', { onClick: ()=>setShowLog(false), style: {cursor:"pointer",color:C.textMuted,fontSize:15},}, "\\u2715")
+                  , React.createElement('span', { style: {fontSize:13,color:C.accent,fontFamily:"monospace",fontWeight:700},}, "📋 BATTLE LOG"  )
+                  , React.createElement('span', { onClick: ()=>setShowLog(false), style: {cursor:"pointer",color:C.textMuted,fontSize:15},}, "✕")
                 )
                 , battleLog.length===0
                   ? React.createElement('div', { style: {fontSize:12,color:C.textMuted,fontFamily:"monospace"},}, "No events yet."  )
@@ -4567,10 +4567,10 @@ const JUNCTION_DESC = {
                     const txt = typeof e==="string" ? e : (e.text||"");
                     const objColor = typeof e==="object" && e.color ? e.color : null;
                     const col = objColor || (
-                      txt.startsWith("YOU attack")||txt.startsWith("\u2713")||txt.startsWith("YOU:")?"#44ee88"
-                    : txt.startsWith("AI attack")||txt.startsWith("\u2715")||txt.startsWith("AI:")?"#ff6677"
-                    : txt.startsWith("\u26a1")||txt.startsWith("\u2501")?"#ffcc00":C.textSub);
-                    const hasBorder = txt.startsWith("YOU attack")||txt.startsWith("AI attack")||txt.startsWith("\u2501");
+                      txt.startsWith("YOU attack")||txt.startsWith("✓")||txt.startsWith("YOU:")?"#44ee88"
+                    : txt.startsWith("AI attack")||txt.startsWith("✕")||txt.startsWith("AI:")?"#ff6677"
+                    : txt.startsWith("⚡")||txt.startsWith("━")?"#ffcc00":C.textSub);
+                    const hasBorder = txt.startsWith("YOU attack")||txt.startsWith("AI attack")||txt.startsWith("━");
                     return (
                       React.createElement('div', { key: i, style: {fontSize:13,fontFamily:"monospace",lineHeight:1.7,
                         marginBottom:2,wordBreak:"break-word",color:col,
@@ -4590,7 +4590,7 @@ const JUNCTION_DESC = {
               background:"rgba(245,166,35,0.12)",border:"1px solid rgba(245,166,35,0.5)",
               borderRadius:9,cursor:"pointer",color:C.accent,
               fontFamily:"monospace",fontSize:13,fontWeight:700,letterSpacing:"0.08em",
-            },}, "\\u1f504 Play Again"  )
+            },}, "🔄 Play Again"  )
           ) : (
             React.createElement('button', { onClick: advanceTurn, style: {
               flex:1,padding:"13px 0",
@@ -4598,7 +4598,7 @@ const JUNCTION_DESC = {
               borderRadius:9,cursor:"pointer",color:C.cyan,
               fontFamily:"monospace",fontSize:13,fontWeight:700,letterSpacing:"0.08em",
               textShadow:`0 0 10px rgba(0,245,255,0.5)`,
-            },}, "\\u2694 " , bState.currentTurn==="player"?"Attack":"AI Attacks", " \\u2192" )
+            },}, "⚔ " , bState.currentTurn==="player"?"Attack":"AI Attacks", " →" )
           )
 
           /* Junction log btn */
@@ -4609,14 +4609,14 @@ const JUNCTION_DESC = {
               border:`1px solid rgba(0,245,255,${showLog==="junction"?0.7:0.25})`,
               cursor:"pointer",color:C.cyan,fontSize:20,
               display:"flex",alignItems:"center",justifyContent:"center",
-            },}, "\\u26a1")
+            },}, "⚡")
             , showLog==="junction" && (
               React.createElement('div', { style: {position:"absolute",bottom:54,right:0,width:300,maxHeight:320,overflowY:"auto",
                 background:"rgba(3,5,36,0.99)",borderRadius:10,border:`1px solid ${C.border}`,
                 padding:"10px 12px",zIndex:30,boxShadow:"0 -8px 32px rgba(0,0,0,0.85)"},}
                 , React.createElement('div', { style: {display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8},}
-                  , React.createElement('span', { style: {fontSize:13,color:C.cyan,fontFamily:"monospace",fontWeight:700},}, "\\u26a1 JUNCTION LOG"  )
-                  , React.createElement('span', { onClick: ()=>setShowLog(false), style: {cursor:"pointer",color:C.textMuted,fontSize:15},}, "\\u2715")
+                  , React.createElement('span', { style: {fontSize:13,color:C.cyan,fontFamily:"monospace",fontWeight:700},}, "⚡ JUNCTION LOG"  )
+                  , React.createElement('span', { onClick: ()=>setShowLog(false), style: {cursor:"pointer",color:C.textMuted,fontSize:15},}, "✕")
                 )
                 /* YOUR JUNCTIONS */
                 , React.createElement('div', { style: {fontSize:10,color:C.cyan,fontFamily:"monospace",fontWeight:700,
@@ -4625,7 +4625,7 @@ const JUNCTION_DESC = {
                   ? React.createElement('div', { style: {fontSize:11,color:C.textMuted,fontFamily:"monospace",marginBottom:8,paddingLeft:4},}, "None active" )
                   : bState.pJunctions.map((j,i)=>(
                     React.createElement('div', { key: i, style: {marginBottom:7,paddingLeft:4,borderLeft:"2px solid rgba(0,245,255,0.25)"},}
-                      , React.createElement('div', { style: {fontSize:12,color:"rgba(0,245,255,0.95)",fontFamily:"monospace",fontWeight:700},}, "\\u26a1 " , j)
+                      , React.createElement('div', { style: {fontSize:12,color:"rgba(0,245,255,0.95)",fontFamily:"monospace",fontWeight:700},}, "⚡ " , j)
                       , JUNCTION_DESC[j] && React.createElement('div', { style: {fontSize:10,color:"rgba(160,210,255,0.75)",fontFamily:"monospace",lineHeight:1.4,marginTop:1,paddingLeft:2},}, JUNCTION_DESC[j])
                     )
                   ))
@@ -4637,7 +4637,7 @@ const JUNCTION_DESC = {
                   ? React.createElement('div', { style: {fontSize:11,color:C.textMuted,fontFamily:"monospace",paddingLeft:4},}, "None active" )
                   : bState.aJunctions.map((j,i)=>(
                     React.createElement('div', { key: i, style: {marginBottom:7,paddingLeft:4,borderLeft:"2px solid rgba(255,60,80,0.25)"},}
-                      , React.createElement('div', { style: {fontSize:12,color:"rgba(255,110,130,0.95)",fontFamily:"monospace",fontWeight:700},}, "\\u26a1 " , j)
+                      , React.createElement('div', { style: {fontSize:12,color:"rgba(255,110,130,0.95)",fontFamily:"monospace",fontWeight:700},}, "⚡ " , j)
                       , JUNCTION_DESC[j] && React.createElement('div', { style: {fontSize:10,color:"rgba(255,190,200,0.75)",fontFamily:"monospace",lineHeight:1.4,marginTop:1,paddingLeft:2},}, JUNCTION_DESC[j])
                     )
                   ))
@@ -4653,7 +4653,7 @@ const JUNCTION_DESC = {
   return null;
 }
 
-// \u2500\u2500\u2500 GAME MODE SCREEN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─── GAME MODE SCREEN ────────────────────────
 function GameModeScreen({ onBack, onStartAI }) {
   const t = useT();
   const { settings, updateSetting } = useSettings();
@@ -4668,10 +4668,10 @@ function GameModeScreen({ onBack, onStartAI }) {
     React.createElement('div', { style: S.root,}
       , React.createElement('div', { style: {...S.content, justifyContent:"center", minHeight:"100vh", display:"flex", flexDirection:"column", gap:0, paddingBottom:"2rem"},}
 
-        , React.createElement(BackBtn, { label: `\u2039 ${t("gameMode.back")}`, onClick: onBack,} )
+        , React.createElement(BackBtn, { label: `‹ ${t("gameMode.back")}`, onClick: onBack,} )
         , React.createElement('h1', { style: {...S.screenTitle, marginBottom:"1.5rem"},}, t("gameMode.title"))
 
-        /* VS AI card \u2014 color changes with difficulty */
+        /* VS AI card — color changes with difficulty */
         , (()=>{
           const dc = settings.difficulty==="easy"
             ? {c:"#44ee88", border:"rgba(68,238,136,0.45)",  bg:"rgba(0,40,10,0.55)",   glow:"rgba(68,238,136,0.6)",  iconBg:"rgba(68,238,136,0.08)",  iconBorder:"rgba(68,238,136,0.3)",  divider:"rgba(68,238,136,0.12)"}
@@ -4727,7 +4727,7 @@ function GameModeScreen({ onBack, onStartAI }) {
               display:"flex", alignItems:"center", justifyContent:"center",
               fontSize:26,
               transition:"all 0.25s",
-            },}, "\\u1f916")
+            },}, "🤖")
             , React.createElement('div', null
               , React.createElement('div', { style: {
                 fontSize:15, fontWeight:700, color:dc.c,
@@ -4785,12 +4785,12 @@ function GameModeScreen({ onBack, onStartAI }) {
               textShadow:`0 0 10px ${dc.glow}`,
               transition:"all 0.25s",
             },}
-, "\\u2694 " , t("gameMode.start"))
+, "⚔ " , t("gameMode.start"))
         )
           );
         })()
 
-        /* VS Player card \u2014 coming soon */
+        /* VS Player card — coming soon */
         , React.createElement('div', { style: {
           ...S.card,
           opacity:0.5,
@@ -4810,7 +4810,7 @@ function GameModeScreen({ onBack, onStartAI }) {
               border:"1px solid rgba(245,166,35,0.2)",
               display:"flex", alignItems:"center", justifyContent:"center",
               fontSize:26,
-            },}, "\\u1f464")
+            },}, "👤")
             , React.createElement('div', { style: {flex:1},}
               , React.createElement('div', { style: {
                 fontSize:15, fontWeight:700, color:C.accent,
@@ -4842,9 +4842,9 @@ function GameModeScreen({ onBack, onStartAI }) {
   );
 }
 
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 // ROOT
-// \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ─────────────────────────────────────────────
 function App() {
   const [settings, setSettings] = useState({ language:"en", sound:true, music:true, difficulty:"normal" });
   const [screen, setScreen]     = useState("menu");
@@ -4854,11 +4854,11 @@ function App() {
     React.createElement(SettingsCtx.Provider, { value: { settings, updateSetting },}
       /* CSS animations */
       , React.createElement(StyleTag, null )
-      /* HexBackground canvas \u2014 fixed, mounted ONCE, never unmounts */
+      /* HexBackground canvas — fixed, mounted ONCE, never unmounts */
       , React.createElement(HexBackground, null )
-      /* Scanline overlay \u2014 fixed, always on top of canvas */
+      /* Scanline overlay — fixed, always on top of canvas */
       , React.createElement(Scanline, null )
-      /* Screen content \u2014 sits above canvas via zIndex */
+      /* Screen content — sits above canvas via zIndex */
       , React.createElement('div', { style: { position:"relative", zIndex:1, minHeight:"100vh" },}
         , screen === "menu"     && React.createElement(MainMenu, { onNav: setScreen,} )
         , screen === "options"  && React.createElement(OptionsScreen, { onBack: () => setScreen("menu"),} )
@@ -4871,6 +4871,5 @@ function App() {
   );
 }
 
-// Mount the app
 const __root = ReactDOM.createRoot(document.getElementById('root'));
 __root.render(React.createElement(App));
