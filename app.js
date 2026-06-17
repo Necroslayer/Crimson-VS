@@ -1,128 +1,75 @@
  function _nullishCoalesce(lhs, rhsFn) { if (lhs != null) { return lhs; } else { return rhsFn(); } } function _optionalChain(ops) { let lastAccessLHS = undefined; let value = ops[0]; let i = 1; while (i < ops.length) { const op = ops[i]; const fn = ops[i + 1]; i += 2; if ((op === 'optionalAccess' || op === 'optionalCall') && value == null) { return undefined; } if (op === 'access' || op === 'optionalAccess') { lastAccessLHS = value; value = fn(value); } else if (op === 'call' || op === 'optionalCall') { value = fn((...args) => value.call(lastAccessLHS, ...args)); lastAccessLHS = undefined; } } return value; }const { useState, createContext, useContext, useEffect, useRef } = React;
 
 // ─────────────────────────────────────────────
-// AUTH SYSTEM — SHA-256 + salt
-// Set API_BASE to your backend URL to use server mode.
-// Leave empty ("") to use local-only (localStorage) mode.
+// NICKNAME SYSTEM
+// Storage: localStorage key "cvs_players"
+// Each entry: { nick, wins, losses, draws, created }
+// Active session: "cvs_active_nick"
 // ─────────────────────────────────────────────
-const API_BASE = ""; // e.g. "https://your-backend.railway.app"
+const NICK_DB = {
+  _load()        { try { return JSON.parse(localStorage.getItem('cvs_players')||'[]'); } catch (e2) { return []; } },
+  _save(list)    { localStorage.setItem('cvs_players', JSON.stringify(list)); },
+  _active()      { return localStorage.getItem('cvs_active_nick')||null; },
+  _setActive(n)  { if(n) localStorage.setItem('cvs_active_nick',n); else localStorage.removeItem('cvs_active_nick'); },
 
-// SHA-256 via Web Crypto API
-async function sha256hex(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-function genSalt() {
-  const a = new Uint8Array(16); crypto.getRandomValues(a);
-  return Array.from(a).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
+  // List all nicknames
+  list() { return this._load(); },
 
-const LOCAL_AUTH = {
-  _load() { try { return JSON.parse(localStorage.getItem('cvs_users')||'[]'); } catch (e2) { return []; } },
-  _save(u) { localStorage.setItem('cvs_users', JSON.stringify(u)); },
-  async signUp(username, password) {
-    const u = username.trim().toLowerCase();
-    const users = this._load();
-    if (users.find(x=>x.username===u)) return { error:'Username already taken.' };
-    const salt = genSalt();
-    const hash = await sha256hex(salt+password);
-    const rec = { username:u, displayName:username.trim(), salt, hash, wins:0, losses:0, draws:0, banned:false, ban_reason:'', created:Date.now() };
-    users.push(rec); this._save(users);
-    return { user:rec };
+  // Register new nickname (fails if taken)
+  create(nick) {
+    const n = nick.trim();
+    if (!n || n.length < 2 || n.length > 20)       return { error: 'Nickname must be 2–20 characters.' };
+    if (!/^[a-zA-Z0-9_ ]+$/.test(n))               return { error: 'Letters, numbers, spaces and _ only.' };
+    const players = this._load();
+    if (players.find(p => p.nick.toLowerCase() === n.toLowerCase())) return { error: 'Nickname already taken.' };
+    const record = { nick: n, wins: 0, losses: 0, draws: 0, created: Date.now() };
+    players.push(record);
+    this._save(players);
+    this._setActive(n);
+    return { player: record };
   },
-  async signIn(username, password) {
-    const u = username.trim().toLowerCase();
-    const rec = this._load().find(x=>x.username===u);
-    if (!rec) return { error:'User not found.' };
-    const hash = await sha256hex(rec.salt+password);
-    if (hash!==rec.hash) return { error:'Incorrect password.' };
-    if (rec.banned) return { error:'⛔ Account banned: '+(rec.ban_reason||'No reason given.') };
-    return { user:rec };
+
+  // Switch active nickname
+  select(nick) {
+    const n = nick.trim();
+    const players = this._load();
+    const rec = players.find(p => p.nick.toLowerCase() === n.toLowerCase());
+    if (!rec) return { error: 'Nickname not found.' };
+    this._setActive(rec.nick);
+    return { player: rec };
   },
-  updateStats(username, wins, losses, draws) {
-    const u=username.trim().toLowerCase(), users=this._load();
-    const i=users.findIndex(x=>x.username===u);
-    if(i>=0){users[i].wins=wins;users[i].losses=losses;users[i].draws=draws;this._save(users);}
+
+  // Get current active player profile
+  getActive() {
+    const n = this._active();
+    if (!n) return null;
+    return this._load().find(p => p.nick === n) || null;
   },
-  logMatch(username, result, deck, junctions) {
-    const key='cvs_matches_'+username.trim().toLowerCase();
-    try {
-      const m=JSON.parse(localStorage.getItem(key)||'[]');
-      m.push({result,deck:_optionalChain([deck, 'optionalAccess', _2 => _2.general, 'optionalAccess', _3 => _3.name])||'',junctions,ts:Date.now()});
-      if(m.length>100) m.splice(0,m.length-100);
-      localStorage.setItem(key,JSON.stringify(m));
-    } catch (e3) {}
+
+  // Update stats for active player
+  updateStats(wins, losses, draws) {
+    const n = this._active();
+    if (!n) return;
+    const players = this._load();
+    const i = players.findIndex(p => p.nick === n);
+    if (i >= 0) { players[i].wins = wins; players[i].losses = losses; players[i].draws = draws; this._save(players); }
   },
-  getProfile(username) { return this._load().find(x=>x.username===username.trim().toLowerCase())||null; },
+
+  // Delete a nickname and all its data
+  delete(nick) {
+    const n = nick.trim();
+    const players = this._load().filter(p => p.nick.toLowerCase() !== n.toLowerCase());
+    this._save(players);
+    if (_optionalChain([this, 'access', _2 => _2._active, 'call', _3 => _3(), 'optionalAccess', _4 => _4.toLowerCase, 'call', _5 => _5()]) === n.toLowerCase()) this._setActive(null);
+  },
+
+  // Sign out (clear active session only, data remains)
+  signOut() { this._setActive(null); },
 };
 
-// API AUTH — uses backend when API_BASE is set
-const API_AUTH = {
-  async signUp(username, password) {
-    const salt = genSalt();
-    const passwordHash = await sha256hex(salt+password);
-    const r = await fetch(`${API_BASE}/api/auth/signup`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ username, passwordHash, salt })
-    });
-    const d = await r.json();
-    if (!r.ok) return { error: d.error||'Signup failed.' };
-    return { token:d.token, user:{ username:d.username, displayName:d.displayName, wins:0, losses:0, draws:0 } };
-  },
-  async signIn(username, password) {
-    // Step 1: fetch salt
-    const sr = await fetch(`${API_BASE}/api/auth/salt/${encodeURIComponent(username.trim().toLowerCase())}`);
-    if (!sr.ok) return { error:'User not found.' };
-    const { salt } = await sr.json();
-    const passwordHash = await sha256hex(salt+password);
-    // Step 2: login
-    const r = await fetch(`${API_BASE}/api/auth/login`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ username, passwordHash })
-    });
-    const d = await r.json();
-    if (!r.ok) return { error: d.error||'Login failed.' };
-    return { token:d.token, user:{ username:d.username, displayName:d.displayName, wins:d.wins, losses:d.losses, draws:d.draws } };
-  },
-  async updateStats(token, wins, losses, draws) {
-    await fetch(`${API_BASE}/api/stats/update`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ token, wins, losses, draws })
-    }).catch(()=>{});
-  },
-  async logMatch(token, result, deck, junctions) {
-    await fetch(`${API_BASE}/api/match/log`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ token, result, deck, junctions })
-    }).catch(()=>{});
-  },
-  async getProfile(token, username) {
-    const r = await fetch(`${API_BASE}/api/profile/${encodeURIComponent(username)}?token=${token}`);
-    if (!r.ok) return null;
-    return await r.json();
-  },
-};
-
-// Unified interface — picks backend or local automatically
-const AUTH = API_BASE
-  ? {
-      async signUp(u,p)  { return API_AUTH.signUp(u,p); },
-      async signIn(u,p)  { return API_AUTH.signIn(u,p); },
-      updateStats(tok,w,l,d) { API_AUTH.updateStats(tok,w,l,d); },
-      logMatch(tok,r,dk,j)   { API_AUTH.logMatch(tok,r,dk,j); },
-      async getProfile(tok,u) { return API_AUTH.getProfile(tok,u); },
-    }
-  : {
-      async signUp(u,p)  { return LOCAL_AUTH.signUp(u,p); },
-      async signIn(u,p)  { return LOCAL_AUTH.signIn(u,p); },
-      updateStats(_,w,l,d,username) { LOCAL_AUTH.updateStats(username,w,l,d); },
-      logMatch(_,r,dk,j,username)   { LOCAL_AUTH.logMatch(username,r,dk,j); },
-      async getProfile(_,username)  { return LOCAL_AUTH.getProfile(username); },
-    };
-
-// Auth context
-const AuthCtx = createContext(null);
-function useAuth() { return useContext(AuthCtx); }
+// Nickname context
+const NickCtx = createContext(null);
+function useNick() { return useContext(NickCtx); }
 
 const CVS_VERSION = "v0.5.39";
 
@@ -535,7 +482,7 @@ function useT() {
   const { settings } = useSettings();
   const lang = settings.language || "en";
   const T = translations[lang] || translations.en;
-  return (path) => _nullishCoalesce(path.split(".").reduce((o,k) => _optionalChain([o, 'optionalAccess', _4 => _4[k]]), T), () => ( path));
+  return (path) => _nullishCoalesce(path.split(".").reduce((o,k) => _optionalChain([o, 'optionalAccess', _6 => _6[k]]), T), () => ( path));
 }
 
 // ─────────────────────────────────────────────
@@ -1274,103 +1221,172 @@ function MainMenu({ onNav }) {
 
 
 // ─────────────────────────────────────────────
-// AUTH SCREEN
+// NICK SCREEN — pick or create nickname
 // ─────────────────────────────────────────────
-function AuthScreen({ onBack }) {
-  const { login } = useAuth();
-  const [mode, setMode]         = useState("login");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState("");
-  const [success, setSuccess]   = useState("");
+function NickScreen({ onBack }) {
+  const { refreshNick } = useNick();
+  const [view, setView]       = useState("list"); // "list" | "create"
+  const [newNick, setNewNick] = useState("");
+  const [error, setError]     = useState("");
+  const [players, setPlayers] = useState(() => NICK_DB.list());
+  const [confirmDel, setConfirmDel] = useState(null);
 
-  const validate = (u, p) => {
-    if (!u || !p)         return "Username and password required.";
-    if (u.length < 3)     return "Username: min 3 characters.";
-    if (p.length < 6)     return "Password: min 6 characters.";
-    if (!/^[a-zA-Z0-9_]+$/.test(u)) return "Username: letters, numbers and _ only.";
-    return null;
+  const reload = () => { setPlayers(NICK_DB.list()); refreshNick(); };
+
+  const handleCreate = () => {
+    setError("");
+    const res = NICK_DB.create(newNick);
+    if (res.error) { setError(res.error); return; }
+    setNewNick("");
+    setView("list");
+    reload();
   };
 
-  const submit = async () => {
-    setError(""); setSuccess("");
-    const u = username.trim();
-    const p = password;
-    const err = validate(u, p);
-    if (err) { setError(err); return; }
-    setLoading(true);
-    try {
-      if (mode === "signup") {
-        const res = await AUTH.signUp(u, p);
-        if (res.error) { setError(res.error); setLoading(false); return; }
-        login(res.user, res.token||null);
-      } else {
-        const res = await AUTH.signIn(u, p);
-        if (res.error) { setError(res.error); setLoading(false); return; }
-        login(res.user, res.token||null);
-      }
-    } catch(e) {
-      setError("Something went wrong. Try again.");
+  const handleSelect = (nick) => {
+    NICK_DB.select(nick);
+    reload();
+    onBack();
+  };
+
+  const handleDelete = (nick) => {
+    if (confirmDel === nick) {
+      NICK_DB.delete(nick);
+      setConfirmDel(null);
+      reload();
+    } else {
+      setConfirmDel(nick);
     }
-    setLoading(false);
   };
 
-  const inputStyle = {
-    width:"100%", background:"rgba(0,10,50,0.6)",
-    border:"1px solid rgba(0,245,255,0.25)", borderRadius:8,
-    padding:"10px 12px", color:"#fff", fontFamily:"monospace",
-    fontSize:13, outline:"none", boxSizing:"border-box",
+  const handleSignOut = () => {
+    NICK_DB.signOut();
+    reload();
+    onBack();
   };
+
+  const activeNick = NICK_DB._active();
 
   return (
     React.createElement('div', { style: S.root,}
-      , React.createElement('div', { style: {...S.content, justifyContent:"center"},}
+      , React.createElement('div', { style: {...S.content},}
         , React.createElement(BackBtn, { label: "‹ Back" , onClick: onBack,} )
-        , React.createElement('h1', { style: {...S.screenTitle, marginBottom:4},}
-          , mode === "login" ? "⚡ Sign In" : "⚡ Create Account"
-        )
-        , React.createElement('p', { style: {fontFamily:"monospace",fontSize:11,color:C.textMuted,marginBottom:20,textAlign:"center"},}
-          , mode === "login" ? "Sign in to track your stats" : "All data stored locally on this device"
+        , React.createElement('h1', { style: S.screenTitle,}
+          , view === "list" ? "⚡ Players" : "⚡ New Player"
         )
 
-        , React.createElement('div', { style: {display:"flex",flexDirection:"column",gap:10,width:"100%",maxWidth:320,margin:"0 auto"},}
-          , React.createElement('div', null
-            , React.createElement('div', { style: {fontFamily:"monospace",fontSize:10,color:C.textSub,marginBottom:4,letterSpacing:"0.08em"},}, "USERNAME")
-            , React.createElement('input', { value: username, onChange: e=>setUsername(e.target.value),
-              onKeyDown: e=>e.key==="Enter"&&submit(),
-              placeholder: "e.g. haseo_player1" , maxLength: 20, style: inputStyle,})
+        , view === "list" && (
+          React.createElement(React.Fragment, null
+            , players.length === 0 ? (
+              React.createElement('div', { style: {fontFamily:"monospace",fontSize:12,color:C.textMuted,textAlign:"center",padding:"2rem 0"},}, "No players yet. Create one to track your stats!"
+
+              )
+            ) : (
+              React.createElement('div', { style: {display:"flex",flexDirection:"column",gap:8,marginBottom:16},}
+                , players.map(p => (
+                  React.createElement('div', { key: p.nick, style: {
+                    ...S.card, display:"flex", alignItems:"center", justifyContent:"space-between",
+                    border: p.nick === activeNick
+                      ? `1px solid ${C.cyan}`
+                      : `1px solid ${C.border}`,
+                    background: p.nick === activeNick
+                      ? "rgba(0,245,255,0.06)"
+                      : C.card,
+                  },}
+                    , React.createElement('div', { style: {flex:1,minWidth:0}, onClick: () => handleSelect(p.nick), role: "button",}
+                      , React.createElement('div', { style: {fontFamily:"monospace",fontSize:13,fontWeight:700,
+                        color: p.nick===activeNick ? C.cyan : "#fff",
+                        display:"flex",alignItems:"center",gap:6},}
+                        , p.nick === activeNick && React.createElement('span', { style: {fontSize:9,color:C.cyan},}, "● ACTIVE" )
+                        , p.nick
+                      )
+                      , React.createElement('div', { style: {fontFamily:"monospace",fontSize:10,color:C.textMuted,marginTop:2},}
+                        , React.createElement('span', { style: {color:"#44ee88"},}, "W " , p.wins)
+                        , " · "
+                        , React.createElement('span', { style: {color:"#ffcc00"},}, "D " , p.draws)
+                        , " · "
+                        , React.createElement('span', { style: {color:"#ff4466"},}, "L " , p.losses)
+                      )
+                    )
+                    , React.createElement('div', { style: {display:"flex",gap:6,flexShrink:0},}
+                      , p.nick !== activeNick && (
+                        React.createElement('button', { onClick: () => handleSelect(p.nick), style: {
+                          padding:"5px 10px",borderRadius:6,cursor:"pointer",fontSize:10,
+                          background:"rgba(0,245,255,0.08)",border:"1px solid rgba(0,245,255,0.3)",
+                          color:C.cyan,fontFamily:"monospace",fontWeight:700
+                        },}, "Select")
+                      )
+                      , React.createElement('button', { onClick: () => handleDelete(p.nick), style: {
+                        padding:"5px 10px",borderRadius:6,cursor:"pointer",fontSize:10,
+                        background: confirmDel===p.nick ? "rgba(255,40,60,0.2)" : "rgba(255,40,60,0.06)",
+                        border:"1px solid rgba(255,40,60,0.3)",
+                        color:"#ff4466",fontFamily:"monospace",fontWeight:700
+                      },}
+                        , confirmDel === p.nick ? "Confirm?" : "Delete"
+                      )
+                    )
+                  )
+                ))
+              )
+            )
+
+            , React.createElement('div', { style: {display:"flex",gap:8},}
+              , React.createElement('button', { onClick: () => { setView("create"); setError(""); }, style: {
+                flex:1, padding:"11px 0", borderRadius:9, cursor:"pointer",
+                background:"rgba(0,245,255,0.08)", border:"1px solid rgba(0,245,255,0.3)",
+                color:C.cyan, fontFamily:"monospace", fontSize:13, fontWeight:700,
+              },}, "+ New Player"  )
+              , activeNick && (
+                React.createElement('button', { onClick: handleSignOut, style: {
+                  padding:"11px 16px", borderRadius:9, cursor:"pointer",
+                  background:"rgba(255,40,60,0.06)", border:"1px solid rgba(255,40,60,0.25)",
+                  color:"#ff6677", fontFamily:"monospace", fontSize:12, fontWeight:700,
+                },}, "Sign Out" )
+              )
+            )
           )
-          , React.createElement('div', null
-            , React.createElement('div', { style: {fontFamily:"monospace",fontSize:10,color:C.textSub,marginBottom:4,letterSpacing:"0.08em"},}, "PASSWORD")
-            , React.createElement('input', { type: "password", value: password, onChange: e=>setPassword(e.target.value),
-              onKeyDown: e=>e.key==="Enter"&&submit(),
-              placeholder: "min. 6 characters"  , style: inputStyle,})
-          )
+        )
 
-          , error   && React.createElement('div', { style: {fontFamily:"monospace",fontSize:11,color:"#ff4466",padding:"8px 12px",background:"rgba(255,40,60,0.08)",borderRadius:6,border:"1px solid rgba(255,40,60,0.2)"},}, error)
-          , success && React.createElement('div', { style: {fontFamily:"monospace",fontSize:11,color:"#44ee88",padding:"8px 12px",background:"rgba(0,200,80,0.08)",borderRadius:6,border:"1px solid rgba(68,238,136,0.2)"},}, success)
+        , view === "create" && (
+          React.createElement('div', { style: {display:"flex",flexDirection:"column",gap:10,maxWidth:320,width:"100%",margin:"0 auto"},}
+            , React.createElement('div', null
+              , React.createElement('div', { style: {fontFamily:"monospace",fontSize:10,color:C.textSub,marginBottom:4,letterSpacing:"0.08em"},}, "NICKNAME")
+              , React.createElement('input', {
+                value: newNick,
+                onChange: e => setNewNick(e.target.value),
+                onKeyDown: e => e.key==="Enter" && handleCreate(),
+                placeholder: "e.g. Haseo" ,
+                maxLength: 20,
+                autoFocus: true,
+                style: {width:"100%",background:"rgba(0,10,50,0.6)",
+                  border:`1px solid ${error?"rgba(255,40,60,0.5)":"rgba(0,245,255,0.25)"}`,
+                  borderRadius:8,padding:"10px 12px",color:"#fff",fontFamily:"monospace",
+                  fontSize:14,outline:"none",boxSizing:"border-box"},}
+              )
+            )
 
-          , React.createElement('button', { onClick: submit, disabled: loading, style: {
-            padding:"12px 0", borderRadius:10, cursor:loading?"not-allowed":"pointer",
-            background:loading?"rgba(0,245,255,0.03)":"rgba(0,245,255,0.1)",
-            border:`1px solid ${loading?"rgba(0,245,255,0.1)":"rgba(0,245,255,0.4)"}`,
-            color:loading?C.textMuted:C.cyan, fontFamily:"monospace",
-            fontSize:14, fontWeight:700, letterSpacing:"0.1em", transition:"all 0.2s"
-          },}
-            , loading ? "Please wait..." : mode==="login" ? "Sign In" : "Create Account"
-          )
+            , error && (
+              React.createElement('div', { style: {fontFamily:"monospace",fontSize:11,color:"#ff4466",
+                padding:"8px 12px",background:"rgba(255,40,60,0.08)",
+                borderRadius:6,border:"1px solid rgba(255,40,60,0.2)"},}
+                , error
+              )
+            )
 
-          , React.createElement('button', { onClick: ()=>{setMode(m=>m==="login"?"signup":"login");setError("");setSuccess("");}, style: {
-            background:"transparent", border:"none", cursor:"pointer",
-            color:C.textMuted, fontFamily:"monospace", fontSize:11,
-            textDecoration:"underline", padding:"4px 0"
-          },}
-            , mode==="login" ? "No account? Create one" : "Already have an account? Sign in"
-          )
+            , React.createElement('button', { onClick: handleCreate, style: {
+              padding:"12px 0",borderRadius:10,cursor:"pointer",
+              background:"rgba(0,245,255,0.1)",border:"1px solid rgba(0,245,255,0.4)",
+              color:C.cyan,fontFamily:"monospace",fontSize:14,fontWeight:700,letterSpacing:"0.1em"
+            },}, "Create Player" )
 
-          , React.createElement('div', { style: {fontFamily:"monospace",fontSize:9,color:C.textMuted,textAlign:"center",opacity:0.6,paddingTop:4},}, "🔒 Passwords are SHA-256 hashed with a random salt before storage."
+            , React.createElement('button', { onClick: () => { setView("list"); setError(""); setNewNick(""); }, style: {
+              background:"transparent",border:"none",cursor:"pointer",
+              color:C.textMuted,fontFamily:"monospace",fontSize:11,
+              textDecoration:"underline",padding:"4px 0"
+            },}, "‹ Back to list"   )
 
+            , React.createElement('div', { style: {fontFamily:"monospace",fontSize:9,color:C.textMuted,opacity:0.5,textAlign:"center"},}, "Nickname must be unique. No passwords — data stays on this device."
+
+            )
           )
         )
       )
@@ -1383,8 +1399,7 @@ function OptionsScreen({ onBack }) {
   const t = useT();
   const { settings, updateSetting } = useSettings();
 
-  const { authUser, getProfile, logout } = useAuth();
-  const profile = authUser ? getProfile() : null;
+  const { activePlayer, refreshNick } = useNick();
 
   const toggles = [
     { key:"music", label:t("options.music") },
@@ -1412,29 +1427,33 @@ function OptionsScreen({ onBack }) {
             )
           )
 
-          /* Account */
+          /* Player */
           , React.createElement('div', { style: S.card,}
-            , React.createElement('div', { style: {fontFamily:"monospace",fontSize:10,color:C.textSub,letterSpacing:"0.08em",marginBottom:8},}, "ACCOUNT")
-            , authUser && profile ? (
+            , React.createElement('div', { style: {fontFamily:"monospace",fontSize:10,color:C.textSub,letterSpacing:"0.08em",marginBottom:8},}, "PLAYER")
+            , activePlayer ? (
               React.createElement('div', { style: {display:"flex",justifyContent:"space-between",alignItems:"center"},}
                 , React.createElement('div', null
-                  , React.createElement('div', { style: {fontFamily:"monospace",fontSize:13,fontWeight:700,color:C.cyan},}, profile.displayName)
-                  , React.createElement('div', { style: {fontFamily:"monospace",fontSize:10,color:C.textMuted},}, "W:"
-                    , profile.wins, " · D:"  , profile.draws, " · L:"  , profile.losses
+                  , React.createElement('div', { style: {fontFamily:"monospace",fontSize:14,fontWeight:700,color:C.cyan},}, activePlayer.nick)
+                  , React.createElement('div', { style: {fontFamily:"monospace",fontSize:10,color:C.textMuted,marginTop:1},}
+                    , React.createElement('span', { style: {color:"#44ee88"},}, "W " , activePlayer.wins)
+                    , " · "
+                    , React.createElement('span', { style: {color:"#ffcc00"},}, "D " , activePlayer.draws)
+                    , " · "
+                    , React.createElement('span', { style: {color:"#ff4466"},}, "L " , activePlayer.losses)
                   )
                 )
-                , React.createElement('button', { onClick: logout, style: {
-                  padding:"6px 14px",borderRadius:7,cursor:"pointer",
-                  background:"rgba(255,40,60,0.1)",border:"1px solid rgba(255,40,60,0.3)",
-                  color:"#ff4466",fontFamily:"monospace",fontSize:11,fontWeight:700
-                },}, "Sign Out" )
+                , React.createElement('button', { onClick: () => onBack("nick"), style: {
+                  padding:"6px 12px",borderRadius:7,cursor:"pointer",
+                  background:"rgba(0,245,255,0.06)",border:"1px solid rgba(0,245,255,0.25)",
+                  color:C.cyan,fontFamily:"monospace",fontSize:11,fontWeight:700
+                },}, "Manage")
               )
             ) : (
-              React.createElement('button', { onClick: ()=>onBack("auth"), style: {
+              React.createElement('button', { onClick: () => onBack("nick"), style: {
                 width:"100%",padding:"10px 0",borderRadius:9,cursor:"pointer",
                 background:"rgba(0,245,255,0.08)",border:"1px solid rgba(0,245,255,0.3)",
                 color:C.cyan,fontFamily:"monospace",fontSize:13,fontWeight:700,letterSpacing:"0.08em"
-              },}, "Sign In / Create Account"    )
+              },}, "Select / Create Player"   )
             )
           )
 
@@ -2117,7 +2136,7 @@ function DeckBuilderScreen({ onBack }) {
     try {
       const saved = localStorage.getItem("cvs_decks");
       return saved ? JSON.parse(saved) : [];
-    } catch (e4) { return []; }
+    } catch (e3) { return []; }
   });
   const [editingDeck, setEditingDeck] = useState(null);
   const [deckName, setDeckName]       = useState("");
@@ -2126,7 +2145,7 @@ function DeckBuilderScreen({ onBack }) {
   // Persist to localStorage on every change — synchronous, instant
   useEffect(() => {
     try { localStorage.setItem("cvs_decks", JSON.stringify(decks)); }
-    catch (e5) { /* quota exceeded or unavailable */ }
+    catch (e4) { /* quota exceeded or unavailable */ }
   }, [decks]);
 
   // Editor state
@@ -2184,7 +2203,7 @@ function DeckBuilderScreen({ onBack }) {
     }
   }
 
-  const charisma   = _nullishCoalesce(_optionalChain([selGeneral, 'optionalAccess', _5 => _5.charisma]), () => ( 0));
+  const charisma   = _nullishCoalesce(_optionalChain([selGeneral, 'optionalAccess', _7 => _7.charisma]), () => ( 0));
   const totalCost  = selUnits.reduce((s,u) => s+u.cost, 0);
   // Valid: 5 units, total pts <= chr
   const valid = selGeneral && selUnits.length === 5 && totalCost <= charisma;
@@ -2416,7 +2435,7 @@ function DeckBuilderScreen({ onBack }) {
               React.createElement('div', { style: { display:"grid", gridTemplateColumns:gridCols, gap:gridGap },}
                 , filteredGens.map(card => (
                   React.createElement(GeneralCard, { key: card.id, card: card,
-                    selected: _optionalChain([selGeneral, 'optionalAccess', _6 => _6.id]) === card.id,
+                    selected: _optionalChain([selGeneral, 'optionalAccess', _8 => _8.id]) === card.id,
                     onSelect: setSelGen,})
                 ))
               )
@@ -2633,7 +2652,7 @@ function CardInfoBox({ card, onClose, isGen, bState }) {
 function ArenaPlaceholder({ onBack, difficulty }) {
   const { settings } = useSettings();
   const isPT = settings.language === "pt";
-  const { authUser, getProfile } = useAuth();
+  const { refreshNick } = useNick();
   // ── PHASES ──
   // "select"  → pick saved deck
   // "reveal"  → show both generals + unit pools side by side
@@ -2691,7 +2710,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     try {
       const d = localStorage.getItem("cvs_decks");
       if (d) setSavedDecks(JSON.parse(d));
-    } catch (e6) {}
+    } catch (e5) {}
   }, []);
 
   // Initialize battle — must be at root level (Rules of Hooks)
@@ -3128,19 +3147,18 @@ function ArenaPlaceholder({ onBack, difficulty }) {
   const PHASE_LABELS = { reveal:"Reveal", ban:"Ban Phase", cut:"The Cut", confirm:"Ready", clash:"Clash", battle:"Battle" };
   const PHASE_STEPS  = ["trinity","reveal","ban","cut","confirm","clash","battle"];
 
-  // Stats bar — W/D/L counter shown in arena header
   function ArenaStatsBar() {
-    const profile = authUser ? getProfile() : null;
-    if (!profile) return null;
+    const p = NICK_DB.getActive();
+    if (!p) return null;
     return (
-      React.createElement('div', { style: {display:"flex",gap:8,justifyContent:"center",alignItems:"center",
-        padding:"2px 0 4px",fontFamily:"monospace",fontSize:10},}
-        , React.createElement('span', { style: {color:"#44ee88",fontWeight:700},}, "W " , profile.wins)
+      React.createElement('div', { style: {display:"flex",gap:7,justifyContent:"center",alignItems:"center",
+        padding:"2px 0 3px",fontFamily:"monospace",fontSize:10},}
+        , React.createElement('span', { style: {color:"#44ee88",fontWeight:700},}, "W " , p.wins)
         , React.createElement('span', { style: {color:C.textMuted},}, "·")
-        , React.createElement('span', { style: {color:"#ffcc00",fontWeight:700},}, "D " , profile.draws)
+        , React.createElement('span', { style: {color:"#ffcc00",fontWeight:700},}, "D " , p.draws)
         , React.createElement('span', { style: {color:C.textMuted},}, "·")
-        , React.createElement('span', { style: {color:"#ff4466",fontWeight:700},}, "L " , profile.losses)
-        , React.createElement('span', { style: {color:C.textMuted,fontSize:9},}, "· " , profile.displayName)
+        , React.createElement('span', { style: {color:"#ff4466",fontWeight:700},}, "L " , p.losses)
+        , React.createElement('span', { style: {color:C.textMuted,fontSize:9},}, "· " , p.nick)
       )
     );
   }
@@ -3282,7 +3300,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                       padding:"2px 8px", borderRadius:10,
                       background: valid ? "rgba(68,238,136,0.08)" : "rgba(255,68,85,0.08)",
                       border:`1px solid ${valid ? "rgba(68,238,136,0.25)" : "rgba(255,68,85,0.25)"}`,
-                    },}, valid ? `✓ Pts ${cost}/${_optionalChain([gen, 'optionalAccess', _7 => _7.charisma])}` : `✕ Pts ${cost}/${_optionalChain([gen, 'optionalAccess', _8 => _8.charisma])}`)
+                    },}, valid ? `✓ Pts ${cost}/${_optionalChain([gen, 'optionalAccess', _9 => _9.charisma])}` : `✕ Pts ${cost}/${_optionalChain([gen, 'optionalAccess', _10 => _10.charisma])}`)
                   )
                   , React.createElement('div', { style: {display:"flex", gap:5, alignItems:"flex-start"},}
                     , gen && (
@@ -3365,16 +3383,16 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     const pType = TYPES.find(t => t.key === trinityChoice);
     const aType = TYPES.find(t => t.key === trinityAiChoice);
     const resolved = trinityChoice && trinityAiChoice;
-    const _trinYouFirst  = isPT ? "Você vai primeiro na Batalha dos Generais!" : _trinYouFirst;
-    const _trinAIFirst   = isPT ? "A IA vai primeiro na Batalha dos Generais!" : _trinAIFirst;
+    const _trinYouFirst  = isPT ? "Você vai primeiro na Batalha dos Generais!" : "You go first in the General Battle!";
+    const _trinAIFirst   = isPT ? "A IA vai primeiro na Batalha dos Generais!" : "AI goes first in the General Battle!";
     const _trinYouWin    = isPT ? "VOCÊ VENCE" : "YOU WIN";
     const _trinAIWins    = isPT ? "IA VENCE" : "AI WINS";
     const _trinDraw2     = isPT ? "EMPATE" : "DRAW";
-    const _trinBothChose = isPT ? ("Ambos escolheram " + (_optionalChain([pType, 'optionalAccess', _9 => _9.key])||"") + " — jogue novamente!") : ("Both chose " + (_optionalChain([pType, 'optionalAccess', _10 => _10.key])||"") + " — play again to decide!");
+    const _trinBothChose = isPT ? ("Ambos escolheram " + (_optionalChain([pType, 'optionalAccess', _11 => _11.key])||"") + " — jogue novamente!") : ("Both chose " + (_optionalChain([pType, 'optionalAccess', _12 => _12.key])||"") + " — play again to decide!");
     const _trinChooseAgain = isPT ? "Escolha novamente:" : "Choose again:";
     const _trinChooseType  = isPT ? "Escolha seu tipo Trinity:" : "Choose your Trinity type:";
     const _trinContinue    = isPT ? "Continuar -> Reveal" : "Continue -> Reveal";
-    const _trinHeader      = isPT ? "Vencedor vai primeiro na Batalha dos Generais" : "{_trinHeader}";
+    const _trinHeader      = isPT ? "Vencedor vai primeiro na Batalha dos Generais" : "Winner goes first in the General Battle";
     const _trinDraw        = isPT ? "⚡ EMPATE!" : "⚡ DRAW!";
 
     return (
@@ -3491,7 +3509,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
               , React.createElement('div', { style: {fontSize:14,fontFamily:"monospace",fontWeight:900,
                 color:"#ffcc00",marginBottom:4},}, _trinDraw)
               , React.createElement('div', { style: {fontSize:11,fontFamily:"monospace",color:C.textMuted},}, "Both chose "
-                  , _optionalChain([pType, 'optionalAccess', _11 => _11.key]), " — play again to decide!"
+                  , _optionalChain([pType, 'optionalAccess', _13 => _13.key]), " — play again to decide!"
               )
             )
           )
@@ -3646,7 +3664,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
         /* AI banned yours */
         , React.createElement('div', { style: {...S.callout, marginBottom:12, borderColor:"rgba(255,68,80,0.3)", background:"rgba(255,68,80,0.06)"},}
           , React.createElement('span', null, "🤖")
-          , React.createElement('span', null, "AI banned your: "   , React.createElement('strong', { style: {color:"#ff6677"},}, _optionalChain([aiBan, 'optionalAccess', _12 => _12.name])))
+          , React.createElement('span', null, "AI banned your: "   , React.createElement('strong', { style: {color:"#ff6677"},}, _optionalChain([aiBan, 'optionalAccess', _14 => _14.name])))
         )
 
         /* AI pool — player picks one to ban */
@@ -3655,7 +3673,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
         )
         , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:8},}
           , aiPool.map(u => {
-            const isBanned = _optionalChain([playerBan, 'optionalAccess', _13 => _13.id]) === u.id;
+            const isBanned = _optionalChain([playerBan, 'optionalAccess', _15 => _15.id]) === u.id;
             const tc = TYPE_COLOR[u.type] || "#aaa";
             return (
               React.createElement('div', { key: u.id, onClick: () => setPlayerBan(u),
@@ -3930,7 +3948,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
           , React.createElement('div', { style: {flex:1, ...S.callout},}
             , React.createElement('span', null, "🃏")
             , React.createElement('span', { style: {fontSize:11, color:C.textSub, fontFamily:"monospace", overflow:"hidden",
-              textOverflow:"ellipsis", whiteSpace:"nowrap"},}, _optionalChain([playerDeck, 'optionalAccess', _14 => _14.name]))
+              textOverflow:"ellipsis", whiteSpace:"nowrap"},}, _optionalChain([playerDeck, 'optionalAccess', _16 => _16.name]))
           )
         )
 
@@ -4054,8 +4072,8 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     }
 
     function ClashCard({ card, revealed, side, dimmed }) {
-      const tc = TYPE_COLOR[_optionalChain([card, 'optionalAccess', _15 => _15.type])] || "#aaa";
-      const tg = TYPE_GLOW[_optionalChain([card, 'optionalAccess', _16 => _16.type])]  || "transparent";
+      const tc = TYPE_COLOR[_optionalChain([card, 'optionalAccess', _17 => _17.type])] || "#aaa";
+      const tg = TYPE_GLOW[_optionalChain([card, 'optionalAccess', _18 => _18.type])]  || "transparent";
       return (
         React.createElement('div', { style: {
           width:80, height:107, borderRadius:8, overflow:"hidden", flexShrink:0,
@@ -4197,7 +4215,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                   return (
                     React.createElement('div', { key: idx, style: {display:"flex", flexDirection:"column", alignItems:"center", gap:1},}
                       , React.createElement('div', {
-                        onClick: e=>{e.stopPropagation();if(card&&(isActive||isResolved)){const c2={...card,_side:"ai"};setInfoCard(_optionalChain([infoCard, 'optionalAccess', _17 => _17.id])===c2.id&&_optionalChain([infoCard, 'optionalAccess', _18 => _18._side])==="ai"?null:c2);}},
+                        onClick: e=>{e.stopPropagation();if(card&&(isActive||isResolved)){const c2={...card,_side:"ai"};setInfoCard(_optionalChain([infoCard, 'optionalAccess', _19 => _19.id])===c2.id&&_optionalChain([infoCard, 'optionalAccess', _20 => _20._side])==="ai"?null:c2);}},
                         style: {
                         width:"100%", maxWidth:72, aspectRatio:"3/4", borderRadius:5,
                         overflow:"hidden", margin:"0 auto", position:"relative",
@@ -4206,7 +4224,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                               : fizzle    ? "1.5px solid #ffcc00"
                               : isResolved ? "1px solid rgba(255,80,80,0.3)"
                               : "1px solid rgba(255,50,70,0.35)",
-                        boxShadow: isActive ? `0 0 10px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _19 => _19.type])]||"transparent"}` : "none",
+                        boxShadow: isActive ? `0 0 10px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _21 => _21.type])]||"transparent"}` : "none",
                         opacity: isResolved && !won && !fizzle ? 0.28 : 1,
                         transition:"all 0.3s",
                         cursor: (isActive||isResolved) && card ? "pointer" : "default",
@@ -4265,7 +4283,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
               borderBottom:"1px solid rgba(80,32,160,0.5)",
               display:"flex", alignItems:"center", justifyContent:"space-between"},}
               , React.createElement('span', { style: {fontSize:9,fontWeight:700,fontFamily:"monospace",color:C.accent},}
-                , _optionalChain([POS_LABELS, 'access', _20 => _20[clashStep], 'optionalAccess', _21 => _21.toUpperCase, 'call', _22 => _22()]), " CLASH ("  , clashStep+1, "/3)"
+                , _optionalChain([POS_LABELS, 'access', _22 => _22[clashStep], 'optionalAccess', _23 => _23.toUpperCase, 'call', _24 => _24()]), " CLASH ("  , clashStep+1, "/3)"
               )
               , React.createElement('span', { style: {fontSize:9,fontFamily:"monospace"},}
                 , React.createElement('span', { style: {color:"#44ee88",fontWeight:700},}, pScore)
@@ -4315,7 +4333,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                     React.createElement('div', { key: idx, style: {display:"flex", flexDirection:"column", alignItems:"center", gap:1},}
                       , React.createElement('span', { style: {fontSize:6,color:isActive?"rgba(245,166,35,0.9)":won?"rgba(68,238,136,0.6)":"rgba(80,140,255,0.4)",fontFamily:"monospace"},}, POS_LABELS[idx])
                       , React.createElement('div', {
-                        onClick: e=>{e.stopPropagation();if(card&&(isActive||isResolved)){const c2={...card,_side:"player"};setInfoCard(_optionalChain([infoCard, 'optionalAccess', _23 => _23.id])===c2.id&&_optionalChain([infoCard, 'optionalAccess', _24 => _24._side])==="player"?null:c2);}},
+                        onClick: e=>{e.stopPropagation();if(card&&(isActive||isResolved)){const c2={...card,_side:"player"};setInfoCard(_optionalChain([infoCard, 'optionalAccess', _25 => _25.id])===c2.id&&_optionalChain([infoCard, 'optionalAccess', _26 => _26._side])==="player"?null:c2);}},
                         style: {
                         width:"100%", maxWidth:72, aspectRatio:"3/4", borderRadius:5,
                         overflow:"hidden", margin:"0 auto", position:"relative",
@@ -4324,7 +4342,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                               : fizzle    ? "1.5px solid #ffcc00"
                               : isResolved ? "1px solid rgba(80,200,100,0.3)"
                               : "1px solid rgba(80,120,255,0.35)",
-                        boxShadow: isActive ? `0 0 10px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _25 => _25.type])]||"transparent"}` : "none",
+                        boxShadow: isActive ? `0 0 10px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _27 => _27.type])]||"transparent"}` : "none",
                         opacity: isResolved && !won && !fizzle ? 0.28 : 1,
                         transition:"all 0.3s",
                         cursor: (isActive||isResolved) && card ? "pointer" : "default",
@@ -4536,6 +4554,14 @@ const JUNCTION_DESC = {
 };
 
   if (phase === "battle") {
+    // PT-BR strings for battle phase
+    const _yourTurn   = isPT ? "▶ SEU TURNO"       : "▶ YOUR TURN";
+    const _aiTurn     = isPT ? "▶ TURNO DA IA"      : "▶ AI TURN";
+    const _yourJuncs  = isPT ? "SUAS JUNCTIONS"      : "YOUR JUNCTIONS";
+    const _aiJuncs    = isPT ? "JUNCTIONS DA IA"     : "AI JUNCTIONS";
+    const _noEvents   = isPT ? "Nenhum evento ainda." : "No events yet.";
+    const _noneActive = isPT ? "Nenhuma ativa"       : "None active";
+
 
 
     // ── TURN ENGINE ───────────────────────────────────────────────────────
@@ -4708,24 +4734,23 @@ const JUNCTION_DESC = {
         setBState(next);
         setBattleOver({ winner:"ai", reason:isPT?"K.O. — Seu General foi derrotado":"K.O. — YOUR General was defeated" });
         setBattleLog(l => [...l, isPT?"✕ Você foi nocauteado!":"✕ YOU were K.O.'d!"]);
-        if (authUser) { const p=getProfile(); if(p){ AUTH.updateStats(authUser.token,p.wins,p.losses+1,p.draws,authUser.username); AUTH.logMatch(authUser.token,"loss",playerDeck,survivors.player.map(u=>u.junction),authUser.username); } }
+        { const p=NICK_DB.getActive(); if(p){ NICK_DB.updateStats(p.wins,p.losses+1,p.draws); refreshNick(); } }
         return;
       }
       if (next.aHP <= 0) {
         setBState(next);
         setBattleOver({ winner:"player", reason:isPT?"K.O. — General da IA foi derrotado":"K.O. — AI General was defeated" });
         setBattleLog(l => [...l, isPT?"✓ IA nocauteada — VOCÊ VENCEU!":"✓ AI was K.O.'d — YOU WIN!"]);
-        if (authUser) { const p=getProfile(); if(p){ AUTH.updateStats(authUser.token,p.wins+1,p.losses,p.draws,authUser.username); AUTH.logMatch(authUser.token,"win",playerDeck,survivors.player.map(u=>u.junction),authUser.username); } }
+        { const p=NICK_DB.getActive(); if(p){ NICK_DB.updateStats(p.wins+1,p.losses,p.draws); refreshNick(); } }
         return;
       }
       if (next.turn > 10) {
         const winner = next.pHP > next.aHP ? "player" : next.aHP > next.pHP ? "ai" : "draw";
         setBState(next);
         setBattleOver({ winner, reason: winner==="draw" ? "Draw — equal HP after 10 turns" : `Timeout — ${winner==="player"?"YOU":"AI"} wins with more HP` });
-        if (authUser) { const p=getProfile(); if(p){
-          const r=winner==="player"?"win":winner==="ai"?"loss":"draw";
-          AUTH.updateStats(authUser.token,p.wins+(r==="win"?1:0),p.losses+(r==="loss"?1:0),p.draws+(r==="draw"?1:0),authUser.username);
-          AUTH.logMatch(authUser.token,r,playerDeck,survivors.player.map(u=>u.junction),authUser.username);
+        { const p=NICK_DB.getActive(); if(p){
+          NICK_DB.updateStats(p.wins+(winner==="player"?1:0), p.losses+(winner==="ai"?1:0), p.draws+(winner==="draw"?1:0));
+          refreshNick();
         } }
         setBattleLog(l => [...l, `⏱ Timeout — ${winner==="player"?"YOU WIN":"AI WINS"} (HP: YOU ${next.pHP} vs AI ${next.aHP})`]);
         return;
@@ -4740,12 +4765,6 @@ const JUNCTION_DESC = {
     // HP bar helper
     const HPBar = ({ hp, maxHp, col }) => {
       const pct = Math.max(0, Math.min(100, (hp/maxHp)*100));
-    const _yourTurn   = isPT ? "▶ SEU TURNO"      : "▶ YOUR TURN";
-    const _aiTurn     = isPT ? "▶ TURNO DA IA"     : "▶ AI TURN";
-    const _yourJuncs  = isPT ? "SUAS JUNCTIONS"     : "YOUR JUNCTIONS";
-    const _aiJuncs    = isPT ? "JUNCTIONS DA IA"    : "AI JUNCTIONS";
-    const _noEvents   = isPT ? "Nenhum evento ainda." : "No events yet.";
-    const _noneActive = isPT ? "Nenhuma ativa"      : "None active";
       return (
         React.createElement('div', { style: {width:"100%", height:10, background:"rgba(255,255,255,0.08)", borderRadius:5, overflow:"hidden"},}
           , React.createElement('div', { style: {width:`${pct}%`, height:"100%", background:col, borderRadius:5, transition:"width 0.3s"},})
@@ -4753,9 +4772,9 @@ const JUNCTION_DESC = {
       );
     };
 
-    const maxPHP = _optionalChain([playerGen, 'optionalAccess', _26 => _26.hp]) || 1, maxAHP = _optionalChain([aiGen, 'optionalAccess', _27 => _27.hp]) || 1;
-    const pWinning = (_optionalChain([bState, 'optionalAccess', _28 => _28.pHP])||0) > (_optionalChain([bState, 'optionalAccess', _29 => _29.aHP])||0);
-    const aWinning = (_optionalChain([bState, 'optionalAccess', _30 => _30.aHP])||0) > (_optionalChain([bState, 'optionalAccess', _31 => _31.pHP])||0);
+    const maxPHP = _optionalChain([playerGen, 'optionalAccess', _28 => _28.hp]) || 1, maxAHP = _optionalChain([aiGen, 'optionalAccess', _29 => _29.hp]) || 1;
+    const pWinning = (_optionalChain([bState, 'optionalAccess', _30 => _30.pHP])||0) > (_optionalChain([bState, 'optionalAccess', _31 => _31.aHP])||0);
+    const aWinning = (_optionalChain([bState, 'optionalAccess', _32 => _32.aHP])||0) > (_optionalChain([bState, 'optionalAccess', _33 => _33.pHP])||0);
 
     return (
       React.createElement('div', { style: {width:"100%",height:"100vh",display:"flex",flexDirection:"column",overflow:"hidden"},
@@ -4794,15 +4813,15 @@ const JUNCTION_DESC = {
                 return (
                   React.createElement('div', { key: idx, style: {display:"flex",flexDirection:"column",alignItems:"center",gap:1},}
                     , React.createElement('div', {
-                      onClick: e=>{e.stopPropagation();if(card)setInfoCard(_optionalChain([infoCard, 'optionalAccess', _32 => _32.id])===card.id&&_optionalChain([infoCard, 'optionalAccess', _33 => _33._side])==="ai"?null:{...card,_side:"ai"});},
+                      onClick: e=>{e.stopPropagation();if(card)setInfoCard(_optionalChain([infoCard, 'optionalAccess', _34 => _34.id])===card.id&&_optionalChain([infoCard, 'optionalAccess', _35 => _35._side])==="ai"?null:{...card,_side:"ai"});},
                       style: {width:"100%",maxWidth:62,aspectRatio:"3/4",borderRadius:5,overflow:"hidden",margin:"0 auto",
                       border:card?`1.5px solid ${tc}`:"none",visibility:card?"visible":"hidden",
                       cursor:card?"pointer":"default",
-                      boxShadow:_optionalChain([infoCard, 'optionalAccess', _34 => _34.id])===_optionalChain([card, 'optionalAccess', _35 => _35.id])&&_optionalChain([infoCard, 'optionalAccess', _36 => _36._side])==="ai"?`0 0 8px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _37 => _37.type])]||"transparent"}`:"none"},}
+                      boxShadow:_optionalChain([infoCard, 'optionalAccess', _36 => _36.id])===_optionalChain([card, 'optionalAccess', _37 => _37.id])&&_optionalChain([infoCard, 'optionalAccess', _38 => _38._side])==="ai"?`0 0 8px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _39 => _39.type])]||"transparent"}`:"none"},}
                       , card&&React.createElement('img', { src: IMGS[card.img.replace('.png','')] || '', alt: card.name, style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
                     )
                     , React.createElement('span', { style: {fontSize:7,color:"rgba(255,110,130,0.6)",fontFamily:"monospace",
-                      visibility:card?"visible":"hidden",lineHeight:1},}, _optionalChain([card, 'optionalAccess', _38 => _38.name, 'optionalAccess', _39 => _39.split, 'call', _40 => _40(" "), 'access', _41 => _41[0]])||"")
+                      visibility:card?"visible":"hidden",lineHeight:1},}, _optionalChain([card, 'optionalAccess', _40 => _40.name, 'optionalAccess', _41 => _41.split, 'call', _42 => _42(" "), 'access', _43 => _43[0]])||"")
                   )
                 );
               })
@@ -4817,9 +4836,9 @@ const JUNCTION_DESC = {
                 ))
               )
               , React.createElement('div', {
-                onClick: e=>{e.stopPropagation();setInfoCard(_optionalChain([infoCard, 'optionalAccess', _42 => _42.id])===aiGen.id&&_optionalChain([infoCard, 'optionalAccess', _43 => _43._side])==="ai"?null:{...aiGen,_side:"ai"});},
+                onClick: e=>{e.stopPropagation();setInfoCard(_optionalChain([infoCard, 'optionalAccess', _44 => _44.id])===aiGen.id&&_optionalChain([infoCard, 'optionalAccess', _45 => _45._side])==="ai"?null:{...aiGen,_side:"ai"});},
                 style: {width:90,height:120,borderRadius:7,overflow:"hidden",flexShrink:0,cursor:"pointer",
-                border:_optionalChain([infoCard, 'optionalAccess', _44 => _44.id])===aiGen.id&&_optionalChain([infoCard, 'optionalAccess', _45 => _45._side])==="ai"?`2px solid #ff4466`:`2px solid ${TYPE_COLOR[aiGen.type]||"#aaa"}`,
+                border:_optionalChain([infoCard, 'optionalAccess', _46 => _46.id])===aiGen.id&&_optionalChain([infoCard, 'optionalAccess', _47 => _47._side])==="ai"?`2px solid #ff4466`:`2px solid ${TYPE_COLOR[aiGen.type]||"#aaa"}`,
                 boxShadow:`0 0 ${aWinning?"16px":"8px"} ${TYPE_GLOW[aiGen.type]||"transparent"}`},}
                 , React.createElement('img', { src: IMGS[aiGen.img.replace('.png','')] || '', alt: aiGen.name, style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
               )
@@ -4849,9 +4868,9 @@ const JUNCTION_DESC = {
             , React.createElement('div', { style: {flex:1,display:"flex",justifyContent:"center",alignItems:"center",gap:8,minHeight:0,marginBottom:5},}
               , React.createElement('div', { style: {flex:1},})
               , React.createElement('div', {
-                onClick: e=>{e.stopPropagation();setInfoCard(_optionalChain([infoCard, 'optionalAccess', _46 => _46.id])===playerGen.id&&_optionalChain([infoCard, 'optionalAccess', _47 => _47._side])==="player"?null:{...playerGen,_side:"player"});},
+                onClick: e=>{e.stopPropagation();setInfoCard(_optionalChain([infoCard, 'optionalAccess', _48 => _48.id])===playerGen.id&&_optionalChain([infoCard, 'optionalAccess', _49 => _49._side])==="player"?null:{...playerGen,_side:"player"});},
                 style: {width:90,height:120,borderRadius:7,overflow:"hidden",flexShrink:0,cursor:"pointer",
-                border:_optionalChain([infoCard, 'optionalAccess', _48 => _48.id])===playerGen.id&&_optionalChain([infoCard, 'optionalAccess', _49 => _49._side])==="player"?`2px solid ${C.cyan}`:`2px solid ${TYPE_COLOR[playerGen.type]||"#aaa"}`,
+                border:_optionalChain([infoCard, 'optionalAccess', _50 => _50.id])===playerGen.id&&_optionalChain([infoCard, 'optionalAccess', _51 => _51._side])==="player"?`2px solid ${C.cyan}`:`2px solid ${TYPE_COLOR[playerGen.type]||"#aaa"}`,
                 boxShadow:`0 0 ${pWinning?"16px":"8px"} ${TYPE_GLOW[playerGen.type]||"transparent"}`},}
                 , React.createElement('img', { src: IMGS[playerGen.img.replace('.png','')] || '', alt: playerGen.name, style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
               )
@@ -4871,13 +4890,13 @@ const JUNCTION_DESC = {
                 return (
                   React.createElement('div', { key: idx, style: {display:"flex",flexDirection:"column",alignItems:"center",gap:1},}
                     , React.createElement('span', { style: {fontSize:7,color:"rgba(80,140,255,0.6)",fontFamily:"monospace",
-                      visibility:card?"visible":"hidden",lineHeight:1},}, _optionalChain([card, 'optionalAccess', _50 => _50.name, 'optionalAccess', _51 => _51.split, 'call', _52 => _52(" "), 'access', _53 => _53[0]])||"")
+                      visibility:card?"visible":"hidden",lineHeight:1},}, _optionalChain([card, 'optionalAccess', _52 => _52.name, 'optionalAccess', _53 => _53.split, 'call', _54 => _54(" "), 'access', _55 => _55[0]])||"")
                     , React.createElement('div', {
-                      onClick: e=>{e.stopPropagation();if(card)setInfoCard(_optionalChain([infoCard, 'optionalAccess', _54 => _54.id])===card.id&&_optionalChain([infoCard, 'optionalAccess', _55 => _55._side])==="player"?null:{...card,_side:"player"});},
+                      onClick: e=>{e.stopPropagation();if(card)setInfoCard(_optionalChain([infoCard, 'optionalAccess', _56 => _56.id])===card.id&&_optionalChain([infoCard, 'optionalAccess', _57 => _57._side])==="player"?null:{...card,_side:"player"});},
                       style: {width:"100%",maxWidth:62,aspectRatio:"3/4",borderRadius:5,overflow:"hidden",margin:"0 auto",
                       border:card?`1.5px solid ${tc}`:"none",visibility:card?"visible":"hidden",
                       cursor:card?"pointer":"default",
-                      boxShadow:_optionalChain([infoCard, 'optionalAccess', _56 => _56.id])===_optionalChain([card, 'optionalAccess', _57 => _57.id])&&_optionalChain([infoCard, 'optionalAccess', _58 => _58._side])==="player"?`0 0 8px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _59 => _59.type])]||"transparent"}`:"none"},}
+                      boxShadow:_optionalChain([infoCard, 'optionalAccess', _58 => _58.id])===_optionalChain([card, 'optionalAccess', _59 => _59.id])&&_optionalChain([infoCard, 'optionalAccess', _60 => _60._side])==="player"?`0 0 8px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _61 => _61.type])]||"transparent"}`:"none"},}
                       , card&&React.createElement('img', { src: IMGS[card.img.replace('.png','')] || '', alt: card.name, style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
                     )
                   )
@@ -5216,26 +5235,13 @@ function App() {
   const [screen, setScreen]     = useState("menu");
   const updateSetting = (k,v) => setSettings(p => ({...p, [k]:v}));
 
-  // ── Local auth state ──────────────────────────────────────────────────
-  const [authUser, setAuthUser]     = useState(() => {
-    try { const s = localStorage.getItem("cvs_session"); return s ? JSON.parse(s) : null; } catch (e7) { return null; }
-  });
-
-  const login = (userRecord, token) => {
-    const session = { username: userRecord.username, displayName: userRecord.displayName, token: token||null };
-    localStorage.setItem("cvs_session", JSON.stringify(session));
-    setAuthUser(session);
-  };
-  const logout = () => {
-    localStorage.removeItem("cvs_session");
-    setAuthUser(null);
-  };
-  // Get live profile (reads fresh from localStorage each time)
-  const getProfile = () => authUser ? LOCAL_AUTH.getProfile(authUser.username) : null;
-  const refreshProfile = async () => {}; // re-fetches from backend if API_BASE set
+  // Nickname state — refresh triggers re-render when stats update
+  const [nickTick, setNickTick] = useState(0);
+  const refreshNick = () => setNickTick(t => t + 1);
+  const activePlayer = NICK_DB.getActive();
 
   return (
-    React.createElement(AuthCtx.Provider, { value: { authUser, getProfile, login, logout },}
+    React.createElement(NickCtx.Provider, { value: { activePlayer, refreshNick, nickTick },}
     , React.createElement(SettingsCtx.Provider, { value: { settings, updateSetting },}
       /* CSS animations */
       , React.createElement(StyleTag, null )
@@ -5246,8 +5252,8 @@ function App() {
       /* Screen content — sits above canvas via zIndex */
       , React.createElement('div', { style: { position:"relative", zIndex:1, minHeight:"100vh" },}
         , screen === "menu"     && React.createElement(MainMenu, { onNav: setScreen,} )
-        , screen === "options"  && React.createElement(OptionsScreen, { onBack: (s) => setScreen(s==="auth"?"auth":"menu"),} )
-        , screen === "auth"     && React.createElement(AuthScreen, {     onBack: () => setScreen("menu"),} )
+        , screen === "options"  && React.createElement(OptionsScreen, { onBack: (s) => setScreen(s==="nick"?"nick":"menu"),} )
+        , screen === "nick"      && React.createElement(NickScreen, {      onBack: () => setScreen("menu"),} )
         , screen === "guide"    && React.createElement(GuideScreen, { onBack: () => setScreen("menu"),} )
         , screen === "deck"     && React.createElement(DeckBuilderScreen, { onBack: () => setScreen("menu"),} )
         , screen === "game"     && React.createElement(GameModeScreen, { onBack: () => setScreen("menu"), onStartAI: () => setScreen("arena"),} )
