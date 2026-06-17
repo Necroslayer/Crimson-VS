@@ -1,0 +1,6 @@
+node_modules/
+crimsonvs.db
+crimsonvs.db-wal
+crimsonvs.db-shm
+.env
+*.log
