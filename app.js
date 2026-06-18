@@ -97,9 +97,10 @@ const NICK_DB = {
 // Primary: local Theme.mp3 (in same folder as app.js)
 // Fallback: jsDelivr CDN (if Theme.mp3 not found locally)
 // ─────────────────────────────────────────────
-const MUSIC_URL_LOCAL  = "Theme.mp3";
-const MUSIC_URL_CDN    = "https://github.com/Necroslayer/Crimson-VS/raw/refs/heads/main/Theme.mp3";
-const MUSIC_URL = MUSIC_URL_LOCAL; // tries local first
+// Theme.mp3 must be in the same folder as app.js (deployed via deploy.bat/sh)
+// After deploy it will be at: https://yoursite.netlify.app/Theme.mp3
+const MUSIC_URL_LOCAL = "Theme.mp3";
+const MUSIC_URL       = MUSIC_URL_LOCAL;
 
 const AudioEngine = (() => {
   let audio    = null;
@@ -116,13 +117,9 @@ const AudioEngine = (() => {
     audio.volume   = _enabled ? _volume : 0;
     // Try local first, fallback to CDN on error
     audio.src = MUSIC_URL_LOCAL;
-    audio.onerror = () => {
-      if (!_errored && audio.src !== MUSIC_URL_CDN) {
-        _errored = true;
-        audio.src = MUSIC_URL_CDN;
-        audio.load();
-        if (_enabled && _started) audio.play().catch(() => {});
-      }
+    audio.onerror = (e) => {
+      console.warn("[CrimsonVS] Audio failed to load:", audio.src, e);
+      // Theme.mp3 must be deployed in the same folder as app.js
     };
   }
 
@@ -985,6 +982,8 @@ function HexBackground() {
 // GLOBAL STYLES
 // ─────────────────────────────────────────────
 const GLOBAL_CSS = `
+  * { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "Android Emoji", "EmojiSymbols", sans-serif; }
+  button { font-family: inherit; }
   @keyframes fadeUp   { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
   @keyframes slideIn  { from{opacity:0;transform:translateX(-22px)} to{opacity:1;transform:translateX(0)} }
   @keyframes logoIn   { from{opacity:0;transform:translateY(-16px) scale(0.93)} to{opacity:1;transform:translateY(0) scale(1)} }
@@ -1303,7 +1302,7 @@ function MainMenu({ onNav }) {
               },
               onClick: () => !item.locked && onNav(item.screen),}
 
-              , React.createElement('span', { style: { fontSize:18, width:24, textAlign:"center", flexShrink:0 },}, item.icon)
+              , React.createElement('span', { style: { fontSize:18, width:24, textAlign:"center", flexShrink:0, fontFamily:'"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif' },}, item.icon)
               , React.createElement('span', { style: S.btnLabel,}, item.label)
               , item.locked ? React.createElement('span', { style: {fontSize:11,opacity:0.7},}, "🔒") : React.createElement('span', { style: S.btnArrow,}, "›")
             )

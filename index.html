@@ -14,7 +14,9 @@
   <title>Crimson VS</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body,#root{width:100%;height:100%;min-height:100dvh;background:#060318;overflow-x:hidden;-webkit-tap-highlight-color:transparent;user-select:none;overscroll-behavior:none}
+    span,button,div{font-family:inherit}
+    .emoji{font-family:"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Android Emoji",sans-serif!important}
+    html,body,#root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif;width:100%;height:100%;min-height:100dvh;background:#060318;overflow-x:hidden;-webkit-tap-highlight-color:transparent;user-select:none;overscroll-behavior:none}
     #root{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
     body{position:fixed;width:100%}
     #splash{position:fixed;inset:0;background:#060318;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:9999;transition:opacity 0.5s}
@@ -88,10 +90,10 @@ loadScript('https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.produc
   loadScript('https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js',function(){
     // Step 3: Images
     setP(45,'Loading images...');
-    loadScript('imgs.js?v=2',function(){
+    loadScript('imgs.js?v=46',function(){
       // Step 4: App (pre-compiled JS — no Babel needed!)
       setP(70,'Loading game...');
-      loadScript('app.js?v=2',function(){
+      loadScript('app.js?v=46',function(){
         setP(100,'Starting...');
         setTimeout(hideSplash, 300);
       },function(){ showErr('Failed to load app.js'); });
