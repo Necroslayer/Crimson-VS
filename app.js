@@ -88,11 +88,60 @@ const NICK_DB = {
   signOut() { this._setActive(null); },
 };
 
+// ─────────────────────────────────────────────
+// AUDIO ENGINE
+// Set MUSIC_URL to your hosted MP3/OGG file URL
+// ─────────────────────────────────────────────
+const MUSIC_URL = ""; // e.g. "https://yoursite.netlify.app/audio/theme.mp3"
+
+const AudioEngine = (() => {
+  let audio = null;
+  let _volume = 0.5;
+  let _enabled = true;
+
+  function _ensure() {
+    if (audio) return;
+    if (!MUSIC_URL) return;
+    audio = new Audio(MUSIC_URL);
+    audio.loop    = true;
+    audio.volume  = _enabled ? _volume : 0;
+    audio.preload = "auto";
+  }
+
+  return {
+    play() {
+      if (!MUSIC_URL) return;
+      _ensure();
+      if (_enabled && audio.paused) {
+        audio.play().catch(() => {}); // autoplay policy: ignore
+      }
+    },
+    pause() {
+      if (audio && !audio.paused) audio.pause();
+    },
+    setEnabled(val) {
+      _enabled = val;
+      if (!audio) return;
+      if (!val)  { audio.volume = 0; audio.pause(); }
+      else       { audio.volume = _volume; this.play(); }
+    },
+    setVolume(val) {
+      _volume = Math.max(0, Math.min(1, val));
+      if (audio && _enabled) audio.volume = _volume;
+    },
+    toggle() {
+      _enabled = !_enabled;
+      this.setEnabled(_enabled);
+      return _enabled;
+    },
+  };
+})();
+
 // Nickname context
 const NickCtx = createContext(null);
 function useNick() { return useContext(NickCtx); }
 
-const CVS_VERSION = "v0.5.45";
+const CVS_VERSION = "v0.5.46";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
@@ -1484,12 +1533,37 @@ function OptionsScreen({ onBack }) {
             )
           )
 
-          , toggles.map(item => (
-            React.createElement('div', { key: item.key, style: { ...S.card, display:"flex", alignItems:"center", justifyContent:"space-between" },}
-              , React.createElement('div', { style: S.label,}, item.label)
-              , React.createElement(Toggle, { on: settings[item.key], onToggle: () => updateSetting(item.key, !settings[item.key]),} )
+          /* Sound toggle + volume slider */
+          , React.createElement('div', { style: S.card,}
+            , React.createElement('div', { style: {display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom: settings.music ? 12 : 0},}
+              , React.createElement('div', { style: S.label,}, t("options.music"))
+              , React.createElement(Toggle, { on: settings.music, onToggle: () => updateSetting("music", !settings.music),} )
             )
-          ))
+            , settings.music && (
+              React.createElement('div', { style: {display:"flex",alignItems:"center",gap:10},}
+                , React.createElement('span', { style: {fontFamily:"monospace",fontSize:11,color:C.textMuted,flexShrink:0},}
+                  , settings.language==="pt" ? "Volume" : "Volume"
+                )
+                , React.createElement('input', {
+                  type: "range",
+                  min: "0", max: "1", step: "0.01",
+                  value: _nullishCoalesce(settings.volume, () => ( 0.5)),
+                  onChange: e => updateSetting("volume", parseFloat(e.target.value)),
+                  style: {flex:1,accentColor:C.cyan,cursor:"pointer",height:4},}
+                )
+                , React.createElement('span', { style: {fontFamily:"monospace",fontSize:11,color:C.cyan,minWidth:32,textAlign:"right"},}
+                  , Math.round((_nullishCoalesce(settings.volume, () => ( 0.5))) * 100), "%"
+                )
+              )
+            )
+            , MUSIC_URL === "" && (
+              React.createElement('div', { style: {fontFamily:"monospace",fontSize:9,color:"#ffaa00",marginTop:8,opacity:0.7},}
+                , settings.language==="pt"
+                  ? "⚠ Defina MUSIC_URL no código para ativar a música."
+                  : "⚠ Set MUSIC_URL in the code to enable music."
+              )
+            )
+          )
 
         )
       )
@@ -5408,14 +5482,34 @@ function GameModeScreen({ onBack, onStartAI }) {
 // ROOT
 // ─────────────────────────────────────────────
 function App() {
-  const [settings, setSettings] = useState({ language:"en", music:true, difficulty:"normal" });
+  const [settings, setSettings] = useState(() => { try { const s=localStorage.getItem('cvs_settings'); return s?JSON.parse(s):{language:'en',music:true,volume:0.5,difficulty:'normal'}; } catch (e7) { return {language:'en',music:true,volume:0.5,difficulty:'normal'}; } });
   const [screen, setScreen]     = useState(() => NICK_DB.getActive() ? "menu" : "nick");
-  const updateSetting = (k,v) => setSettings(p => ({...p, [k]:v}));
+  const updateSetting = (k,v) => setSettings(p => {
+    const next = {...p, [k]:v};
+    try { localStorage.setItem('cvs_settings', JSON.stringify(next)); } catch (e8) {}
+    return next;
+  });
 
   // Nickname state — refresh triggers re-render when stats update
   const [nickTick, setNickTick] = useState(0);
   const refreshNick = () => setNickTick(t => t + 1);
   const activePlayer = NICK_DB.getActive();
+
+  // Start music on first user interaction
+  useEffect(() => {
+    AudioEngine.setEnabled(settings.music);
+    AudioEngine.setVolume(_nullishCoalesce(settings.volume, () => ( 0.5)));
+    const start = () => { AudioEngine.play(); document.removeEventListener('touchstart', start); document.removeEventListener('click', start); };
+    document.addEventListener('touchstart', start, { once:true });
+    document.addEventListener('click',      start, { once:true });
+    return () => { document.removeEventListener('touchstart', start); document.removeEventListener('click', start); };
+  }, []);
+
+  // Sync audio when settings change
+  useEffect(() => {
+    AudioEngine.setEnabled(settings.music);
+    AudioEngine.setVolume(_nullishCoalesce(settings.volume, () => ( 0.5)));
+  }, [settings.music, settings.volume]);
 
   return (
     React.createElement(NickCtx.Provider, { value: { activePlayer, refreshNick, nickTick },}
