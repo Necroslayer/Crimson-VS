@@ -92,56 +92,83 @@ const NICK_DB = {
 // AUDIO ENGINE
 // Set MUSIC_URL to your hosted MP3/OGG file URL
 // ─────────────────────────────────────────────
-const MUSIC_URL = "https://cdn.jsdelivr.net/gh/Necroslayer/Crimson-VS@main/Theme.mp3"; // e.g. "https://yoursite.netlify.app/audio/theme.mp3"
+// ─────────────────────────────────────────────
+// AUDIO ENGINE
+// Primary: local Theme.mp3 (in same folder as app.js)
+// Fallback: jsDelivr CDN (if Theme.mp3 not found locally)
+// ─────────────────────────────────────────────
+const MUSIC_URL_LOCAL  = "Theme.mp3";
+const MUSIC_URL_CDN    = "https://github.com/Necroslayer/Crimson-VS/raw/refs/heads/main/Theme.mp3";
+const MUSIC_URL = MUSIC_URL_LOCAL; // tries local first
 
 const AudioEngine = (() => {
-  let audio = null;
-  let _volume = 0.5;
+  let audio    = null;
+  let _volume  = 0.5;
   let _enabled = true;
+  let _started = false;
+  let _errored = false;
 
-  function _ensure() {
+  function _init() {
     if (audio) return;
-    if (!MUSIC_URL) return;
-    audio = new Audio(MUSIC_URL);
-    audio.loop    = true;
-    audio.volume  = _enabled ? _volume : 0;
-    audio.preload = "auto";
+    audio          = new Audio();
+    audio.loop     = true;
+    audio.preload  = "auto";
+    audio.volume   = _enabled ? _volume : 0;
+    // Try local first, fallback to CDN on error
+    audio.src = MUSIC_URL_LOCAL;
+    audio.onerror = () => {
+      if (!_errored && audio.src !== MUSIC_URL_CDN) {
+        _errored = true;
+        audio.src = MUSIC_URL_CDN;
+        audio.load();
+        if (_enabled && _started) audio.play().catch(() => {});
+      }
+    };
   }
 
   return {
     play() {
-      if (!MUSIC_URL) return;
-      _ensure();
-      if (_enabled && audio.paused) {
-        audio.play().catch(() => {}); // autoplay policy: ignore
+      _init();
+      _started = true;
+      if (!_enabled) return;
+      if (audio.paused) {
+        audio.play().catch(() => {
+          // Autoplay blocked — will retry on next user gesture
+        });
       }
     },
     pause() {
       if (audio && !audio.paused) audio.pause();
     },
     setEnabled(val) {
-      _enabled = val;
-      if (!audio) return;
-      if (!val)  { audio.volume = 0; audio.pause(); }
-      else       { audio.volume = _volume; this.play(); }
+      _enabled = !!val;
+      _init();
+      if (!_enabled) {
+        audio.volume = 0;
+        audio.pause();
+      } else {
+        audio.volume = _volume;
+        if (_started) audio.play().catch(() => {});
+      }
     },
     setVolume(val) {
       _volume = Math.max(0, Math.min(1, val));
       if (audio && _enabled) audio.volume = _volume;
     },
-    toggle() {
-      _enabled = !_enabled;
-      this.setEnabled(_enabled);
-      return _enabled;
+    isPlaying() {
+      return audio && !audio.paused && _enabled;
     },
+    get started() { return _started; },
   };
 })();
+
+
 
 // Nickname context
 const NickCtx = createContext(null);
 function useNick() { return useContext(NickCtx); }
 
-const CVS_VERSION = "v0.5.47";
+const CVS_VERSION = "v0.5.48";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
@@ -1556,7 +1583,7 @@ function OptionsScreen({ onBack }) {
                 )
               )
             )
-            , MUSIC_URL === "" && (
+            , false && (
               React.createElement('div', { style: {fontFamily:"monospace",fontSize:9,color:"#ffaa00",marginTop:8,opacity:0.7},}
                 , settings.language==="pt"
                   ? "⚠ Defina MUSIC_URL no código para ativar a música."
@@ -5500,21 +5527,29 @@ function App() {
   const refreshNick = () => setNickTick(t => t + 1);
   const activePlayer = NICK_DB.getActive();
 
-  // Start music on first user interaction
-  useEffect(() => {
-    AudioEngine.setEnabled(settings.music);
-    AudioEngine.setVolume(_nullishCoalesce(settings.volume, () => ( 0.5)));
-    const start = () => { AudioEngine.play(); document.removeEventListener('touchstart', start); document.removeEventListener('click', start); };
-    document.addEventListener('touchstart', start, { once:true });
-    document.addEventListener('click',      start, { once:true });
-    return () => { document.removeEventListener('touchstart', start); document.removeEventListener('click', start); };
-  }, []);
-
-  // Sync audio when settings change
+  // Sync audio settings on mount and change
   useEffect(() => {
     AudioEngine.setEnabled(settings.music);
     AudioEngine.setVolume(_nullishCoalesce(settings.volume, () => ( 0.5)));
   }, [settings.music, settings.volume]);
+
+  // Start music on first user interaction (browser autoplay policy)
+  useEffect(() => {
+    const tryPlay = () => {
+      if (settings.music) AudioEngine.play();
+    };
+    // Try immediately (works if page was already interacted with)
+    tryPlay();
+    // Also attach to any user interaction
+    document.addEventListener('click',      tryPlay, { once: true });
+    document.addEventListener('touchstart', tryPlay, { once: true });
+    document.addEventListener('keydown',    tryPlay, { once: true });
+    return () => {
+      document.removeEventListener('click',      tryPlay);
+      document.removeEventListener('touchstart', tryPlay);
+      document.removeEventListener('keydown',    tryPlay);
+    };
+  }, []);
 
   return (
     React.createElement(NickCtx.Provider, { value: { activePlayer, refreshNick, nickTick },}
