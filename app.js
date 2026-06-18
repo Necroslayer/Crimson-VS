@@ -92,7 +92,7 @@ const NICK_DB = {
 // AUDIO ENGINE
 // Set MUSIC_URL to your hosted MP3/OGG file URL
 // ─────────────────────────────────────────────
-const MUSIC_URL = ""; // e.g. "https://yoursite.netlify.app/audio/theme.mp3"
+const MUSIC_URL = "https://github.com/Necroslayer/Crimson-VS/raw/refs/heads/main/Theme.mp3"; // e.g. "https://yoursite.netlify.app/audio/theme.mp3"
 
 const AudioEngine = (() => {
   let audio = null;
