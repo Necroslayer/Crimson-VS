@@ -92,7 +92,7 @@ const NICK_DB = {
 const NickCtx = createContext(null);
 function useNick() { return useContext(NickCtx); }
 
-const CVS_VERSION = "v0.5.42";
+const CVS_VERSION = "v0.5.45";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
@@ -1296,7 +1296,7 @@ function NickScreen({ onBack, initialView }) {
   return (
     React.createElement('div', { style: S.root,}
       , React.createElement('div', { style: {...S.content},}
-        , React.createElement(BackBtn, { label: "‹ Back" , onClick: onBack,} )
+        , NICK_DB.getActive() && React.createElement(BackBtn, { label: "‹ Back" , onClick: () => onBack("menu"),} )
         , React.createElement('h1', { style: S.screenTitle,}
           , view === "list" ? "⚡ Players" : "⚡ New Player"
         )
@@ -1851,7 +1851,7 @@ function Hex({ size, bg, border, children, style={} }) {
 }
 
 // ─── UNIT CARD ────────────────────────────────
-function UnitCard({ card, selected, onToggle, disabled, ineligible }) {
+function UnitCard({ card, selected, onToggle, disabled, ineligible, onInfo }) {
   const stars  = RARITY_STARS[card.rarity] || 1;
   const tColor = TYPE_COLOR[card.type]  || "#aaa";
   const tGlow  = TYPE_GLOW[card.type]   || "transparent";
@@ -1926,13 +1926,19 @@ function UnitCard({ card, selected, onToggle, disabled, ineligible }) {
 
       )
 
-      /* ── TOP-RIGHT: UNIT tag ── */
-      , React.createElement('div', { style: {
-        position:"absolute", top:6, right:6, zIndex:3,
-        fontSize:10, fontWeight:700, color:"#fff",
-        fontFamily:"monospace", letterSpacing:"0.1em",
-        textShadow:"0 1px 4px rgba(0,0,0,0.9)",
-      },}, "UNIT")
+      /* ── TOP-RIGHT: UNIT tag + info button ── */
+      , React.createElement('div', { style: {position:"absolute",top:4,right:4,zIndex:3,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:3},}
+        , React.createElement('span', { style: {fontSize:9,fontWeight:700,color:"#fff",fontFamily:"monospace",letterSpacing:"0.1em",textShadow:"0 1px 4px rgba(0,0,0,0.9)"},}, "UNIT")
+        , onInfo && (
+          React.createElement('button', { onClick: e=>{e.stopPropagation();onInfo(card);}, style: {
+            background:"rgba(0,0,0,0.65)",border:"1px solid rgba(255,255,255,0.25)",
+            borderRadius:"50%",width:18,height:18,cursor:"pointer",
+            color:"rgba(255,255,255,0.8)",fontSize:10,fontWeight:700,
+            fontFamily:"monospace",lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center",
+            padding:0,
+          },}, "ℹ")
+        )
+      )
 
       /* ── BOTTOM OVERLAY ── */
       , React.createElement('div', { style: {
@@ -2030,7 +2036,7 @@ function UnitCard({ card, selected, onToggle, disabled, ineligible }) {
 }
 
 // ─── GENERAL CARD ─────────────────────────────
-function GeneralCard({ card, selected, onSelect }) {
+function GeneralCard({ card, selected, onSelect, onInfo }) {
   const tColor = TYPE_COLOR[card.type]  || "#aaa";
   const tGlow  = TYPE_GLOW[card.type]   || "transparent";
   const rColor = RARITY_COLOR[card.rarity] || "#aaa";
@@ -2056,6 +2062,18 @@ function GeneralCard({ card, selected, onSelect }) {
       , React.createElement('img', { src: IMGS[card.img.replace('.png','')] || '',
         alt: card.name,
         style: { position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" },}
+      )
+
+      /* Info button */
+      , onInfo && (
+        React.createElement('button', { onClick: e=>{e.stopPropagation();onInfo(card);}, style: {
+          position:"absolute",top:4,right:4,zIndex:10,
+          background:"rgba(0,0,0,0.65)",border:"1px solid rgba(255,255,255,0.25)",
+          borderRadius:"50%",width:18,height:18,cursor:"pointer",
+          color:"rgba(255,255,255,0.8)",fontSize:10,fontWeight:700,
+          fontFamily:"monospace",lineHeight:1,display:"flex",alignItems:"center",justifyContent:"center",
+          padding:0,
+        },}, "ℹ")
       )
 
       /* Top-left: Charisma hex (left) + Trinity hex (right), larger */
@@ -2138,7 +2156,81 @@ function GeneralCard({ card, selected, onSelect }) {
 }
 
 // ─── DECK BUILDER ─────────────────────────────
+const JUNCTION_DESC = {
+  "AIDA Berserk": { en: "+2 AP, -2 HP to your General each turn.", pt: "+2 AP, -2 HP para seu General a cada turno." },
+  "AIDA Corrosion": { en: "+1 AP, -1 HP to your General each turn.", pt: "+1 AP, -1 HP para seu General a cada turno." },
+  "All At Once": { en: "+2 AP per active junction your team has, immediately at Clash.", pt: "+2 AP para cada junction ativa do seu time, imediatamente no Clash." },
+  "Anu's Karma": { en: "+3 HP to your General each turn (only if you go second).", pt: "+3 HP para seu General por turno (apenas se for segundo)." },
+  "Aurora Tears": { en: "+2 AP to your General at end of each turn.", pt: "+2 AP para seu General ao final de cada turno." },
+  "Avatar's Descent": { en: "+5 AP for 5 turns. Nullifies all enemy junction damage.", pt: "+5 AP por 5 turnos. Anula todo dano de junction inimiga." },
+  "Blades Crossing": { en: "Each time you deal damage, deal +1 extra.", pt: "A cada dano causado, causa +1 extra." },
+  "Bone Crunching": { en: "+4 AP, -4 HP to your General immediately at Clash.", pt: "+4 AP, -4 HP para seu General imediatamente no Clash." },
+  "Border of Zero": { en: "Set both Generals' HP to 1 immediately at Clash.", pt: "Define o HP de ambos os Generais para 1 imediatamente no Clash." },
+  "Burning Soul": { en: "+1 AP each time your HP drops below 50%.", pt: "+1 AP cada vez que seu HP cair abaixo de 50%." },
+  "Change Ring": { en: "Swap enemy General's HP and AP values immediately at Clash.", pt: "Troca o HP e AP do General inimigo imediatamente no Clash." },
+  "Charge Ahead": { en: "Your General always goes FIRST in battle, ignoring Trinity result.", pt: "Seu General sempre vai PRIMEIRO na batalha, ignorando o Trinity." },
+  "Clenching Teeth": { en: "If HP reaches 0, survive with 1 HP instead (once per battle).", pt: "Se HP chegar a 0, sobrevive com 1 HP (uma vez por batalha)." },
+  "Cross Counter": { en: "Reflect 1 damage back to the attacker each time you're hit.", pt: "Reflete 1 de dano ao atacante cada vez que for atingido." },
+  "Defensive Stance": { en: "Your General goes SECOND in battle. Reduce damage received by 1.", pt: "Seu General vai em SEGUNDO na batalha. Reduz o dano recebido em 1." },
+  "Demonic Spear": { en: "Deal 7 damage to enemy General immediately at Clash.", pt: "Causa 7 de dano ao General inimigo imediatamente no Clash." },
+  "Detail Oriented": { en: "Reduce all damage received by 1.", pt: "Reduz todo dano recebido em 1." },
+  "Different Mix": { en: "Activate a random junction from a unit not in your team.", pt: "Ativa uma junction aleatória de uma unidade fora do seu time." },
+  "Divine Punishment": { en: "Deal 5 damage to enemy General immediately at Clash.", pt: "Causa 5 de dano ao General inimigo imediatamente no Clash." },
+  "Double Trigger": { en: "Your attacks hit twice per turn.", pt: "Seus ataques acertam duas vezes por turno." },
+  "Emperor's Pride": { en: "+1 AP and +1 HP after each turn you survive.", pt: "+1 AP e +1 HP após cada turno que sobreviver." },
+  "Energy Drain": { en: "Steal 3 HP from enemy General immediately at Clash.", pt: "Rouba 3 HP do General inimigo imediatamente no Clash." },
+  "Energy Genome": { en: "+1 HP to your General each turn.", pt: "+1 HP para seu General a cada turno." },
+  "Estranged Self": { en: "Remove ALL enemy junction abilities immediately at Clash.", pt: "Remove TODAS as junctions inimigas imediatamente no Clash." },
+  "Filling Hollow": { en: "Each battle turn: remove 1 random junction from both Generals.", pt: "A cada turno: remove 1 junction aleatória de ambos os Generais." },
+  "Fire Fang": { en: "+1 AP to your General immediately at Clash.", pt: "+1 AP para seu General imediatamente no Clash." },
+  "First Strike": { en: "Deal 1 damage to BOTH Generals at the start of each turn.", pt: "Causa 1 de dano a AMBOS os Generais no início de cada turno." },
+  "First to Action": { en: "Deal 5 damage to enemy at Clash, but take +1 extra damage each hit.", pt: "Causa 5 de dano no Clash, mas leva +1 de dano extra a cada golpe." },
+  "Flame Fang": { en: "+2 AP to your General immediately at Clash.", pt: "+2 AP para seu General imediatamente no Clash." },
+  "Folset's Trial": { en: "+1 AP, -1 HP to your General each turn.", pt: "+1 AP, -1 HP para seu General a cada turno." },
+  "Fused Consciousness": { en: "Combine two unit junctions into one powerful effect.", pt: "Combina duas junctions de unidades em um efeito poderoso." },
+  "Gathering of the Strong": { en: "Deal 1 damage to enemy General each turn.", pt: "Causa 1 de dano ao General inimigo a cada turno." },
+  "Golden Spear": { en: "Deal 10 damage to enemy General immediately at Clash.", pt: "Causa 10 de dano ao General inimigo imediatamente no Clash." },
+  "Grief of Comrade": { en: "+2 HP per active junction the enemy has, immediately at Clash.", pt: "+2 HP para cada junction ativa do inimigo, imediatamente no Clash." },
+  "Hammer of Undoing": { en: "Deal 5 damage to BOTH Generals immediately at Clash.", pt: "Causa 5 de dano a AMBOS os Generais imediatamente no Clash." },
+  "Harmonic Rhythm": { en: "+2 AP to your General each turn (only if you go first).", pt: "+2 AP para seu General por turno (apenas se for primeiro)." },
+  "Immortal Genome": { en: "+2 HP to your General each turn.", pt: "+2 HP para seu General a cada turno." },
+  "Ingenious Scheme": { en: "Reflect a portion of damage received back to the attacker.", pt: "Reflete uma parte do dano recebido de volta ao atacante." },
+  "Light of Annihilation": { en: "Deal 3 damage to BOTH Generals each turn.", pt: "Causa 3 de dano a AMBOS os Generais a cada turno." },
+  "Long-awaited Return": { en: "+1 AP, +2 HP to your General each turn.", pt: "+1 AP, +2 HP para seu General a cada turno." },
+  "Massacre Pulse": { en: "+1 AP to your General after each attack you make.", pt: "+1 AP para seu General após cada ataque seu." },
+  "Meeting of Souls": { en: "Swap all your junctions with all enemy junctions at Clash.", pt: "Troca todas as suas junctions pelas do inimigo no Clash." },
+  "Merciless Light": { en: "Deal 2 damage to BOTH Generals each turn.", pt: "Causa 2 de dano a AMBOS os Generais a cada turno." },
+  "Mind's Eye": { en: "Chance to evade the enemy's attack completely.", pt: "Chance de esquivar completamente do ataque inimigo." },
+  "Mirror of Revenge": { en: "Reflect a portion of damage received back to the attacker.", pt: "Reflete uma parte do dano recebido de volta ao atacante." },
+  "Mobilize the Troops": { en: "+1 HP to your General each turn.", pt: "+1 HP para seu General a cada turno." },
+  "Momentary Glory": { en: "+3 AP / -3 enemy AP for 1 turn, then -1 AP / +1 enemy AP after.", pt: "+3 AP / -3 AP inimigo por 1 turno, depois -1 AP / +1 AP inimigo." },
+  "Pattern of Demons": { en: "Void 1 junction ability from the enemy unit with highest cost.", pt: "Anula 1 junction da unidade inimiga com maior custo." },
+  "Price of Insight": { en: "Replace this junction with a new random junction ability.", pt: "Substitui esta junction por uma ability junction aleatória." },
+  "Promised Discretion": { en: "Cap damage either General receives at 3 per hit.", pt: "Limita o dano recebido por qualquer General a 3 por golpe." },
+  "Quick Lightning": { en: "Deal 3 damage to enemy General immediately at Clash.", pt: "Causa 3 de dano ao General inimigo imediatamente no Clash." },
+  "Quickdance": { en: "Deal an extra attack immediately after your main attack.", pt: "Realiza um ataque extra imediatamente após o ataque principal." },
+  "Reckless Rewards": { en: "+2 AP immediately, but take +1 extra damage each hit in battle.", pt: "+2 AP imediato, mas leva +1 de dano extra a cada golpe na batalha." },
+  "Rendezvous": { en: "At turn 8: take 10 damage. Before that, gain +2 AP each turn.", pt: "No turno 8: leva 10 de dano. Antes disso, ganha +2 AP por turno." },
+  "Shield Protection": { en: "Remove 1 active Assault-type enemy junction at Clash.", pt: "Remove 1 junction Assault ativa do inimigo no Clash." },
+  "Snipe Thunder": { en: "Remove 1 active Shield-type enemy junction at Clash.", pt: "Remove 1 junction Shield ativa do inimigo no Clash." },
+  "Suck it up": { en: "If HP reaches 0, survive with 5 HP instead (once per battle).", pt: "Se HP chegar a 0, sobrevive com 5 HP (uma vez por batalha)." },
+  "Time Torrent": { en: "Skip the enemy General's attack for 1 round.", pt: "Pula o ataque do General inimigo por 1 rodada." },
+  "Tragic Arrow": { en: "Deal 2 damage to enemy General at the start of your turn.", pt: "Causa 2 de dano ao General inimigo no início do seu turno." },
+  "Trial by Fire": { en: "Cannot attack for 4 turns. After turn 5: +5 AP, +6 HP.", pt: "Não pode atacar por 4 turnos. Após o turno 5: +5 AP, +6 HP." },
+  "Twilight's Call": { en: "After 5 turns, all your junction abilities reactivate.", pt: "Após 5 turnos, todas as suas junctions reativam." },
+  "Veil of Aura": { en: "-2 to all damage received permanently.", pt: "-2 em todo dano recebido permanentemente." },
+  "Vengeful Arrow": { en: "Deal 1 damage to enemy General each turn.", pt: "Causa 1 de dano ao General inimigo a cada turno." },
+  "Verboten Libation": { en: "+7 HP to your General immediately at Clash.", pt: "+7 HP para seu General imediatamente no Clash." },
+  "Vitality Medicine": { en: "+5 HP to your General immediately at Clash.", pt: "+5 HP para seu General imediatamente no Clash." },
+  "Warning Harmony": { en: "If enemy has 2+ active junctions: remove 1 random enemy junction.", pt: "Se o inimigo tiver 2+ junctions ativas: remove 1 aleatória." },
+  "Whirlwind Assault": { en: "Remove 1 active Snipe-type enemy junction at Clash.", pt: "Remove 1 junction Snipe ativa do inimigo no Clash." },
+  "Will of Similars": { en: "+2 AP for each ally unit sharing your General's Trinity type.", pt: "+2 AP para cada unidade aliada com o mesmo tipo Trinity do seu General." },
+};
+
+
 function DeckBuilderScreen({ onBack }) {
+  const { settings } = useSettings();
+  const isPT = settings.language === "pt";
   const t = useT();
 
   // Orientation detection — portrait vs landscape
@@ -2163,6 +2255,8 @@ function DeckBuilderScreen({ onBack }) {
   const { nickTick } = useNick();
   // Reload decks when active player changes
   useEffect(() => { setDecks(NICK_DB.getDecks()); }, [nickTick]);
+  // Card info popup
+  const [dbInfoCard, setDbInfoCard] = useState(null);
   const [editingDeck, setEditingDeck] = useState(null);
   const [deckName, setDeckName]       = useState("");
   const [confirmDel, setConfirmDel]   = useState(null);
@@ -2476,7 +2570,8 @@ function DeckBuilderScreen({ onBack }) {
                       selected: isSel,
                       disabled: selUnits.length >= 5 && !isSel,
                       ineligible: ineligible,
-                      onToggle: toggleUnit,})
+                      onToggle: toggleUnit,
+                      onInfo: c => setDbInfoCard(c),})
                   );
                 })
               )
@@ -2520,10 +2615,19 @@ function DeckBuilderScreen({ onBack }) {
                 marginBottom:5, flexShrink:0,
               },}
               , selGeneral ? (
-                React.createElement('img', {
-                  src: IMGS[selGeneral.img.replace('.png','')] || '',
-                  alt: selGeneral.name,
-                  style: { position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" },}
+                React.createElement(React.Fragment, null
+                  , React.createElement('img', {
+                    src: IMGS[selGeneral.img.replace('.png','')] || '',
+                    alt: selGeneral.name,
+                    style: { position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover" },}
+                  )
+                  , React.createElement('button', { onClick: e=>{e.stopPropagation();setDbInfoCard(selGeneral);}, style: {
+                    position:"absolute",top:3,right:3,zIndex:10,
+                    background:"rgba(0,0,0,0.65)",border:"1px solid rgba(255,255,255,0.2)",
+                    borderRadius:"50%",width:16,height:16,cursor:"pointer",
+                    color:"rgba(255,255,255,0.8)",fontSize:9,fontWeight:700,
+                    fontFamily:"monospace",display:"flex",alignItems:"center",justifyContent:"center",padding:0,
+                  },}, "ℹ")
                 )
               ) : (
                 React.createElement('span', { style: {
@@ -2580,7 +2684,90 @@ function DeckBuilderScreen({ onBack }) {
         )
 
       )
+    /* Card info popup for deck builder */
+    , dbInfoCard && (
+      React.createElement('div', { style: {position:"fixed",inset:0,zIndex:200,display:"flex",
+        alignItems:"flex-end",justifyContent:"center",
+        background:"rgba(0,0,0,0.6)"},
+        onClick: ()=>setDbInfoCard(null),}
+        , React.createElement('div', { onClick: e=>e.stopPropagation(), style: {
+          width:"100%",maxWidth:440,
+          background:"rgba(6,3,24,0.98)",
+          border:"1px solid rgba(0,245,255,0.25)",
+          borderRadius:"16px 16px 0 0",
+          padding:"16px 16px 32px",
+          maxHeight:"72vh",overflowY:"auto",
+        },}
+          /* Header */
+          , React.createElement('div', { style: {display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14},}
+            , React.createElement('div', { style: {fontFamily:"monospace",fontSize:10,color:C.textSub,letterSpacing:"0.1em"},}
+              , dbInfoCard.charisma!==undefined?"GENERAL INFO":"UNIT INFO"
+            )
+            , React.createElement('button', { onClick: ()=>setDbInfoCard(null), style: {
+              background:"transparent",border:"none",color:C.textMuted,
+              fontSize:20,cursor:"pointer",lineHeight:1,padding:0
+            },}, "✕")
+          )
+
+          /* Card + stats */
+          , React.createElement('div', { style: {display:"flex",gap:14,marginBottom:14},}
+            , React.createElement('div', { style: {width:80,height:107,flexShrink:0,borderRadius:8,overflow:"hidden",
+              border:`2px solid ${TYPE_COLOR[dbInfoCard.type]||"#aaa"}`,
+              boxShadow:`0 0 14px ${TYPE_GLOW[dbInfoCard.type]||"transparent"}`},}
+              , React.createElement('img', { src: IMGS[(dbInfoCard.img||"").replace(".png","")]||"", alt: dbInfoCard.name,
+                style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
+            )
+            , React.createElement('div', { style: {flex:1,display:"flex",flexDirection:"column",gap:6},}
+              , React.createElement('div', { style: {fontFamily:"monospace",fontSize:14,fontWeight:900,color:"#fff",lineHeight:1.2},}, dbInfoCard.name)
+              , React.createElement('div', { style: {fontFamily:"monospace",fontSize:10,color:TYPE_COLOR[dbInfoCard.type]||"#aaa",fontWeight:700,letterSpacing:"0.06em"},}
+                , dbInfoCard.type
+              )
+              , React.createElement('div', { style: {display:"flex",gap:10,flexWrap:"wrap",marginTop:2},}
+                , dbInfoCard.charisma!==undefined ? (
+                  React.createElement(React.Fragment, null
+                    , React.createElement('span', { style: {fontFamily:"monospace",fontSize:12,color:"#ff4466",fontWeight:700},}, "HP " , dbInfoCard.hp)
+                    , React.createElement('span', { style: {fontFamily:"monospace",fontSize:12,color:"#44aaff",fontWeight:700},}, "AP " , dbInfoCard.ap)
+                    , React.createElement('span', { style: {fontFamily:"monospace",fontSize:12,color:C.accent,fontWeight:700},}, "Chr " , dbInfoCard.charisma)
+                  )
+                ) : (
+                  React.createElement(React.Fragment, null
+                    , React.createElement('span', { style: {fontFamily:"monospace",fontSize:12,color:"#c060ff",fontWeight:700},}, "Cost " , dbInfoCard.cost)
+                    , React.createElement('span', { style: {fontFamily:"monospace",fontSize:12,color:"#ff4466",fontWeight:700},}, "HP " , dbInfoCard.hp)
+                    , React.createElement('span', { style: {fontFamily:"monospace",fontSize:12,color:"#44aaff",fontWeight:700},}, "AP " , dbInfoCard.ap)
+                    , React.createElement('span', { style: {fontFamily:"monospace",fontSize:12,color:RARITY_COLOR[dbInfoCard.rarity]||"#aaa",fontWeight:700},}
+                      , "★".repeat(RARITY_STARS[dbInfoCard.rarity]||1)
+                    )
+                  )
+                )
+
+              )
+            )
+          )
+
+          /* Junction info */
+          , dbInfoCard.junction && (
+            React.createElement('div', { style: {background:"rgba(0,245,255,0.05)",border:"1px solid rgba(0,245,255,0.15)",
+              borderRadius:9,padding:"10px 12px",marginBottom:10},}
+              , React.createElement('div', { style: {fontFamily:"monospace",fontSize:9,color:C.textSub,letterSpacing:"0.1em",marginBottom:6},}, "JUNCTION ABILITY"
+
+              )
+              , React.createElement('div', { style: {fontFamily:"monospace",fontSize:13,fontWeight:800,color:C.cyan,marginBottom:6,letterSpacing:"0.02em"},}
+                , dbInfoCard.junction
+              )
+              , React.createElement('div', { style: {fontFamily:"monospace",fontSize:11,color:"rgba(180,220,255,0.85)",lineHeight:1.55},}
+                , (_optionalChain([JUNCTION_DESC, 'access', _9 => _9[dbInfoCard.junction], 'optionalAccess', _10 => _10[isPT?"pt":"en"]])) || "— No description available."
+              )
+            )
+          )
+
+          /* Trinity type reminder */
+          , React.createElement('div', { style: {fontFamily:"monospace",fontSize:10,color:C.textMuted,textAlign:"center",opacity:0.6},}, "⚔ Assault · 🛡 Shield · 🦅 Snipe  |  ⚔>🛡 · 🛡>🦅 · 🦅>⚔"
+
+          )
+        )
+      )
     )
+  )
   );
 }
 
@@ -2678,7 +2865,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
   const { settings } = useSettings();
   const isPT = settings.language === "pt";
   const { refreshNick, nickTick } = useNick();
-  const _playerNick = _optionalChain([NICK_DB, 'access', _9 => _9.getActive, 'call', _10 => _10(), 'optionalAccess', _11 => _11.nick]) || (isPT ? "VOCÊ" : "YOU");
+  const _playerNick = _optionalChain([NICK_DB, 'access', _11 => _11.getActive, 'call', _12 => _12(), 'optionalAccess', _13 => _13.nick]) || (isPT ? "VOCÊ" : "YOU");
   // ── PHASES ──
   // "select"  → pick saved deck
   // "reveal"  → show both generals + unit pools side by side
@@ -3326,7 +3513,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                       padding:"2px 8px", borderRadius:10,
                       background: valid ? "rgba(68,238,136,0.08)" : "rgba(255,68,85,0.08)",
                       border:`1px solid ${valid ? "rgba(68,238,136,0.25)" : "rgba(255,68,85,0.25)"}`,
-                    },}, valid ? `✓ Pts ${cost}/${_optionalChain([gen, 'optionalAccess', _12 => _12.charisma])}` : `✕ Pts ${cost}/${_optionalChain([gen, 'optionalAccess', _13 => _13.charisma])}`)
+                    },}, valid ? `✓ Pts ${cost}/${_optionalChain([gen, 'optionalAccess', _14 => _14.charisma])}` : `✕ Pts ${cost}/${_optionalChain([gen, 'optionalAccess', _15 => _15.charisma])}`)
                   )
                   , React.createElement('div', { style: {display:"flex", gap:5, alignItems:"flex-start"},}
                     , gen && (
@@ -3414,7 +3601,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     const _trinYouWin    = isPT ? "VOCÊ VENCE" : "YOU WIN";
     const _trinAIWins    = isPT ? "IA VENCE" : "AI WINS";
     const _trinDraw2     = isPT ? "EMPATE" : "DRAW";
-    const _trinBothChose = isPT ? ("Ambos escolheram " + (_optionalChain([pType, 'optionalAccess', _14 => _14.key])||"") + " — jogue novamente!") : ("Both chose " + (_optionalChain([pType, 'optionalAccess', _15 => _15.key])||"") + " — play again to decide!");
+    const _trinBothChose = isPT ? ("Ambos escolheram " + (_optionalChain([pType, 'optionalAccess', _16 => _16.key])||"") + " — jogue novamente!") : ("Both chose " + (_optionalChain([pType, 'optionalAccess', _17 => _17.key])||"") + " — play again to decide!");
     const _trinChooseAgain = isPT ? "Escolha novamente:" : "Choose again:";
     const _trinChooseType  = isPT ? "Escolha seu tipo Trinity:" : "Choose your Trinity type:";
     const _trinContinue    = isPT ? "Continuar -> Reveal" : "Continue -> Reveal";
@@ -3535,7 +3722,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
               , React.createElement('div', { style: {fontSize:14,fontFamily:"monospace",fontWeight:900,
                 color:"#ffcc00",marginBottom:4},}, _trinDraw)
               , React.createElement('div', { style: {fontSize:11,fontFamily:"monospace",color:C.textMuted},}, "Both chose "
-                  , _optionalChain([pType, 'optionalAccess', _16 => _16.key]), " — play again to decide!"
+                  , _optionalChain([pType, 'optionalAccess', _18 => _18.key]), " — play again to decide!"
               )
             )
           )
@@ -3690,7 +3877,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
         /* AI banned yours */
         , React.createElement('div', { style: {...S.callout, marginBottom:12, borderColor:"rgba(255,68,80,0.3)", background:"rgba(255,68,80,0.06)"},}
           , React.createElement('span', null, "🤖")
-          , React.createElement('span', null, "AI banned your: "   , React.createElement('strong', { style: {color:"#ff6677"},}, _optionalChain([aiBan, 'optionalAccess', _17 => _17.name])))
+          , React.createElement('span', null, "AI banned your: "   , React.createElement('strong', { style: {color:"#ff6677"},}, _optionalChain([aiBan, 'optionalAccess', _19 => _19.name])))
         )
 
         /* AI pool — player picks one to ban */
@@ -3699,7 +3886,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
         )
         , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:8},}
           , aiPool.map(u => {
-            const isBanned = _optionalChain([playerBan, 'optionalAccess', _18 => _18.id]) === u.id;
+            const isBanned = _optionalChain([playerBan, 'optionalAccess', _20 => _20.id]) === u.id;
             const tc = TYPE_COLOR[u.type] || "#aaa";
             return (
               React.createElement('div', { key: u.id, onClick: () => setPlayerBan(u),
@@ -3974,7 +4161,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
           , React.createElement('div', { style: {flex:1, ...S.callout},}
             , React.createElement('span', null, "🃏")
             , React.createElement('span', { style: {fontSize:11, color:C.textSub, fontFamily:"monospace", overflow:"hidden",
-              textOverflow:"ellipsis", whiteSpace:"nowrap"},}, _optionalChain([playerDeck, 'optionalAccess', _19 => _19.name]))
+              textOverflow:"ellipsis", whiteSpace:"nowrap"},}, _optionalChain([playerDeck, 'optionalAccess', _21 => _21.name]))
           )
         )
 
@@ -4098,8 +4285,8 @@ function ArenaPlaceholder({ onBack, difficulty }) {
     }
 
     function ClashCard({ card, revealed, side, dimmed }) {
-      const tc = TYPE_COLOR[_optionalChain([card, 'optionalAccess', _20 => _20.type])] || "#aaa";
-      const tg = TYPE_GLOW[_optionalChain([card, 'optionalAccess', _21 => _21.type])]  || "transparent";
+      const tc = TYPE_COLOR[_optionalChain([card, 'optionalAccess', _22 => _22.type])] || "#aaa";
+      const tg = TYPE_GLOW[_optionalChain([card, 'optionalAccess', _23 => _23.type])]  || "transparent";
       return (
         React.createElement('div', { style: {
           width:80, height:107, borderRadius:8, overflow:"hidden", flexShrink:0,
@@ -4241,7 +4428,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                   return (
                     React.createElement('div', { key: idx, style: {display:"flex", flexDirection:"column", alignItems:"center", gap:1},}
                       , React.createElement('div', {
-                        onClick: e=>{e.stopPropagation();if(card&&(isActive||isResolved)){const c2={...card,_side:"ai"};setInfoCard(_optionalChain([infoCard, 'optionalAccess', _22 => _22.id])===c2.id&&_optionalChain([infoCard, 'optionalAccess', _23 => _23._side])==="ai"?null:c2);}},
+                        onClick: e=>{e.stopPropagation();if(card&&(isActive||isResolved)){const c2={...card,_side:"ai"};setInfoCard(_optionalChain([infoCard, 'optionalAccess', _24 => _24.id])===c2.id&&_optionalChain([infoCard, 'optionalAccess', _25 => _25._side])==="ai"?null:c2);}},
                         style: {
                         width:"100%", maxWidth:72, aspectRatio:"3/4", borderRadius:5,
                         overflow:"hidden", margin:"0 auto", position:"relative",
@@ -4250,7 +4437,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                               : fizzle    ? "1.5px solid #ffcc00"
                               : isResolved ? "1px solid rgba(255,80,80,0.3)"
                               : "1px solid rgba(255,50,70,0.35)",
-                        boxShadow: isActive ? `0 0 10px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _24 => _24.type])]||"transparent"}` : "none",
+                        boxShadow: isActive ? `0 0 10px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _26 => _26.type])]||"transparent"}` : "none",
                         opacity: isResolved && !won && !fizzle ? 0.28 : 1,
                         transition:"all 0.3s",
                         cursor: (isActive||isResolved) && card ? "pointer" : "default",
@@ -4309,7 +4496,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
               borderBottom:"1px solid rgba(80,32,160,0.5)",
               display:"flex", alignItems:"center", justifyContent:"space-between"},}
               , React.createElement('span', { style: {fontSize:9,fontWeight:700,fontFamily:"monospace",color:C.accent},}
-                , _optionalChain([POS_LABELS, 'access', _25 => _25[clashStep], 'optionalAccess', _26 => _26.toUpperCase, 'call', _27 => _27()]), " CLASH ("  , clashStep+1, "/3)"
+                , _optionalChain([POS_LABELS, 'access', _27 => _27[clashStep], 'optionalAccess', _28 => _28.toUpperCase, 'call', _29 => _29()]), " CLASH ("  , clashStep+1, "/3)"
               )
               , React.createElement('span', { style: {fontSize:9,fontFamily:"monospace"},}
                 , React.createElement('span', { style: {color:"#44ee88",fontWeight:700},}, pScore)
@@ -4359,7 +4546,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                     React.createElement('div', { key: idx, style: {display:"flex", flexDirection:"column", alignItems:"center", gap:1},}
                       , React.createElement('span', { style: {fontSize:6,color:isActive?"rgba(245,166,35,0.9)":won?"rgba(68,238,136,0.6)":"rgba(80,140,255,0.4)",fontFamily:"monospace"},}, POS_LABELS[idx])
                       , React.createElement('div', {
-                        onClick: e=>{e.stopPropagation();if(card&&(isActive||isResolved)){const c2={...card,_side:"player"};setInfoCard(_optionalChain([infoCard, 'optionalAccess', _28 => _28.id])===c2.id&&_optionalChain([infoCard, 'optionalAccess', _29 => _29._side])==="player"?null:c2);}},
+                        onClick: e=>{e.stopPropagation();if(card&&(isActive||isResolved)){const c2={...card,_side:"player"};setInfoCard(_optionalChain([infoCard, 'optionalAccess', _30 => _30.id])===c2.id&&_optionalChain([infoCard, 'optionalAccess', _31 => _31._side])==="player"?null:c2);}},
                         style: {
                         width:"100%", maxWidth:72, aspectRatio:"3/4", borderRadius:5,
                         overflow:"hidden", margin:"0 auto", position:"relative",
@@ -4368,7 +4555,7 @@ function ArenaPlaceholder({ onBack, difficulty }) {
                               : fizzle    ? "1.5px solid #ffcc00"
                               : isResolved ? "1px solid rgba(80,200,100,0.3)"
                               : "1px solid rgba(80,120,255,0.35)",
-                        boxShadow: isActive ? `0 0 10px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _30 => _30.type])]||"transparent"}` : "none",
+                        boxShadow: isActive ? `0 0 10px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _32 => _32.type])]||"transparent"}` : "none",
                         opacity: isResolved && !won && !fizzle ? 0.28 : 1,
                         transition:"all 0.3s",
                         cursor: (isActive||isResolved) && card ? "pointer" : "default",
@@ -4543,42 +4730,6 @@ function ArenaPlaceholder({ onBack, difficulty }) {
   // ─────────────────────────────────────────────────────────────────────────
   // PHASE: GENERAL BATTLE
   // ─────────────────────────────────────────────────────────────────────────
-const JUNCTION_DESC = {
-  "AIDA Berserk":        "+2 AP, -2 HP each your turn",
-  "AIDA Corrosion":      "+1 AP, -1 HP each your turn",
-  "Anu's Karma":         "+3 HP end of your turn when going second",
-  "Aurora Tears":        "+2 AP end of your turn when going first",
-  "Blades Crossing":     "+1 extra damage on your attacks",
-  "Clenching Teeth":     "Once: survive at 1 HP",
-  "Cross Counter":       "Deal 1 damage when you take damage",
-  "Defensive Stance":    "Forces you to go second; reduces incoming damage by 1",
-  "Detail Oriented":     "Damage of 2 or less reduced to 0",
-  "Double Trigger":      "+2 extra damage on your attacks",
-  "Emperor's Pride":     "-1 incoming damage",
-  "Energy Genome":       "+1 HP each your turn",
-  "First Strike":        "1 damage to both Generals every turn",
-  "First to Action":     "-5 HP to enemy immediately; you take +1 extra dmg per turn after",
-  "Folset's Trial":      "+1 AP, -1 HP each your turn",
-  "Gathering of the Strong": "Turns 1-5: 1 damage to enemy each turn",
-  "Immortal Genome":     "+2 HP each your turn",
-  "Light of Annihilation": "3 damage to both every turn",
-  "Long-awaited Return": "+1 AP, +2 HP each your turn",
-  "Massacre Pulse":      "+1 AP each time you attack",
-  "Merciless Light":     "2 damage to both Generals every turn",
-  "Mind's Eye":          "Evade one enemy attack (one use)",
-  "Mirror of Revenge":   "Reflect all damage for 3 turns",
-  "Mobilize the Troops": "After turn 5: +1 HP each your turn",
-  "Promised Discretion": "Cap all damage received at 3",
-  "Quickdance":          "Extra attack at -3 AP each turn",
-  "Rendezvous":          "+10 HP now; -10 HP on turn 8",
-  "Spirit Clothes":      "-1 incoming damage",
-  "Suck it up":          "Once: survive at 5 HP",
-  "Tragic Arrow":        "2 damage to enemy each your turn",
-  "Trial by Fire":       "Cannot attack turns 1-4; then +5 AP, +6 HP",
-  "Veil of Aura":        "-2 incoming damage",
-  "Vengeful Arrow":      "1 damage to enemy each your turn",
-};
-
   if (phase === "battle") {
     // PT-BR strings for battle phase
     const _yourTurn   = isPT ? "▶ SEU TURNO"       : "▶ YOUR TURN";
@@ -4798,9 +4949,9 @@ const JUNCTION_DESC = {
       );
     };
 
-    const maxPHP = _optionalChain([playerGen, 'optionalAccess', _31 => _31.hp]) || 1, maxAHP = _optionalChain([aiGen, 'optionalAccess', _32 => _32.hp]) || 1;
-    const pWinning = (_optionalChain([bState, 'optionalAccess', _33 => _33.pHP])||0) > (_optionalChain([bState, 'optionalAccess', _34 => _34.aHP])||0);
-    const aWinning = (_optionalChain([bState, 'optionalAccess', _35 => _35.aHP])||0) > (_optionalChain([bState, 'optionalAccess', _36 => _36.pHP])||0);
+    const maxPHP = _optionalChain([playerGen, 'optionalAccess', _33 => _33.hp]) || 1, maxAHP = _optionalChain([aiGen, 'optionalAccess', _34 => _34.hp]) || 1;
+    const pWinning = (_optionalChain([bState, 'optionalAccess', _35 => _35.pHP])||0) > (_optionalChain([bState, 'optionalAccess', _36 => _36.aHP])||0);
+    const aWinning = (_optionalChain([bState, 'optionalAccess', _37 => _37.aHP])||0) > (_optionalChain([bState, 'optionalAccess', _38 => _38.pHP])||0);
 
     return (
       React.createElement('div', { style: {width:"100%",height:"100vh",display:"flex",flexDirection:"column",overflow:"hidden"},
@@ -4839,15 +4990,15 @@ const JUNCTION_DESC = {
                 return (
                   React.createElement('div', { key: idx, style: {display:"flex",flexDirection:"column",alignItems:"center",gap:1},}
                     , React.createElement('div', {
-                      onClick: e=>{e.stopPropagation();if(card)setInfoCard(_optionalChain([infoCard, 'optionalAccess', _37 => _37.id])===card.id&&_optionalChain([infoCard, 'optionalAccess', _38 => _38._side])==="ai"?null:{...card,_side:"ai"});},
+                      onClick: e=>{e.stopPropagation();if(card)setInfoCard(_optionalChain([infoCard, 'optionalAccess', _39 => _39.id])===card.id&&_optionalChain([infoCard, 'optionalAccess', _40 => _40._side])==="ai"?null:{...card,_side:"ai"});},
                       style: {width:"100%",maxWidth:62,aspectRatio:"3/4",borderRadius:5,overflow:"hidden",margin:"0 auto",
                       border:card?`1.5px solid ${tc}`:"none",visibility:card?"visible":"hidden",
                       cursor:card?"pointer":"default",
-                      boxShadow:_optionalChain([infoCard, 'optionalAccess', _39 => _39.id])===_optionalChain([card, 'optionalAccess', _40 => _40.id])&&_optionalChain([infoCard, 'optionalAccess', _41 => _41._side])==="ai"?`0 0 8px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _42 => _42.type])]||"transparent"}`:"none"},}
+                      boxShadow:_optionalChain([infoCard, 'optionalAccess', _41 => _41.id])===_optionalChain([card, 'optionalAccess', _42 => _42.id])&&_optionalChain([infoCard, 'optionalAccess', _43 => _43._side])==="ai"?`0 0 8px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _44 => _44.type])]||"transparent"}`:"none"},}
                       , card&&React.createElement('img', { src: IMGS[card.img.replace('.png','')] || '', alt: card.name, style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
                     )
                     , React.createElement('span', { style: {fontSize:7,color:"rgba(255,110,130,0.6)",fontFamily:"monospace",
-                      visibility:card?"visible":"hidden",lineHeight:1},}, _optionalChain([card, 'optionalAccess', _43 => _43.name, 'optionalAccess', _44 => _44.split, 'call', _45 => _45(" "), 'access', _46 => _46[0]])||"")
+                      visibility:card?"visible":"hidden",lineHeight:1},}, _optionalChain([card, 'optionalAccess', _45 => _45.name, 'optionalAccess', _46 => _46.split, 'call', _47 => _47(" "), 'access', _48 => _48[0]])||"")
                   )
                 );
               })
@@ -4862,9 +5013,9 @@ const JUNCTION_DESC = {
                 ))
               )
               , React.createElement('div', {
-                onClick: e=>{e.stopPropagation();setInfoCard(_optionalChain([infoCard, 'optionalAccess', _47 => _47.id])===aiGen.id&&_optionalChain([infoCard, 'optionalAccess', _48 => _48._side])==="ai"?null:{...aiGen,_side:"ai"});},
+                onClick: e=>{e.stopPropagation();setInfoCard(_optionalChain([infoCard, 'optionalAccess', _49 => _49.id])===aiGen.id&&_optionalChain([infoCard, 'optionalAccess', _50 => _50._side])==="ai"?null:{...aiGen,_side:"ai"});},
                 style: {width:90,height:120,borderRadius:7,overflow:"hidden",flexShrink:0,cursor:"pointer",
-                border:_optionalChain([infoCard, 'optionalAccess', _49 => _49.id])===aiGen.id&&_optionalChain([infoCard, 'optionalAccess', _50 => _50._side])==="ai"?`2px solid #ff4466`:`2px solid ${TYPE_COLOR[aiGen.type]||"#aaa"}`,
+                border:_optionalChain([infoCard, 'optionalAccess', _51 => _51.id])===aiGen.id&&_optionalChain([infoCard, 'optionalAccess', _52 => _52._side])==="ai"?`2px solid #ff4466`:`2px solid ${TYPE_COLOR[aiGen.type]||"#aaa"}`,
                 boxShadow:`0 0 ${aWinning?"16px":"8px"} ${TYPE_GLOW[aiGen.type]||"transparent"}`},}
                 , React.createElement('img', { src: IMGS[aiGen.img.replace('.png','')] || '', alt: aiGen.name, style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
               )
@@ -4894,9 +5045,9 @@ const JUNCTION_DESC = {
             , React.createElement('div', { style: {flex:1,display:"flex",justifyContent:"center",alignItems:"center",gap:8,minHeight:0,marginBottom:5},}
               , React.createElement('div', { style: {flex:1},})
               , React.createElement('div', {
-                onClick: e=>{e.stopPropagation();setInfoCard(_optionalChain([infoCard, 'optionalAccess', _51 => _51.id])===playerGen.id&&_optionalChain([infoCard, 'optionalAccess', _52 => _52._side])==="player"?null:{...playerGen,_side:"player"});},
+                onClick: e=>{e.stopPropagation();setInfoCard(_optionalChain([infoCard, 'optionalAccess', _53 => _53.id])===playerGen.id&&_optionalChain([infoCard, 'optionalAccess', _54 => _54._side])==="player"?null:{...playerGen,_side:"player"});},
                 style: {width:90,height:120,borderRadius:7,overflow:"hidden",flexShrink:0,cursor:"pointer",
-                border:_optionalChain([infoCard, 'optionalAccess', _53 => _53.id])===playerGen.id&&_optionalChain([infoCard, 'optionalAccess', _54 => _54._side])==="player"?`2px solid ${C.cyan}`:`2px solid ${TYPE_COLOR[playerGen.type]||"#aaa"}`,
+                border:_optionalChain([infoCard, 'optionalAccess', _55 => _55.id])===playerGen.id&&_optionalChain([infoCard, 'optionalAccess', _56 => _56._side])==="player"?`2px solid ${C.cyan}`:`2px solid ${TYPE_COLOR[playerGen.type]||"#aaa"}`,
                 boxShadow:`0 0 ${pWinning?"16px":"8px"} ${TYPE_GLOW[playerGen.type]||"transparent"}`},}
                 , React.createElement('img', { src: IMGS[playerGen.img.replace('.png','')] || '', alt: playerGen.name, style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
               )
@@ -4916,13 +5067,13 @@ const JUNCTION_DESC = {
                 return (
                   React.createElement('div', { key: idx, style: {display:"flex",flexDirection:"column",alignItems:"center",gap:1},}
                     , React.createElement('span', { style: {fontSize:7,color:"rgba(80,140,255,0.6)",fontFamily:"monospace",
-                      visibility:card?"visible":"hidden",lineHeight:1},}, _optionalChain([card, 'optionalAccess', _55 => _55.name, 'optionalAccess', _56 => _56.split, 'call', _57 => _57(" "), 'access', _58 => _58[0]])||"")
+                      visibility:card?"visible":"hidden",lineHeight:1},}, _optionalChain([card, 'optionalAccess', _57 => _57.name, 'optionalAccess', _58 => _58.split, 'call', _59 => _59(" "), 'access', _60 => _60[0]])||"")
                     , React.createElement('div', {
-                      onClick: e=>{e.stopPropagation();if(card)setInfoCard(_optionalChain([infoCard, 'optionalAccess', _59 => _59.id])===card.id&&_optionalChain([infoCard, 'optionalAccess', _60 => _60._side])==="player"?null:{...card,_side:"player"});},
+                      onClick: e=>{e.stopPropagation();if(card)setInfoCard(_optionalChain([infoCard, 'optionalAccess', _61 => _61.id])===card.id&&_optionalChain([infoCard, 'optionalAccess', _62 => _62._side])==="player"?null:{...card,_side:"player"});},
                       style: {width:"100%",maxWidth:62,aspectRatio:"3/4",borderRadius:5,overflow:"hidden",margin:"0 auto",
                       border:card?`1.5px solid ${tc}`:"none",visibility:card?"visible":"hidden",
                       cursor:card?"pointer":"default",
-                      boxShadow:_optionalChain([infoCard, 'optionalAccess', _61 => _61.id])===_optionalChain([card, 'optionalAccess', _62 => _62.id])&&_optionalChain([infoCard, 'optionalAccess', _63 => _63._side])==="player"?`0 0 8px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _64 => _64.type])]||"transparent"}`:"none"},}
+                      boxShadow:_optionalChain([infoCard, 'optionalAccess', _63 => _63.id])===_optionalChain([card, 'optionalAccess', _64 => _64.id])&&_optionalChain([infoCard, 'optionalAccess', _65 => _65._side])==="player"?`0 0 8px ${TYPE_GLOW[_optionalChain([card, 'optionalAccess', _66 => _66.type])]||"transparent"}`:"none"},}
                       , card&&React.createElement('img', { src: IMGS[card.img.replace('.png','')] || '', alt: card.name, style: {width:"100%",height:"100%",objectFit:"cover",display:"block"},})
                     )
                   )
@@ -5037,7 +5188,7 @@ const JUNCTION_DESC = {
                   : bState.pJunctions.map((j,i)=>(
                     React.createElement('div', { key: i, style: {marginBottom:7,paddingLeft:4,borderLeft:"2px solid rgba(0,245,255,0.25)"},}
                       , React.createElement('div', { style: {fontSize:12,color:"rgba(0,245,255,0.95)",fontFamily:"monospace",fontWeight:700},}, "⚡ " , j)
-                      , JUNCTION_DESC[j] && React.createElement('div', { style: {fontSize:10,color:"rgba(160,210,255,0.75)",fontFamily:"monospace",lineHeight:1.4,marginTop:1,paddingLeft:2},}, JUNCTION_DESC[j])
+                      , JUNCTION_DESC[j] && React.createElement('div', { style: {fontSize:10,color:"rgba(160,210,255,0.75)",fontFamily:"monospace",lineHeight:1.4,marginTop:1,paddingLeft:2},}, _optionalChain([JUNCTION_DESC, 'access', _67 => _67[j], 'optionalAccess', _68 => _68[isPT?"pt":"en"]])||JUNCTION_DESC[j])
                     )
                   ))
                 
@@ -5049,7 +5200,7 @@ const JUNCTION_DESC = {
                   : bState.aJunctions.map((j,i)=>(
                     React.createElement('div', { key: i, style: {marginBottom:7,paddingLeft:4,borderLeft:"2px solid rgba(255,60,80,0.25)"},}
                       , React.createElement('div', { style: {fontSize:12,color:"rgba(255,110,130,0.95)",fontFamily:"monospace",fontWeight:700},}, "⚡ " , j)
-                      , JUNCTION_DESC[j] && React.createElement('div', { style: {fontSize:10,color:"rgba(255,190,200,0.75)",fontFamily:"monospace",lineHeight:1.4,marginTop:1,paddingLeft:2},}, JUNCTION_DESC[j])
+                      , JUNCTION_DESC[j] && React.createElement('div', { style: {fontSize:10,color:"rgba(255,190,200,0.75)",fontFamily:"monospace",lineHeight:1.4,marginTop:1,paddingLeft:2},}, _optionalChain([JUNCTION_DESC, 'access', _69 => _69[j], 'optionalAccess', _70 => _70[isPT?"pt":"en"]])||JUNCTION_DESC[j])
                     )
                   ))
                 
@@ -5279,7 +5430,7 @@ function App() {
       , React.createElement('div', { style: { position:"relative", zIndex:1, minHeight:"100vh" },}
         , screen === "menu"     && React.createElement(MainMenu, { onNav: setScreen,} )
         , screen === "options"  && React.createElement(OptionsScreen, { onBack: (s) => setScreen(s==="nick"?"nick":"menu"),} )
-        , screen === "nick"      && React.createElement(NickScreen, {      onBack: (s) => { if(s==="menu") setScreen("menu"); }, initialView: NICK_DB.list().length===0?"create":"list",} )
+        , screen === "nick"      && React.createElement(NickScreen, {      onBack: (s) => { if(s==="menu" || s==null) setScreen(NICK_DB.getActive()?"menu":"nick"); }, initialView: NICK_DB.list().length===0?"create":"list",} )
         , screen === "guide"    && React.createElement(GuideScreen, { onBack: () => setScreen("menu"),} )
         , screen === "deck"     && React.createElement(DeckBuilderScreen, { onBack: () => setScreen("menu"),} )
         , screen === "game"     && React.createElement(GameModeScreen, { onBack: () => setScreen("menu"), onStartAI: () => setScreen("arena"),} )
