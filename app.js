@@ -5347,7 +5347,6 @@ function GameModeScreen({ onBack, onStartAI }) {
             : {c:C.cyan,    border:"rgba(0,245,255,0.35)",   bg:"rgba(0,10,60,0.55)",   glow:"rgba(0,245,255,0.6)",   iconBg:"rgba(0,245,255,0.08)",   iconBorder:"rgba(0,245,255,0.3)",   divider:"rgba(0,245,255,0.1)"};
           return (
         React.createElement('div', {
-          onClick: onStartAI,
           style: {
             ...S.card,
             cursor:"pointer",
