@@ -165,7 +165,7 @@ const AudioEngine = (() => {
 const NickCtx = createContext(null);
 function useNick() { return useContext(NickCtx); }
 
-const CVS_VERSION = "v0.5.48";
+const CVS_VERSION = "v0.6.0";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
