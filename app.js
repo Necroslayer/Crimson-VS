@@ -237,7 +237,7 @@ function usePvpConnection() {
   return { socket, connected, connectError, enabled: !!PVP_SERVER_URL };
 }
 
-const CVS_VERSION = "v0.7.4";
+const CVS_VERSION = "v0.7.5";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
@@ -5628,6 +5628,9 @@ function PvpArenaPlaceholder({ onBack }) {
   const [battle, setBattle] = useState(null);
   const [battleLog, setBattleLog] = useState([]);
 
+  // Card info popup — same pattern as the Deck Builder's dbInfoCard
+  const [pvpInfoCard, setPvpInfoCard] = useState(null);
+
   const myNick  = _optionalChain([activePlayer, 'optionalAccess', _74 => _74.nick]);
   const oppNick = _optionalChain([match, 'optionalAccess', _75 => _75.opponentNick]);
 
@@ -5903,10 +5906,93 @@ function PvpArenaPlaceholder({ onBack }) {
     );
   }
 
+  // Reusable card info popup — same visual pattern as the Deck Builder's
+  // dbInfoCard, scoped to this arena via the pvpInfoCard state.
+  function PvpCardInfoPopup() {
+    if (!pvpInfoCard) return null;
+    return (
+      React.createElement('div', { style: {position:"fixed", inset:0, zIndex:200, display:"flex",
+        alignItems:"flex-end", justifyContent:"center",
+        background:"rgba(0,0,0,0.6)"},
+        onClick: () => setPvpInfoCard(null),}
+        , React.createElement('div', { onClick: e => e.stopPropagation(), style: {
+          width:"100%", maxWidth:440,
+          background:"rgba(6,3,24,0.98)",
+          border:"1px solid rgba(0,245,255,0.25)",
+          borderRadius:"16px 16px 0 0",
+          padding:"16px 16px 32px",
+          maxHeight:"72vh", overflowY:"auto",
+        },}
+          , React.createElement('div', { style: {display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14},}
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:10, color:C.textSub, letterSpacing:"0.1em"},}
+              , pvpInfoCard.charisma !== undefined ? "GENERAL INFO" : "UNIT INFO"
+            )
+            , React.createElement('button', { onClick: () => setPvpInfoCard(null), style: {
+              background:"transparent", border:"none", color:C.textMuted,
+              fontSize:20, cursor:"pointer", lineHeight:1, padding:0,
+            },}, "✕")
+          )
+
+          , React.createElement('div', { style: {display:"flex", gap:14, marginBottom:14},}
+            , React.createElement('div', { style: {width:80, height:107, flexShrink:0, borderRadius:8, overflow:"hidden",
+              border:`2px solid ${TYPE_COLOR[pvpInfoCard.type]||"#aaa"}`,
+              boxShadow:`0 0 14px ${TYPE_GLOW[pvpInfoCard.type]||"transparent"}`},}
+              , React.createElement('img', { src: IMGS[(pvpInfoCard.img||"").replace(".png","")]||"", alt: pvpInfoCard.name,
+                style: {width:"100%", height:"100%", objectFit:"cover", display:"block"},})
+            )
+            , React.createElement('div', { style: {flex:1, display:"flex", flexDirection:"column", gap:6},}
+              , React.createElement('div', { style: {fontFamily:"monospace", fontSize:14, fontWeight:900, color:"#fff", lineHeight:1.2},}, pvpInfoCard.name)
+              , React.createElement('div', { style: {fontFamily:"monospace", fontSize:10, color:TYPE_COLOR[pvpInfoCard.type]||"#aaa", fontWeight:700, letterSpacing:"0.06em"},}
+                , pvpInfoCard.type
+              )
+              , React.createElement('div', { style: {display:"flex", gap:10, flexWrap:"wrap", marginTop:2},}
+                , pvpInfoCard.charisma !== undefined ? (
+                  React.createElement(React.Fragment, null
+                    , React.createElement('span', { style: {fontFamily:"monospace", fontSize:12, color:"#ff4466", fontWeight:700},}, "HP " , pvpInfoCard.hp)
+                    , React.createElement('span', { style: {fontFamily:"monospace", fontSize:12, color:"#44aaff", fontWeight:700},}, "AP " , pvpInfoCard.ap)
+                    , React.createElement('span', { style: {fontFamily:"monospace", fontSize:12, color:C.accent, fontWeight:700},}, "Chr " , pvpInfoCard.charisma)
+                  )
+                ) : (
+                  React.createElement(React.Fragment, null
+                    , React.createElement('span', { style: {fontFamily:"monospace", fontSize:12, color:"#c060ff", fontWeight:700},}, "Cost " , pvpInfoCard.cost)
+                    , React.createElement('span', { style: {fontFamily:"monospace", fontSize:12, color:"#ff4466", fontWeight:700},}, "HP " , pvpInfoCard.hp)
+                    , React.createElement('span', { style: {fontFamily:"monospace", fontSize:12, color:"#44aaff", fontWeight:700},}, "AP " , pvpInfoCard.ap)
+                    , React.createElement('span', { style: {fontFamily:"monospace", fontSize:12, color:RARITY_COLOR[pvpInfoCard.rarity]||"#aaa", fontWeight:700},}
+                      , "★".repeat(RARITY_STARS[pvpInfoCard.rarity]||1)
+                    )
+                  )
+                )
+              )
+            )
+          )
+
+          , pvpInfoCard.junction && (
+            React.createElement('div', { style: {background:"rgba(0,245,255,0.05)", border:"1px solid rgba(0,245,255,0.15)",
+              borderRadius:9, padding:"10px 12px", marginBottom:10},}
+              , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:C.textSub, letterSpacing:"0.1em", marginBottom:6},}, "JUNCTION ABILITY"
+
+              )
+              , React.createElement('div', { style: {fontFamily:"monospace", fontSize:13, fontWeight:800, color:C.cyan, marginBottom:6, letterSpacing:"0.02em"},}
+                , pvpInfoCard.junction
+              )
+              , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:"rgba(180,220,255,0.85)", lineHeight:1.55},}
+                , (_optionalChain([JUNCTION_DESC, 'access', _84 => _84[pvpInfoCard.junction], 'optionalAccess', _85 => _85[isPT?"pt":"en"]])) || "— No description available."
+              )
+            )
+          )
+
+          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:10, color:C.textMuted, textAlign:"center", opacity:0.6},}, "⚔ Assault · 🛡 Shield · 🦅 Snipe  |  ⚔>🛡 · 🛡>🦅 · 🦅>⚔"
+
+          )
+        )
+      )
+    );
+  }
+
   // ── PHASE: BAN — pick one opponent unit to remove from their pool ───────
   if (phase === "ban") {
     const myDeck = resolveDeck();
-    const myUnits = _optionalChain([myDeck, 'optionalAccess', _84 => _84.units]) || [];
+    const myUnits = _optionalChain([myDeck, 'optionalAccess', _86 => _86.units]) || [];
 
     const confirmBan = () => {
       if (!myBanPick) return;
@@ -5931,6 +6017,19 @@ function PvpArenaPlaceholder({ onBack }) {
                 opacity: banWaiting && myBanPick !== u.id ? 0.4 : 1,
               },}
                 , React.createElement('img', { src: IMGS[(u.img||"").replace(".png","")]||"", alt: u.name, style: {width:"100%", height:"100%", objectFit:"cover"},})
+                , React.createElement('button', { onClick: e=>{e.stopPropagation();setPvpInfoCard(u);}, style: {
+                  position:"absolute", top:4, right:4, zIndex:5,
+                  background:"rgba(0,0,0,0.65)", border:"1px solid rgba(255,255,255,0.25)",
+                  borderRadius:"50%", width:18, height:18, cursor:"pointer",
+                  color:"rgba(255,255,255,0.8)", fontSize:10, fontWeight:700,
+                  fontFamily:"monospace", lineHeight:1, display:"flex", alignItems:"center", justifyContent:"center", padding:0,
+                },}, "ℹ")
+                , u.junction && (
+                  React.createElement('div', { style: {position:"absolute", top:4, left:4, padding:"1px 5px", borderRadius:4,
+                    background:"rgba(0,245,255,0.18)", border:"1px solid rgba(0,245,255,0.35)"},}
+                    , React.createElement('span', { style: {fontFamily:"monospace", fontSize:7, color:C.cyan, fontWeight:700},}, "⚡")
+                  )
+                )
                 , React.createElement('div', { style: {position:"absolute", bottom:0, left:0, right:0, padding:"3px 4px", background:"rgba(0,0,0,0.75)"},}
                   , React.createElement('div', { style: {fontFamily:"monospace", fontSize:8, color:"#fff", fontWeight:700, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"},}, u.name)
                 )
@@ -5951,6 +6050,7 @@ function PvpArenaPlaceholder({ onBack }) {
             )
           )
         )
+        , React.createElement(PvpCardInfoPopup, null )
       )
     );
   }
@@ -5958,8 +6058,8 @@ function PvpArenaPlaceholder({ onBack }) {
   // ── PHASE: CUT — keep 3 of your remaining (non-banned) units ───────────
   if (phase === "cut") {
     const myDeck = resolveDeck();
-    const myBannedId = _optionalChain([banResult, 'optionalAccess', _85 => _85.bannedFromA]) === mySide ? null : (mySide === "A" ? _optionalChain([banResult, 'optionalAccess', _86 => _86.bannedFromA]) : _optionalChain([banResult, 'optionalAccess', _87 => _87.bannedFromB]));
-    const remaining = (_optionalChain([myDeck, 'optionalAccess', _88 => _88.units]) || []).filter(u => u.id !== myBannedId);
+    const myBannedId = _optionalChain([banResult, 'optionalAccess', _87 => _87.bannedFromA]) === mySide ? null : (mySide === "A" ? _optionalChain([banResult, 'optionalAccess', _88 => _88.bannedFromA]) : _optionalChain([banResult, 'optionalAccess', _89 => _89.bannedFromB]));
+    const remaining = (_optionalChain([myDeck, 'optionalAccess', _90 => _90.units]) || []).filter(u => u.id !== myBannedId);
 
     const toggleCut = (id) => {
       if (cutWaiting) return;
@@ -5995,6 +6095,19 @@ function PvpArenaPlaceholder({ onBack }) {
                   opacity: cutWaiting && !isSel ? 0.4 : 1,
                 },}
                   , React.createElement('img', { src: IMGS[(u.img||"").replace(".png","")]||"", alt: u.name, style: {width:"100%", height:"100%", objectFit:"cover"},})
+                  , React.createElement('button', { onClick: e=>{e.stopPropagation();setPvpInfoCard(u);}, style: {
+                    position:"absolute", top:4, right:4, zIndex:5,
+                    background:"rgba(0,0,0,0.65)", border:"1px solid rgba(255,255,255,0.25)",
+                    borderRadius:"50%", width:18, height:18, cursor:"pointer",
+                    color:"rgba(255,255,255,0.8)", fontSize:10, fontWeight:700,
+                    fontFamily:"monospace", lineHeight:1, display:"flex", alignItems:"center", justifyContent:"center", padding:0,
+                  },}, "ℹ")
+                  , u.junction && (
+                    React.createElement('div', { style: {position:"absolute", top:4, left:4, padding:"1px 5px", borderRadius:4,
+                      background:"rgba(0,245,255,0.18)", border:"1px solid rgba(0,245,255,0.35)"},}
+                      , React.createElement('span', { style: {fontFamily:"monospace", fontSize:7, color:C.cyan, fontWeight:700},}, "⚡")
+                    )
+                  )
                   , React.createElement('div', { style: {position:"absolute", bottom:0, left:0, right:0, padding:"3px 4px", background:"rgba(0,0,0,0.75)"},}
                     , React.createElement('div', { style: {fontFamily:"monospace", fontSize:8, color:"#fff", fontWeight:700, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"},}, u.name)
                   )
@@ -6010,6 +6123,7 @@ function PvpArenaPlaceholder({ onBack }) {
             opacity: (myCutPicks.length !== 3 || cutWaiting) ? 0.5 : 1,
           },}, cutWaiting ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...") : (isPT ? "Confirmar Corte" : "Confirm Cut"))
         )
+        , React.createElement(PvpCardInfoPopup, null )
       )
     );
   }
@@ -6018,7 +6132,7 @@ function PvpArenaPlaceholder({ onBack }) {
   if (phase === "confirm") {
     const myDeck = resolveDeck();
     const myKeptIds = cutResult ? (mySide === "A" ? cutResult.cutA : cutResult.cutB) : myCutPicks;
-    const myKept = (_optionalChain([myDeck, 'optionalAccess', _89 => _89.units]) || []).filter(u => myKeptIds.includes(u.id));
+    const myKept = (_optionalChain([myDeck, 'optionalAccess', _91 => _91.units]) || []).filter(u => myKeptIds.includes(u.id));
 
     const confirmReady = () => {
       setConfirmWaiting(true);
@@ -6036,9 +6150,22 @@ function PvpArenaPlaceholder({ onBack }) {
 
           , React.createElement('div', { style: {display:"flex", gap:8, justifyContent:"center", marginBottom:18},}
             , myKept.map(u => (
-              React.createElement('div', { key: u.id, style: {width:72, aspectRatio:"3/4", borderRadius:8, overflow:"hidden",
+              React.createElement('div', { key: u.id, style: {position:"relative", width:72, aspectRatio:"3/4", borderRadius:8, overflow:"hidden",
                 border:`1.5px solid ${TYPE_COLOR[u.type]||"#aaa"}`},}
                 , React.createElement('img', { src: IMGS[(u.img||"").replace(".png","")]||"", alt: u.name, style: {width:"100%", height:"100%", objectFit:"cover"},})
+                , React.createElement('button', { onClick: e=>{e.stopPropagation();setPvpInfoCard(u);}, style: {
+                  position:"absolute", top:3, right:3, zIndex:5,
+                  background:"rgba(0,0,0,0.65)", border:"1px solid rgba(255,255,255,0.25)",
+                  borderRadius:"50%", width:16, height:16, cursor:"pointer",
+                  color:"rgba(255,255,255,0.8)", fontSize:9, fontWeight:700,
+                  fontFamily:"monospace", lineHeight:1, display:"flex", alignItems:"center", justifyContent:"center", padding:0,
+                },}, "ℹ")
+                , u.junction && (
+                  React.createElement('div', { style: {position:"absolute", bottom:3, left:3, padding:"1px 4px", borderRadius:4,
+                    background:"rgba(0,245,255,0.18)", border:"1px solid rgba(0,245,255,0.35)"},}
+                    , React.createElement('span', { style: {fontFamily:"monospace", fontSize:6, color:C.cyan, fontWeight:700},}, "⚡")
+                  )
+                )
               )
             ))
           )
@@ -6050,6 +6177,7 @@ function PvpArenaPlaceholder({ onBack }) {
             opacity: confirmWaiting ? 0.5 : 1,
           },}, confirmWaiting ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...") : (isPT ? "Pronto para o Combate" : "Ready for Combat"))
         )
+        , React.createElement(PvpCardInfoPopup, null )
       )
     );
   }
@@ -6058,7 +6186,7 @@ function PvpArenaPlaceholder({ onBack }) {
   if (phase === "clash") {
     const myDeck = resolveDeck();
     const myKeptIds = cutResult ? (mySide === "A" ? cutResult.cutA : cutResult.cutB) : myCutPicks;
-    const myKept = (_optionalChain([myDeck, 'optionalAccess', _90 => _90.units]) || []).filter(u => myKeptIds.includes(u.id));
+    const myKept = (_optionalChain([myDeck, 'optionalAccess', _92 => _92.units]) || []).filter(u => myKeptIds.includes(u.id));
 
     const placeAt = (slotIdx, unitId) => {
       if (clashWaiting) return;
@@ -6128,6 +6256,19 @@ function PvpArenaPlaceholder({ onBack }) {
                   opacity: placedSlot >= 0 ? 0.35 : 1,
                 },}
                   , React.createElement('img', { src: IMGS[(u.img||"").replace(".png","")]||"", alt: u.name, style: {width:"100%", height:"100%", objectFit:"cover"},})
+                  , React.createElement('button', { onClick: e=>{e.stopPropagation();setPvpInfoCard(u);}, style: {
+                    position:"absolute", top:2, right:2, zIndex:5,
+                    background:"rgba(0,0,0,0.65)", border:"1px solid rgba(255,255,255,0.25)",
+                    borderRadius:"50%", width:15, height:15, cursor:"pointer",
+                    color:"rgba(255,255,255,0.8)", fontSize:8, fontWeight:700,
+                    fontFamily:"monospace", lineHeight:1, display:"flex", alignItems:"center", justifyContent:"center", padding:0,
+                  },}, "ℹ")
+                  , u.junction && (
+                    React.createElement('div', { style: {position:"absolute", bottom:2, left:2, padding:"1px 4px", borderRadius:4,
+                      background:"rgba(0,245,255,0.18)", border:"1px solid rgba(0,245,255,0.35)"},}
+                      , React.createElement('span', { style: {fontFamily:"monospace", fontSize:6, color:C.cyan, fontWeight:700},}, "⚡")
+                    )
+                  )
                 )
               );
             })
@@ -6141,6 +6282,7 @@ function PvpArenaPlaceholder({ onBack }) {
             opacity: (clashLayout.some(s => s === null) || clashWaiting) ? 0.5 : 1,
           },}, clashWaiting ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...") : (isPT ? "Confirmar Posições" : "Confirm Positions"))
         )
+        , React.createElement(PvpCardInfoPopup, null )
       )
     );
   }
@@ -6160,8 +6302,8 @@ function PvpArenaPlaceholder({ onBack }) {
 
           , React.createElement('div', { style: {...S.card, border:"1px solid rgba(255,40,60,0.3)", background:"rgba(50,0,10,0.35)", marginBottom:8},}
             , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:"#ff6677"},}, oppNick)
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:"#ff4466"},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _91 => _91.hp]), () => ( 0))))
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _92 => _92.ap]), () => ( 0)))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:"#ff4466"},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _93 => _93.hp]), () => ( 0))))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _94 => _94.ap]), () => ( 0)))
           )
 
           , React.createElement('div', { style: {textAlign:"center", fontFamily:"monospace", fontSize:11, color: myTurn ? C.cyan : C.textMuted, fontWeight:700, marginBottom:8},}
@@ -6171,8 +6313,8 @@ function PvpArenaPlaceholder({ onBack }) {
 
           , React.createElement('div', { style: {...S.card, border:`1px solid ${C.border}`, background:"rgba(0,10,60,0.45)", marginBottom:14},}
             , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:C.cyan},}, myNick)
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:C.cyan},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _93 => _93.hp]), () => ( 0))))
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _94 => _94.ap]), () => ( 0)))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:C.cyan},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _95 => _95.hp]), () => ( 0))))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _96 => _96.ap]), () => ( 0)))
           )
 
           , React.createElement('button', { onClick: attack, disabled: !myTurn, style: {
