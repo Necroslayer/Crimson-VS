@@ -90,10 +90,10 @@ loadScript('https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.produc
   loadScript('https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js',function(){
     // Step 3: Images
     setP(45,'Loading images...');
-    loadScript('imgs.js?v=53',function(){
+    loadScript('imgs.js?v=54',function(){
       // Step 4: App (pre-compiled JS — no Babel needed!)
       setP(70,'Loading game...');
-      loadScript('app.js?v=53',function(){
+      loadScript('app.js?v=54',function(){
         setP(100,'Starting...');
         setTimeout(hideSplash, 300);
       },function(){ showErr('Failed to load app.js'); });
