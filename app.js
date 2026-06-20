@@ -208,7 +208,7 @@ function usePvpConnection() {
   return { socket, connected, enabled: !!PVP_SERVER_URL };
 }
 
-const CVS_VERSION = "v0.7.1";
+const CVS_VERSION = "v0.7.2";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
@@ -5394,7 +5394,18 @@ function PvpQueueScreen({ onBack, onMatchFound }) {
       setError(isPT ? "Você precisa de um deck salvo antes de jogar PvP." : "You need a saved deck before playing PvP.");
       return;
     }
-    const deck = decks[0];
+    const rawDeck = decks[0];
+    // The stored deck only has generalId/unitIds — resolve them into full
+    // card objects so the server (room-logic.js) has everything it needs
+    // (hp/ap/charisma on the general, cost/junction/type on each unit).
+    const resolvedGeneral = GENERALS_DATA.find(g => g.id === rawDeck.generalId);
+    const resolvedUnits = UNITS_DATA.filter(u => rawDeck.unitIds.includes(u.id));
+    if (!resolvedGeneral || resolvedUnits.length < 4) {
+      setStatus("error");
+      setError(isPT ? "Deck salvo está incompleto. Edite-o no Deck Builder." : "Saved deck is incomplete. Edit it in the Deck Builder.");
+      return;
+    }
+    const deck = { name: rawDeck.name, general: resolvedGeneral, units: resolvedUnits };
 
     setStatus("waiting");
     setElapsed(0);
@@ -5563,7 +5574,18 @@ function PvpArenaPlaceholder({ onBack }) {
 
   const myNick  = _optionalChain([activePlayer, 'optionalAccess', _74 => _74.nick]);
   const oppNick = _optionalChain([match, 'optionalAccess', _75 => _75.opponentNick]);
-  const myDeck  = _optionalChain([match, 'optionalAccess', _76 => _76.you]) === "A" ? match : null; // placeholder; deck comes from NICK_DB locally
+
+  // The stored deck only has generalId/unitIds — resolve into full card
+  // objects (same fix applied in PvpQueueScreen before sending to the
+  // server) so the arena UI has hp/ap/charisma/cost/junction available.
+  function resolveDeck() {
+    const raw = NICK_DB.getDecks()[0];
+    if (!raw) return null;
+    const general = GENERALS_DATA.find(g => g.id === raw.generalId);
+    const units = UNITS_DATA.filter(u => raw.unitIds.includes(u.id));
+    if (!general || units.length < 4) return null;
+    return { name: raw.name, general, units };
+  }
 
   // ── Socket event wiring ────────────────────────────────────────────────
   useEffect(() => {
@@ -5740,8 +5762,8 @@ function PvpArenaPlaceholder({ onBack }) {
 
   // ── PHASE: BAN — pick one opponent unit to remove from their pool ───────
   if (phase === "ban") {
-    const myDeck = NICK_DB.getDecks()[0];
-    const myUnits = _optionalChain([myDeck, 'optionalAccess', _77 => _77.units]) || [];
+    const myDeck = resolveDeck();
+    const myUnits = _optionalChain([myDeck, 'optionalAccess', _76 => _76.units]) || [];
 
     const confirmBan = () => {
       if (!myBanPick) return;
@@ -5792,9 +5814,9 @@ function PvpArenaPlaceholder({ onBack }) {
 
   // ── PHASE: CUT — keep 3 of your remaining (non-banned) units ───────────
   if (phase === "cut") {
-    const myDeck = NICK_DB.getDecks()[0];
-    const myBannedId = _optionalChain([banResult, 'optionalAccess', _78 => _78.bannedFromA]) === mySide ? null : (mySide === "A" ? _optionalChain([banResult, 'optionalAccess', _79 => _79.bannedFromA]) : _optionalChain([banResult, 'optionalAccess', _80 => _80.bannedFromB]));
-    const remaining = (_optionalChain([myDeck, 'optionalAccess', _81 => _81.units]) || []).filter(u => u.id !== myBannedId);
+    const myDeck = resolveDeck();
+    const myBannedId = _optionalChain([banResult, 'optionalAccess', _77 => _77.bannedFromA]) === mySide ? null : (mySide === "A" ? _optionalChain([banResult, 'optionalAccess', _78 => _78.bannedFromA]) : _optionalChain([banResult, 'optionalAccess', _79 => _79.bannedFromB]));
+    const remaining = (_optionalChain([myDeck, 'optionalAccess', _80 => _80.units]) || []).filter(u => u.id !== myBannedId);
 
     const toggleCut = (id) => {
       if (cutWaiting) return;
@@ -5851,9 +5873,9 @@ function PvpArenaPlaceholder({ onBack }) {
 
   // ── PHASE: CONFIRM — final review before Clash ──────────────────────────
   if (phase === "confirm") {
-    const myDeck = NICK_DB.getDecks()[0];
+    const myDeck = resolveDeck();
     const myKeptIds = cutResult ? (mySide === "A" ? cutResult.cutA : cutResult.cutB) : myCutPicks;
-    const myKept = (_optionalChain([myDeck, 'optionalAccess', _82 => _82.units]) || []).filter(u => myKeptIds.includes(u.id));
+    const myKept = (_optionalChain([myDeck, 'optionalAccess', _81 => _81.units]) || []).filter(u => myKeptIds.includes(u.id));
 
     const confirmReady = () => {
       setConfirmWaiting(true);
@@ -5891,9 +5913,9 @@ function PvpArenaPlaceholder({ onBack }) {
 
   // ── PHASE: CLASH — arrange your 3 units into Left/Center/Right ─────────
   if (phase === "clash") {
-    const myDeck = NICK_DB.getDecks()[0];
+    const myDeck = resolveDeck();
     const myKeptIds = cutResult ? (mySide === "A" ? cutResult.cutA : cutResult.cutB) : myCutPicks;
-    const myKept = (_optionalChain([myDeck, 'optionalAccess', _83 => _83.units]) || []).filter(u => myKeptIds.includes(u.id));
+    const myKept = (_optionalChain([myDeck, 'optionalAccess', _82 => _82.units]) || []).filter(u => myKeptIds.includes(u.id));
 
     const placeAt = (slotIdx, unitId) => {
       if (clashWaiting) return;
@@ -5995,8 +6017,8 @@ function PvpArenaPlaceholder({ onBack }) {
 
           , React.createElement('div', { style: {...S.card, border:"1px solid rgba(255,40,60,0.3)", background:"rgba(50,0,10,0.35)", marginBottom:8},}
             , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:"#ff6677"},}, oppNick)
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:"#ff4466"},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _84 => _84.hp]), () => ( 0))))
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _85 => _85.ap]), () => ( 0)))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:"#ff4466"},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _83 => _83.hp]), () => ( 0))))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _84 => _84.ap]), () => ( 0)))
           )
 
           , React.createElement('div', { style: {textAlign:"center", fontFamily:"monospace", fontSize:11, color: myTurn ? C.cyan : C.textMuted, fontWeight:700, marginBottom:8},}
@@ -6006,8 +6028,8 @@ function PvpArenaPlaceholder({ onBack }) {
 
           , React.createElement('div', { style: {...S.card, border:`1px solid ${C.border}`, background:"rgba(0,10,60,0.45)", marginBottom:14},}
             , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:C.cyan},}, myNick)
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:C.cyan},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _86 => _86.hp]), () => ( 0))))
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _87 => _87.ap]), () => ( 0)))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:C.cyan},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _85 => _85.hp]), () => ( 0))))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _86 => _86.ap]), () => ( 0)))
           )
 
           , React.createElement('button', { onClick: attack, disabled: !myTurn, style: {
