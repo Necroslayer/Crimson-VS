@@ -165,7 +165,50 @@ const AudioEngine = (() => {
 const NickCtx = createContext(null);
 function useNick() { return useContext(NickCtx); }
 
-const CVS_VERSION = "v0.6.0";
+// ─────────────────────────────────────────────
+// PVP CLIENT — Socket.io connection + matchmaking
+// Set PVP_SERVER_URL to your backend's public URL.
+// Leave empty to disable PvP (the VS Player card will show "Coming soon").
+// ─────────────────────────────────────────────
+const PVP_SERVER_URL = "http://localhost:3001"; // local dev backend
+
+const PvpCtx = createContext(null);
+function usePvp() { return useContext(PvpCtx); }
+
+let _ioPromise = null;
+function loadSocketIO() {
+  if (window.io) return Promise.resolve(window.io);
+  if (_ioPromise) return _ioPromise;
+  _ioPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = "https://cdn.socket.io/4.7.5/socket.io.min.js";
+    script.onload = () => resolve(window.io);
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+  return _ioPromise;
+}
+
+function usePvpConnection() {
+  const [socket, setSocket]       = useState(null);
+  const [connected, setConnected] = useState(false);
+
+  useEffect(() => {
+    if (!PVP_SERVER_URL) return;
+    let s;
+    loadSocketIO().then(io => {
+      s = io(PVP_SERVER_URL, { transports: ['websocket', 'polling'] });
+      s.on('connect',    () => setConnected(true));
+      s.on('disconnect', () => setConnected(false));
+      setSocket(s);
+    }).catch(() => {});
+    return () => { if (s) s.disconnect(); };
+  }, []);
+
+  return { socket, connected, enabled: !!PVP_SERVER_URL };
+}
+
+const CVS_VERSION = "v0.7.1";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
@@ -5321,7 +5364,689 @@ function ArenaPlaceholder({ onBack, difficulty }) {
 }
 
 // ─── GAME MODE SCREEN ────────────────────────
-function GameModeScreen({ onBack, onStartAI }) {
+// ─────────────────────────────────────────────
+// PVP QUEUE — automatic matchmaking search
+// ─────────────────────────────────────────────
+function PvpQueueScreen({ onBack, onMatchFound }) {
+  const { settings } = useSettings();
+  const isPT = settings.language === "pt";
+  const { socket, connected, enabled } = usePvp();
+  const { activePlayer } = useNick();
+
+  const [status, setStatus]   = useState("connecting"); // connecting | waiting | found | error | timeout
+  const [error, setError]     = useState("");
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (status !== "waiting") return;
+    const iv = setInterval(() => setElapsed(e => e + 1), 1000);
+    return () => clearInterval(iv);
+  }, [status]);
+
+  useEffect(() => {
+    if (!enabled) { setStatus("error"); setError(isPT ? "PvP não configurado ainda." : "PvP not configured yet."); return; }
+    if (!socket)  { return; }
+    if (!connected) { setStatus("connecting"); return; }
+
+    const decks = NICK_DB.getDecks();
+    if (!decks.length) {
+      setStatus("error");
+      setError(isPT ? "Você precisa de um deck salvo antes de jogar PvP." : "You need a saved deck before playing PvP.");
+      return;
+    }
+    const deck = decks[0];
+
+    setStatus("waiting");
+    setElapsed(0);
+    socket.emit("queue:join", { nick: _optionalChain([activePlayer, 'optionalAccess', _71 => _71.nick]), deck });
+
+    const onWaiting = () => setStatus("waiting");
+    const onTimeout = () => setStatus("timeout");
+    const onMatch = (data) => {
+      setStatus("found");
+      window.__CVS_PVP_MATCH__ = data;
+      setTimeout(() => onMatchFound(), 600);
+    };
+    const onQueueError = (data) => { setStatus("error"); setError(_optionalChain([data, 'optionalAccess', _72 => _72.error]) || "Queue error."); };
+
+    socket.on("queue:waiting", onWaiting);
+    socket.on("queue:timeout", onTimeout);
+    socket.on("match:found",   onMatch);
+    socket.on("queue:error",   onQueueError);
+
+    return () => {
+      socket.off("queue:waiting", onWaiting);
+      socket.off("queue:timeout", onTimeout);
+      socket.off("match:found",   onMatch);
+      socket.off("queue:error",   onQueueError);
+    };
+  }, [socket, connected, enabled]);
+
+  const cancelSearch = () => {
+    if (socket) socket.emit("queue:leave");
+    onBack();
+  };
+
+  return (
+    React.createElement('div', { style: S.root,}
+      , React.createElement('div', { style: {...S.content, justifyContent:"center", alignItems:"center", display:"flex", flexDirection:"column", minHeight:"100vh"},}
+
+        , status === "waiting" && (
+          React.createElement(React.Fragment, null
+            , React.createElement('div', { style: {
+              width:84, height:84, borderRadius:"50%",
+              border:"3px solid rgba(0,245,255,0.15)",
+              borderTopColor:C.cyan,
+              animation:"pvpSpin 1s linear infinite",
+              marginBottom:24,
+            },})
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:15, fontWeight:700, color:C.cyan, letterSpacing:"0.06em", marginBottom:8},}
+              , isPT ? "Procurando oponente..." : "Searching for opponent..."
+            )
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:12, color:C.textMuted},}
+              , elapsed, "s"
+            )
+          )
+        )
+
+        , status === "connecting" && (
+          React.createElement('div', { style: {fontFamily:"monospace", fontSize:13, color:C.textMuted},}
+            , isPT ? "Conectando ao servidor..." : "Connecting to server..."
+          )
+        )
+
+        , status === "found" && (
+          React.createElement('div', { style: {fontFamily:"monospace", fontSize:15, fontWeight:700, color:"#44ee88"},}, "⚡ "
+             , isPT ? "Oponente encontrado!" : "Opponent found!"
+          )
+        )
+
+        , status === "timeout" && (
+          React.createElement(React.Fragment, null
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:14, color:C.accent, marginBottom:16, textAlign:"center"},}
+              , isPT ? "Nenhum oponente encontrado." : "No opponent found."
+            )
+            , React.createElement('button', { onClick: onBack, style: {
+              padding:"10px 24px", borderRadius:8, cursor:"pointer",
+              background:"rgba(0,245,255,0.08)", border:"1px solid rgba(0,245,255,0.3)",
+              color:C.cyan, fontFamily:"monospace", fontSize:13, fontWeight:700,
+            },}, isPT ? "Voltar" : "Back")
+          )
+        )
+
+        , status === "error" && (
+          React.createElement(React.Fragment, null
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:13, color:"#ff4466", marginBottom:16, textAlign:"center", maxWidth:300},}
+              , error
+            )
+            , React.createElement('button', { onClick: onBack, style: {
+              padding:"10px 24px", borderRadius:8, cursor:"pointer",
+              background:"rgba(255,40,60,0.08)", border:"1px solid rgba(255,40,60,0.3)",
+              color:"#ff6677", fontFamily:"monospace", fontSize:13, fontWeight:700,
+            },}, isPT ? "Voltar" : "Back")
+          )
+        )
+
+        , status === "waiting" && (
+          React.createElement('button', { onClick: cancelSearch, style: {
+            marginTop:32, padding:"10px 24px", borderRadius:8, cursor:"pointer",
+            background:"rgba(255,40,60,0.06)", border:"1px solid rgba(255,40,60,0.25)",
+            color:"#ff6677", fontFamily:"monospace", fontSize:12, fontWeight:700,
+          },}, isPT ? "Cancelar" : "Cancel")
+        )
+      )
+
+      , React.createElement('style', null, `
+        @keyframes pvpSpin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+      `)
+    )
+  );
+}
+
+// ─────────────────────────────────────────────
+// PVP ARENA — mirrored layout placeholder.
+// You are always rendered blue/bottom; opponent always red/top,
+// regardless of internal A/B side bookkeeping on the server.
+// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// PVP TRINITY TYPES — shared across PvP phases
+// ─────────────────────────────────────────────
+const PVP_TYPES = [
+  { key:"Assault", label:"⚔ Assault", beats:"Shield",  color:"#ff4466", bg:"rgba(255,40,60,0.12)",  border:"rgba(255,40,60,0.5)" },
+  { key:"Shield",  label:"🛡 Shield",  beats:"Snipe",   color:"#3399ff", bg:"rgba(40,100,255,0.12)", border:"rgba(40,100,255,0.5)" },
+  { key:"Snipe",   label:"🦅 Snipe",   beats:"Assault", color:"#44ee88", bg:"rgba(68,238,136,0.12)", border:"rgba(68,238,136,0.5)" },
+];
+
+// ─────────────────────────────────────────────
+// PVP ARENA — mirrored layout, server-driven phases.
+// You are always rendered blue/bottom; opponent always red/top,
+// regardless of internal A/B side bookkeeping on the server.
+// ─────────────────────────────────────────────
+function PvpArenaPlaceholder({ onBack }) {
+  const { settings } = useSettings();
+  const isPT = settings.language === "pt";
+  const { socket } = usePvp();
+  const { activePlayer } = useNick();
+
+  const match = window.__CVS_PVP_MATCH__ || null;
+  const mySide = _optionalChain([match, 'optionalAccess', _73 => _73.you]); // 'A' | 'B'
+
+  const [phase, setPhase] = useState("trinity");
+  const [ended, setEnded] = useState(null); // { type, text }
+
+  // Trinity-specific local state
+  const [myPick, setMyPick] = useState(null);
+  const [trinityWaiting, setTrinityWaiting] = useState(false);
+  const [trinityResult, setTrinityResult] = useState(null); // { pickA, pickB, result }
+  const [trinityDraw, setTrinityDraw] = useState(false);
+
+  // Reveal
+  const [revealAcked, setRevealAcked] = useState(false);
+
+  // Ban / Cut
+  const [myBanPick, setMyBanPick] = useState(null);
+  const [banWaiting, setBanWaiting] = useState(false);
+  const [banResult, setBanResult] = useState(null);
+  const [myCutPicks, setMyCutPicks] = useState([]);
+  const [cutWaiting, setCutWaiting] = useState(false);
+  const [cutResult, setCutResult] = useState(null);
+  const [confirmWaiting, setConfirmWaiting] = useState(false);
+
+  // Clash
+  const [clashLayout, setClashLayout] = useState([null, null, null]);
+  const [clashWaiting, setClashWaiting] = useState(false);
+  const [clashResult, setClashResult] = useState(null);
+
+  // Battle
+  const [battle, setBattle] = useState(null);
+  const [battleLog, setBattleLog] = useState([]);
+
+  const myNick  = _optionalChain([activePlayer, 'optionalAccess', _74 => _74.nick]);
+  const oppNick = _optionalChain([match, 'optionalAccess', _75 => _75.opponentNick]);
+  const myDeck  = _optionalChain([match, 'optionalAccess', _76 => _76.you]) === "A" ? match : null; // placeholder; deck comes from NICK_DB locally
+
+  // ── Socket event wiring ────────────────────────────────────────────────
+  useEffect(() => {
+    if (!socket || !match) return;
+
+    const onTrinityResult = (data) => { setTrinityResult(data); setTrinityWaiting(false); };
+    const onTrinityDraw   = () => { setTrinityDraw(true); setMyPick(null); setTrinityWaiting(false); setTrinityResult(null); };
+    const onAdvance       = (data) => {
+      setPhase(data.phase);
+      setTrinityDraw(false);
+      setTrinityResult(null);
+    };
+    const onBanResult     = (data) => { setBanResult(data); setBanWaiting(false); };
+    const onCutResult     = (data) => { setCutResult(data); setCutWaiting(false); };
+    const onClashResult   = (data) => { setClashResult(data); setClashWaiting(false); setBattle(data.battle); };
+    const onBattleTurn    = (data) => {
+      setBattle({ stateA: data.stateA, stateB: data.stateB, currentSide: data.currentSide, turn: data.turn, over: data.winner || null });
+      setBattleLog(l => [...l, ...data.log]);
+      if (data.winner) {
+        if (data.winner === "draw") setEnded({ type:"draw", text: isPT ? "Empate!" : "Draw!" });
+        else if (data.winner === mySide) setEnded({ type:"win", text: isPT ? "VOCÊ VENCEU!" : "YOU WIN!" });
+        else setEnded({ type:"loss", text: isPT ? "Você perdeu." : "You lost." });
+      }
+    };
+    const onOpponentLeft  = () => setEnded({ type:"win", text: isPT ? "Oponente desconectou — VOCÊ VENCEU!" : "Opponent disconnected — YOU WIN!" });
+    const onSurrendered   = (data) => {
+      const iWon = data.winnerSide === mySide;
+      setEnded({ type: iWon ? "win" : "loss", text: iWon
+        ? (isPT ? "Oponente desistiu — VOCÊ VENCEU!" : "Opponent surrendered — YOU WIN!")
+        : (isPT ? "Você desistiu." : "You surrendered.") });
+    };
+
+    socket.on("phase:trinityResult", onTrinityResult);
+    socket.on("phase:trinityDraw",   onTrinityDraw);
+    socket.on("phase:advance",       onAdvance);
+    socket.on("phase:banResult",     onBanResult);
+    socket.on("phase:cutResult",     onCutResult);
+    socket.on("phase:clashResult",   onClashResult);
+    socket.on("battle:turnResult",   onBattleTurn);
+    socket.on("match:opponentLeft",  onOpponentLeft);
+    socket.on("match:surrendered",   onSurrendered);
+
+    return () => {
+      socket.off("phase:trinityResult", onTrinityResult);
+      socket.off("phase:trinityDraw",   onTrinityDraw);
+      socket.off("phase:advance",       onAdvance);
+      socket.off("phase:banResult",     onBanResult);
+      socket.off("phase:cutResult",     onCutResult);
+      socket.off("phase:clashResult",   onClashResult);
+      socket.off("battle:turnResult",   onBattleTurn);
+      socket.off("match:opponentLeft",  onOpponentLeft);
+      socket.off("match:surrendered",   onSurrendered);
+    };
+  }, [socket, match, mySide, isPT]);
+
+  if (!match) {
+    return (
+      React.createElement('div', { style: S.root,}
+        , React.createElement('div', { style: {...S.content, justifyContent:"center", alignItems:"center", display:"flex", minHeight:"100vh"},}
+          , React.createElement('div', { style: {fontFamily:"monospace", color:C.textMuted, fontSize:13},}
+            , isPT ? "Nenhuma partida ativa." : "No active match."
+          )
+        )
+      )
+    );
+  }
+
+  const send = (type, payload) => socket && socket.emit("phase:action", { roomId: match.roomId, type, payload });
+
+  const surrender = () => {
+    send("surrender", true);
+    onBack();
+  };
+
+  // ── Header: mirrored opponent/you banner, shown above every phase ──────
+  function MirroredHeader() {
+    return (
+      React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:8, marginBottom:14},}
+        , React.createElement('div', { style: {...S.card, padding:"8px 12px", border:"1px solid rgba(255,40,60,0.3)", background:"rgba(50,0,10,0.35)"},}
+          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:"#ff6677", letterSpacing:"0.08em"},}, isPT ? "OPONENTE" : "OPPONENT")
+          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:13, fontWeight:700, color:"#ff4466"},}, oppNick)
+        )
+        , React.createElement('div', { style: {textAlign:"center", fontFamily:"monospace", fontSize:10, color:C.textMuted, letterSpacing:"0.15em"},}, "⚔ VS ⚔"  )
+        , React.createElement('div', { style: {...S.card, padding:"8px 12px", border:`1px solid ${C.border}`, background:"rgba(0,10,60,0.45)"},}
+          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:C.cyan, letterSpacing:"0.08em"},}, isPT ? "VOCÊ" : "YOU")
+          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:13, fontWeight:700, color:C.cyan},}, myNick)
+        )
+      )
+    );
+  }
+
+  // ── End-of-match overlay ────────────────────────────────────────────────
+  if (ended) {
+    const color = ended.type === "win" ? "#44ee88" : ended.type === "loss" ? "#ff4466" : "#ffcc00";
+    return (
+      React.createElement('div', { style: S.root,}
+        , React.createElement('div', { style: {...S.content, justifyContent:"center", alignItems:"center", display:"flex", flexDirection:"column", minHeight:"100vh", gap:18},}
+          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:20, fontWeight:800, color},}, ended.text)
+          , React.createElement('button', { onClick: onBack, style: {
+            padding:"11px 28px", borderRadius:9, cursor:"pointer",
+            background:"rgba(0,245,255,0.08)", border:"1px solid rgba(0,245,255,0.3)",
+            color:C.cyan, fontFamily:"monospace", fontSize:13, fontWeight:700,
+          },}, isPT ? "Voltar ao Menu" : "Back to Menu")
+        )
+      )
+    );
+  }
+
+  // ── PHASE: TRINITY ───────────────────────────────────────────────────────
+  if (phase === "trinity") {
+    const pickType = (key) => {
+      setMyPick(key);
+      setTrinityWaiting(true);
+      send("trinity_pick", key);
+    };
+    return (
+      React.createElement('div', { style: S.root,}
+        , React.createElement('div', { style: {...S.content, paddingBottom:"2rem"},}
+          , React.createElement(MirroredHeader, null )
+          , React.createElement('h1', { style: {...S.screenTitle, fontSize:16, marginBottom:6},}, "⚡ " , isPT ? "Duelo Trinity" : "Trinity Duel")
+          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted, textAlign:"center", marginBottom:16},}
+            , isPT ? "Vencedor vai primeiro na Batalha dos Generais" : "Winner goes first in the General Battle"
+          )
+
+          , trinityDraw && (
+            React.createElement('div', { style: {textAlign:"center", fontFamily:"monospace", fontSize:13, color:"#ffcc00", marginBottom:14, fontWeight:700},}, "⚡ "
+               , isPT ? "EMPATE! Escolha novamente." : "DRAW! Choose again."
+            )
+          )
+
+          , React.createElement('div', { style: {display:"flex", flexDirection:"column", gap:10, maxWidth:320, margin:"0 auto"},}
+            , PVP_TYPES.map(t => (
+              React.createElement('button', { key: t.key, onClick: () => !trinityWaiting && pickType(t.key), disabled: trinityWaiting, style: {
+                padding:"14px 0", borderRadius:10, cursor: trinityWaiting ? "not-allowed" : "pointer",
+                background: myPick === t.key ? t.bg : "rgba(255,255,255,0.03)",
+                border: `1px solid ${myPick === t.key ? t.border : "rgba(255,255,255,0.1)"}`,
+                color: t.color, fontFamily:"monospace", fontSize:15, fontWeight:700,
+                opacity: trinityWaiting && myPick !== t.key ? 0.4 : 1,
+              },}, t.label)
+            ))
+          )
+
+          , trinityWaiting && (
+            React.createElement('div', { style: {textAlign:"center", marginTop:16, fontFamily:"monospace", fontSize:11, color:C.textMuted},}
+              , isPT ? "Aguardando oponente..." : "Waiting for opponent..."
+            )
+          )
+        )
+      )
+    );
+  }
+
+  // ── PHASE: REVEAL ────────────────────────────────────────────────────────
+  if (phase === "reveal") {
+    const ack = () => { setRevealAcked(true); send("reveal_ack", true); };
+    return (
+      React.createElement('div', { style: S.root,}
+        , React.createElement('div', { style: {...S.content, paddingBottom:"2rem"},}
+          , React.createElement(MirroredHeader, null )
+          , React.createElement('h1', { style: {...S.screenTitle, fontSize:16, marginBottom:10},}, "👁 " , isPT ? "Revelação" : "Reveal")
+          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted, textAlign:"center", marginBottom:16},}
+            , isPT ? "Ambas as formações foram reveladas." : "Both line-ups have been revealed."
+          )
+          , React.createElement('button', { onClick: ack, disabled: revealAcked, style: {
+            width:"100%", padding:"12px 0", borderRadius:9, cursor: revealAcked ? "not-allowed" : "pointer",
+            background:"rgba(0,245,255,0.08)", border:"1px solid rgba(0,245,255,0.3)",
+            color:C.cyan, fontFamily:"monospace", fontSize:13, fontWeight:700,
+            opacity: revealAcked ? 0.5 : 1,
+          },}, revealAcked ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...") : (isPT ? "Continuar" : "Continue"))
+        )
+      )
+    );
+  }
+
+  // ── PHASE: BAN — pick one opponent unit to remove from their pool ───────
+  if (phase === "ban") {
+    const myDeck = NICK_DB.getDecks()[0];
+    const myUnits = _optionalChain([myDeck, 'optionalAccess', _77 => _77.units]) || [];
+
+    const confirmBan = () => {
+      if (!myBanPick) return;
+      setBanWaiting(true);
+      send("ban", { unitId: myBanPick });
+    };
+
+    return (
+      React.createElement('div', { style: S.root,}
+        , React.createElement('div', { style: {...S.content, paddingBottom:"2rem"},}
+          , React.createElement(MirroredHeader, null )
+          , React.createElement('h1', { style: {...S.screenTitle, fontSize:16, marginBottom:6},}, "🚫 " , isPT ? "Fase de Ban" : "Ban Phase")
+          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted, textAlign:"center", marginBottom:14},}
+            , isPT ? "Escolha 1 unidade DA SUA formação para ser banida pelo oponente já está sendo decidido — selecione qual unidade sua será exposta ao risco." : "Pick which of YOUR units the opponent will be shown — they'll choose one of yours to ban."
+          )
+
+          , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8, marginBottom:16},}
+            , myUnits.map(u => (
+              React.createElement('div', { key: u.id, onClick: () => !banWaiting && setMyBanPick(u.id), style: {
+                position:"relative", aspectRatio:"3/4", borderRadius:8, overflow:"hidden", cursor: banWaiting ? "default" : "pointer",
+                border: myBanPick === u.id ? `2px solid ${TYPE_COLOR[u.type]||"#aaa"}` : "1.5px solid rgba(255,255,255,0.12)",
+                opacity: banWaiting && myBanPick !== u.id ? 0.4 : 1,
+              },}
+                , React.createElement('img', { src: IMGS[(u.img||"").replace(".png","")]||"", alt: u.name, style: {width:"100%", height:"100%", objectFit:"cover"},})
+                , React.createElement('div', { style: {position:"absolute", bottom:0, left:0, right:0, padding:"3px 4px", background:"rgba(0,0,0,0.75)"},}
+                  , React.createElement('div', { style: {fontFamily:"monospace", fontSize:8, color:"#fff", fontWeight:700, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"},}, u.name)
+                )
+              )
+            ))
+          )
+
+          , React.createElement('button', { onClick: confirmBan, disabled: !myBanPick || banWaiting, style: {
+            width:"100%", padding:"12px 0", borderRadius:9, cursor: (!myBanPick || banWaiting) ? "not-allowed" : "pointer",
+            background:"rgba(255,40,60,0.08)", border:"1px solid rgba(255,40,60,0.3)",
+            color:"#ff6677", fontFamily:"monospace", fontSize:13, fontWeight:700,
+            opacity: (!myBanPick || banWaiting) ? 0.5 : 1,
+          },}, banWaiting ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...") : (isPT ? "Confirmar Exposição" : "Confirm Exposure"))
+
+          , banResult && (
+            React.createElement('div', { style: {marginTop:14, textAlign:"center", fontFamily:"monospace", fontSize:11, color:C.accent},}
+              , isPT ? "Unidades banidas processadas." : "Banned units processed."
+            )
+          )
+        )
+      )
+    );
+  }
+
+  // ── PHASE: CUT — keep 3 of your remaining (non-banned) units ───────────
+  if (phase === "cut") {
+    const myDeck = NICK_DB.getDecks()[0];
+    const myBannedId = _optionalChain([banResult, 'optionalAccess', _78 => _78.bannedFromA]) === mySide ? null : (mySide === "A" ? _optionalChain([banResult, 'optionalAccess', _79 => _79.bannedFromA]) : _optionalChain([banResult, 'optionalAccess', _80 => _80.bannedFromB]));
+    const remaining = (_optionalChain([myDeck, 'optionalAccess', _81 => _81.units]) || []).filter(u => u.id !== myBannedId);
+
+    const toggleCut = (id) => {
+      if (cutWaiting) return;
+      setMyCutPicks(prev => {
+        if (prev.includes(id)) return prev.filter(x => x !== id);
+        if (prev.length >= 3) return prev;
+        return [...prev, id];
+      });
+    };
+
+    const confirmCut = () => {
+      if (myCutPicks.length !== 3) return;
+      setCutWaiting(true);
+      send("cut", { keptUnitIds: myCutPicks });
+    };
+
+    return (
+      React.createElement('div', { style: S.root,}
+        , React.createElement('div', { style: {...S.content, paddingBottom:"2rem"},}
+          , React.createElement(MirroredHeader, null )
+          , React.createElement('h1', { style: {...S.screenTitle, fontSize:16, marginBottom:6},}, "✂ " , isPT ? "Fase de Corte" : "Cut Phase")
+          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted, textAlign:"center", marginBottom:14},}
+            , isPT ? `Selecione 3 unidades para manter (${myCutPicks.length}/3)` : `Select 3 units to keep (${myCutPicks.length}/3)`
+          )
+
+          , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8, marginBottom:16},}
+            , remaining.map(u => {
+              const isSel = myCutPicks.includes(u.id);
+              return (
+                React.createElement('div', { key: u.id, onClick: () => toggleCut(u.id), style: {
+                  position:"relative", aspectRatio:"3/4", borderRadius:8, overflow:"hidden", cursor: cutWaiting ? "default" : "pointer",
+                  border: isSel ? `2px solid ${TYPE_COLOR[u.type]||"#aaa"}` : "1.5px solid rgba(255,255,255,0.12)",
+                  opacity: cutWaiting && !isSel ? 0.4 : 1,
+                },}
+                  , React.createElement('img', { src: IMGS[(u.img||"").replace(".png","")]||"", alt: u.name, style: {width:"100%", height:"100%", objectFit:"cover"},})
+                  , React.createElement('div', { style: {position:"absolute", bottom:0, left:0, right:0, padding:"3px 4px", background:"rgba(0,0,0,0.75)"},}
+                    , React.createElement('div', { style: {fontFamily:"monospace", fontSize:8, color:"#fff", fontWeight:700, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"},}, u.name)
+                  )
+                )
+              );
+            })
+          )
+
+          , React.createElement('button', { onClick: confirmCut, disabled: myCutPicks.length !== 3 || cutWaiting, style: {
+            width:"100%", padding:"12px 0", borderRadius:9, cursor: (myCutPicks.length !== 3 || cutWaiting) ? "not-allowed" : "pointer",
+            background:"rgba(0,245,255,0.08)", border:"1px solid rgba(0,245,255,0.3)",
+            color:C.cyan, fontFamily:"monospace", fontSize:13, fontWeight:700,
+            opacity: (myCutPicks.length !== 3 || cutWaiting) ? 0.5 : 1,
+          },}, cutWaiting ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...") : (isPT ? "Confirmar Corte" : "Confirm Cut"))
+        )
+      )
+    );
+  }
+
+  // ── PHASE: CONFIRM — final review before Clash ──────────────────────────
+  if (phase === "confirm") {
+    const myDeck = NICK_DB.getDecks()[0];
+    const myKeptIds = cutResult ? (mySide === "A" ? cutResult.cutA : cutResult.cutB) : myCutPicks;
+    const myKept = (_optionalChain([myDeck, 'optionalAccess', _82 => _82.units]) || []).filter(u => myKeptIds.includes(u.id));
+
+    const confirmReady = () => {
+      setConfirmWaiting(true);
+      send("confirm", true);
+    };
+
+    return (
+      React.createElement('div', { style: S.root,}
+        , React.createElement('div', { style: {...S.content, paddingBottom:"2rem"},}
+          , React.createElement(MirroredHeader, null )
+          , React.createElement('h1', { style: {...S.screenTitle, fontSize:16, marginBottom:10},}, "✓ " , isPT ? "Confirmação" : "Confirm")
+          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted, textAlign:"center", marginBottom:14},}
+            , isPT ? "Sua formação final:" : "Your final line-up:"
+          )
+
+          , React.createElement('div', { style: {display:"flex", gap:8, justifyContent:"center", marginBottom:18},}
+            , myKept.map(u => (
+              React.createElement('div', { key: u.id, style: {width:72, aspectRatio:"3/4", borderRadius:8, overflow:"hidden",
+                border:`1.5px solid ${TYPE_COLOR[u.type]||"#aaa"}`},}
+                , React.createElement('img', { src: IMGS[(u.img||"").replace(".png","")]||"", alt: u.name, style: {width:"100%", height:"100%", objectFit:"cover"},})
+              )
+            ))
+          )
+
+          , React.createElement('button', { onClick: confirmReady, disabled: confirmWaiting, style: {
+            width:"100%", padding:"12px 0", borderRadius:9, cursor: confirmWaiting ? "not-allowed" : "pointer",
+            background:"rgba(0,245,255,0.08)", border:"1px solid rgba(0,245,255,0.3)",
+            color:C.cyan, fontFamily:"monospace", fontSize:13, fontWeight:700,
+            opacity: confirmWaiting ? 0.5 : 1,
+          },}, confirmWaiting ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...") : (isPT ? "Pronto para o Combate" : "Ready for Combat"))
+        )
+      )
+    );
+  }
+
+  // ── PHASE: CLASH — arrange your 3 units into Left/Center/Right ─────────
+  if (phase === "clash") {
+    const myDeck = NICK_DB.getDecks()[0];
+    const myKeptIds = cutResult ? (mySide === "A" ? cutResult.cutA : cutResult.cutB) : myCutPicks;
+    const myKept = (_optionalChain([myDeck, 'optionalAccess', _83 => _83.units]) || []).filter(u => myKeptIds.includes(u.id));
+
+    const placeAt = (slotIdx, unitId) => {
+      if (clashWaiting) return;
+      setClashLayout(prev => {
+        const next = [...prev];
+        // Remove this unit from any other slot first
+        for (let i = 0; i < 3; i++) if (next[i] === unitId) next[i] = null;
+        next[slotIdx] = unitId;
+        return next;
+      });
+    };
+
+    const confirmClash = () => {
+      if (clashLayout.some(s => s === null)) return;
+      setClashWaiting(true);
+      send("clash_layout", { layout: clashLayout });
+    };
+
+    const slotLabels = [isPT ? "ESQUERDA" : "LEFT", isPT ? "CENTRO" : "CENTER", isPT ? "DIREITA" : "RIGHT"];
+
+    return (
+      React.createElement('div', { style: S.root,}
+        , React.createElement('div', { style: {...S.content, paddingBottom:"2rem"},}
+          , React.createElement(MirroredHeader, null )
+          , React.createElement('h1', { style: {...S.screenTitle, fontSize:16, marginBottom:6},}, "⚔ " , isPT ? "Clash" : "Clash")
+          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted, textAlign:"center", marginBottom:14},}
+            , isPT ? "Posicione suas unidades nas 3 posições" : "Arrange your units into the 3 positions"
+          )
+
+          /* Slots */
+          , React.createElement('div', { style: {display:"flex", gap:8, justifyContent:"center", marginBottom:16},}
+            , [0,1,2].map(slotIdx => {
+              const unitId = clashLayout[slotIdx];
+              const unit = myKept.find(u => u.id === unitId);
+              return (
+                React.createElement('div', { key: slotIdx, style: {width:80, textAlign:"center"},}
+                  , React.createElement('div', { style: {fontFamily:"monospace", fontSize:8, color:C.textMuted, marginBottom:3},}, slotLabels[slotIdx])
+                  , React.createElement('div', { style: {aspectRatio:"3/4", borderRadius:8, overflow:"hidden",
+                    border: unit ? `2px solid ${TYPE_COLOR[unit.type]||"#aaa"}` : "1.5px dashed rgba(255,255,255,0.2)",
+                    background:"rgba(255,255,255,0.03)"},}
+                    , unit && React.createElement('img', { src: IMGS[(unit.img||"").replace(".png","")]||"", alt: unit.name, style: {width:"100%", height:"100%", objectFit:"cover"},})
+                  )
+                )
+              );
+            })
+          )
+
+          /* Unit pool — tap to place into next empty slot */
+          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:C.textMuted, textAlign:"center", marginBottom:6},}
+            , isPT ? "Toque numa unidade, depois num slot" : "Tap a unit, then tap a slot"
+          )
+          , React.createElement('div', { style: {display:"flex", gap:8, justifyContent:"center", marginBottom:18},}
+            , myKept.map(u => {
+              const placedSlot = clashLayout.indexOf(u.id);
+              return (
+                React.createElement('div', { key: u.id, onClick: () => {
+                  if (clashWaiting) return;
+                  const emptySlot = clashLayout.indexOf(null);
+                  if (placedSlot >= 0) {
+                    setClashLayout(prev => { const n=[...prev]; n[placedSlot]=null; return n; });
+                  } else if (emptySlot >= 0) {
+                    placeAt(emptySlot, u.id);
+                  }
+                }, style: {
+                  width:56, aspectRatio:"3/4", borderRadius:6, overflow:"hidden", cursor: clashWaiting ? "default" : "pointer",
+                  border: placedSlot >= 0 ? `2px solid ${TYPE_COLOR[u.type]||"#aaa"}` : "1.5px solid rgba(255,255,255,0.15)",
+                  opacity: placedSlot >= 0 ? 0.35 : 1,
+                },}
+                  , React.createElement('img', { src: IMGS[(u.img||"").replace(".png","")]||"", alt: u.name, style: {width:"100%", height:"100%", objectFit:"cover"},})
+                )
+              );
+            })
+          )
+
+          , React.createElement('button', { onClick: confirmClash, disabled: clashLayout.some(s => s === null) || clashWaiting, style: {
+            width:"100%", padding:"12px 0", borderRadius:9,
+            cursor: (clashLayout.some(s => s === null) || clashWaiting) ? "not-allowed" : "pointer",
+            background:"rgba(0,245,255,0.08)", border:"1px solid rgba(0,245,255,0.3)",
+            color:C.cyan, fontFamily:"monospace", fontSize:13, fontWeight:700,
+            opacity: (clashLayout.some(s => s === null) || clashWaiting) ? 0.5 : 1,
+          },}, clashWaiting ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...") : (isPT ? "Confirmar Posições" : "Confirm Positions"))
+        )
+      )
+    );
+  }
+
+  // ── PHASE: BATTLE ────────────────────────────────────────────────────────
+  if (phase === "battle" && battle) {
+    const myState  = mySide === "A" ? battle.stateA : battle.stateB;
+    const oppState = mySide === "A" ? battle.stateB : battle.stateA;
+    const myTurn   = battle.currentSide === mySide;
+
+    const attack = () => send("attack", true) || socket.emit("battle:turn", { roomId: match.roomId });
+
+    return (
+      React.createElement('div', { style: S.root,}
+        , React.createElement('div', { style: {...S.content, paddingBottom:"2rem"},}
+          , React.createElement(BackBtn, { label: "‹ Back" , onClick: onBack,} )
+
+          , React.createElement('div', { style: {...S.card, border:"1px solid rgba(255,40,60,0.3)", background:"rgba(50,0,10,0.35)", marginBottom:8},}
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:"#ff6677"},}, oppNick)
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:"#ff4466"},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _84 => _84.hp]), () => ( 0))))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _85 => _85.ap]), () => ( 0)))
+          )
+
+          , React.createElement('div', { style: {textAlign:"center", fontFamily:"monospace", fontSize:11, color: myTurn ? C.cyan : C.textMuted, fontWeight:700, marginBottom:8},}
+            , myTurn ? `▶ ${isPT ? "SEU TURNO" : "YOUR TURN"}` : `▶ ${isPT ? "TURNO DO OPONENTE" : "OPPONENT'S TURN"}`
+            , " · ", isPT ? "TURNO " : "TURN ", battle.turn
+          )
+
+          , React.createElement('div', { style: {...S.card, border:`1px solid ${C.border}`, background:"rgba(0,10,60,0.45)", marginBottom:14},}
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:C.cyan},}, myNick)
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:C.cyan},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _86 => _86.hp]), () => ( 0))))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _87 => _87.ap]), () => ( 0)))
+          )
+
+          , React.createElement('button', { onClick: attack, disabled: !myTurn, style: {
+            width:"100%", padding:"13px 0", borderRadius:10, cursor: myTurn ? "pointer" : "not-allowed",
+            background: myTurn ? "rgba(0,245,255,0.1)" : "rgba(255,255,255,0.03)",
+            border: `1px solid ${myTurn ? "rgba(0,245,255,0.4)" : "rgba(255,255,255,0.1)"}`,
+            color: myTurn ? C.cyan : C.textMuted, fontFamily:"monospace", fontSize:14, fontWeight:700,
+            opacity: myTurn ? 1 : 0.5, marginBottom:14,
+          },}, "⚔ " , isPT ? "Atacar" : "Attack")
+
+          , React.createElement('div', { style: {maxHeight:160, overflowY:"auto", display:"flex", flexDirection:"column", gap:4, marginBottom:14},}
+            , battleLog.slice(-12).map((l, i) => (
+              React.createElement('div', { key: i, style: {fontFamily:"monospace", fontSize:10, color:"rgba(200,220,255,0.7)"},}, l)
+            ))
+          )
+
+          , React.createElement('button', { onClick: surrender, style: {
+            width:"100%", padding:"11px 0", borderRadius:9, cursor:"pointer",
+            background:"rgba(255,40,60,0.08)", border:"1px solid rgba(255,40,60,0.3)",
+            color:"#ff6677", fontFamily:"monospace", fontSize:13, fontWeight:700,
+          },}, "🏳 " , isPT ? "Render-se" : "Surrender")
+        )
+      )
+    );
+  }
+
+  // Fallback while battle state hasn't arrived yet
+  return (
+    React.createElement('div', { style: S.root,}
+      , React.createElement('div', { style: {...S.content, justifyContent:"center", alignItems:"center", display:"flex", minHeight:"100vh"},}
+        , React.createElement('div', { style: {fontFamily:"monospace", color:C.textMuted, fontSize:13},}
+          , isPT ? "Sincronizando..." : "Synchronizing..."
+        )
+      )
+    )
+  );
+}
+
+function GameModeScreen({ onBack, onStartAI, onStartPvp }) {
   const t = useT();
   const { settings, updateSetting } = useSettings();
 
@@ -5456,11 +6181,9 @@ function GameModeScreen({ onBack, onStartAI }) {
           );
         })()
 
-        /* VS Player card — coming soon */
+        /* VS Player card — matchmaking + room code (room code coming next) */
         , React.createElement('div', { style: {
           ...S.card,
-          opacity:0.5,
-          cursor:"not-allowed",
           position:"relative",
           overflow:"hidden",
         },}
@@ -5469,7 +6192,7 @@ function GameModeScreen({ onBack, onStartAI }) {
             background:"linear-gradient(90deg, transparent, rgba(245,166,35,0.4), transparent)",
           },})
 
-          , React.createElement('div', { style: {display:"flex", alignItems:"center", gap:14},}
+          , React.createElement('div', { style: {display:"flex", alignItems:"center", gap:14, marginBottom:10},}
             , React.createElement('div', { style: {
               width:52, height:52, borderRadius:10, flexShrink:0,
               background:"rgba(245,166,35,0.06)",
@@ -5486,16 +6209,36 @@ function GameModeScreen({ onBack, onStartAI }) {
                 , t("gameMode.vsPlayerDesc")
               )
             )
-            /* Coming soon badge */
+          )
+
+          , React.createElement('div', { style: {borderTop:"1px solid rgba(245,166,35,0.12)", paddingTop:10, display:"flex", flexDirection:"column", gap:8},}
+            , React.createElement('button', {
+              onClick: onStartPvp,
+              style: {
+                width:"100%", padding:"11px 0", borderRadius:8, cursor:"pointer",
+                background:"rgba(245,166,35,0.1)", border:"1px solid rgba(245,166,35,0.35)",
+                color:C.accent, fontFamily:"monospace", fontSize:13, fontWeight:700,
+                letterSpacing:"0.06em",
+              },}
+, "🔍 " , settings.language==="pt" ? "Buscar Partida" : "Find Match")
+
+            /* Room code — placeholder for the next iteration */
             , React.createElement('div', { style: {
-              flexShrink:0, padding:"4px 10px",
-              background:"rgba(245,166,35,0.1)",
-              border:"1px solid rgba(245,166,35,0.3)",
-              borderRadius:20,
-              fontSize:9, fontWeight:700, color:C.accent,
-              fontFamily:"monospace", letterSpacing:"0.1em",
-              textTransform:"uppercase",
-            },}, t("gameMode.comingSoon"))
+              display:"flex", alignItems:"center", justifyContent:"space-between",
+              padding:"9px 12px", borderRadius:8,
+              background:"rgba(0,0,0,0.2)", border:"1px solid rgba(255,255,255,0.06)",
+              opacity:0.5,
+            },}
+              , React.createElement('span', { style: {fontFamily:"monospace", fontSize:12, color:C.textMuted},}, "🔑 "
+                 , settings.language==="pt" ? "Entrar com Código" : "Join with Code"
+              )
+              , React.createElement('span', { style: {
+                fontSize:8, fontWeight:700, color:C.textMuted, fontFamily:"monospace",
+                letterSpacing:"0.1em", textTransform:"uppercase",
+                padding:"2px 8px", borderRadius:20,
+                background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)",
+              },}, t("gameMode.comingSoon"))
+            )
           )
         )
 
@@ -5549,8 +6292,12 @@ function App() {
     };
   }, []);
 
+  // PvP connection (Socket.io, lazy-loaded, only active if PVP_SERVER_URL is set)
+  const pvpConn = usePvpConnection();
+
   return (
     React.createElement(NickCtx.Provider, { value: { activePlayer, refreshNick, nickTick },}
+    , React.createElement(PvpCtx.Provider, { value: pvpConn,}
     , React.createElement(SettingsCtx.Provider, { value: { settings, updateSetting },}
       /* CSS animations */
       , React.createElement(StyleTag, null )
@@ -5565,9 +6312,12 @@ function App() {
         , screen === "nick"      && React.createElement(NickScreen, {      onBack: (s) => { if(s==="menu" || s==null) setScreen(NICK_DB.getActive()?"menu":"nick"); }, initialView: NICK_DB.list().length===0?"create":"list",} )
         , screen === "guide"    && React.createElement(GuideScreen, { onBack: () => setScreen("menu"),} )
         , screen === "deck"     && React.createElement(DeckBuilderScreen, { onBack: () => setScreen("menu"),} )
-        , screen === "game"     && React.createElement(GameModeScreen, { onBack: () => setScreen("menu"), onStartAI: () => setScreen("arena"),} )
+        , screen === "game"     && React.createElement(GameModeScreen, { onBack: () => setScreen("menu"), onStartAI: () => setScreen("arena"), onStartPvp: () => setScreen("pvpQueue"),} )
         , screen === "arena"    && React.createElement(ArenaPlaceholder, { onBack: () => setScreen("game"), difficulty: settings.difficulty,} )
+        , screen === "pvpQueue" && React.createElement(PvpQueueScreen, { onBack: () => setScreen("game"), onMatchFound: () => setScreen("pvpArena"),} )
+        , screen === "pvpArena" && React.createElement(PvpArenaPlaceholder, { onBack: () => setScreen("game"),} )
       )
+    )
     )
     )
   );
