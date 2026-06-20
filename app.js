@@ -237,7 +237,7 @@ function usePvpConnection() {
   return { socket, connected, connectError, enabled: !!PVP_SERVER_URL };
 }
 
-const CVS_VERSION = "v0.7.5";
+const CVS_VERSION = "v0.7.6";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
@@ -6024,12 +6024,6 @@ function PvpArenaPlaceholder({ onBack }) {
                   color:"rgba(255,255,255,0.8)", fontSize:10, fontWeight:700,
                   fontFamily:"monospace", lineHeight:1, display:"flex", alignItems:"center", justifyContent:"center", padding:0,
                 },}, "ℹ")
-                , u.junction && (
-                  React.createElement('div', { style: {position:"absolute", top:4, left:4, padding:"1px 5px", borderRadius:4,
-                    background:"rgba(0,245,255,0.18)", border:"1px solid rgba(0,245,255,0.35)"},}
-                    , React.createElement('span', { style: {fontFamily:"monospace", fontSize:7, color:C.cyan, fontWeight:700},}, "⚡")
-                  )
-                )
                 , React.createElement('div', { style: {position:"absolute", bottom:0, left:0, right:0, padding:"3px 4px", background:"rgba(0,0,0,0.75)"},}
                   , React.createElement('div', { style: {fontFamily:"monospace", fontSize:8, color:"#fff", fontWeight:700, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"},}, u.name)
                 )
@@ -6102,12 +6096,6 @@ function PvpArenaPlaceholder({ onBack }) {
                     color:"rgba(255,255,255,0.8)", fontSize:10, fontWeight:700,
                     fontFamily:"monospace", lineHeight:1, display:"flex", alignItems:"center", justifyContent:"center", padding:0,
                   },}, "ℹ")
-                  , u.junction && (
-                    React.createElement('div', { style: {position:"absolute", top:4, left:4, padding:"1px 5px", borderRadius:4,
-                      background:"rgba(0,245,255,0.18)", border:"1px solid rgba(0,245,255,0.35)"},}
-                      , React.createElement('span', { style: {fontFamily:"monospace", fontSize:7, color:C.cyan, fontWeight:700},}, "⚡")
-                    )
-                  )
                   , React.createElement('div', { style: {position:"absolute", bottom:0, left:0, right:0, padding:"3px 4px", background:"rgba(0,0,0,0.75)"},}
                     , React.createElement('div', { style: {fontFamily:"monospace", fontSize:8, color:"#fff", fontWeight:700, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"},}, u.name)
                   )
@@ -6160,12 +6148,6 @@ function PvpArenaPlaceholder({ onBack }) {
                   color:"rgba(255,255,255,0.8)", fontSize:9, fontWeight:700,
                   fontFamily:"monospace", lineHeight:1, display:"flex", alignItems:"center", justifyContent:"center", padding:0,
                 },}, "ℹ")
-                , u.junction && (
-                  React.createElement('div', { style: {position:"absolute", bottom:3, left:3, padding:"1px 4px", borderRadius:4,
-                    background:"rgba(0,245,255,0.18)", border:"1px solid rgba(0,245,255,0.35)"},}
-                    , React.createElement('span', { style: {fontFamily:"monospace", fontSize:6, color:C.cyan, fontWeight:700},}, "⚡")
-                  )
-                )
               )
             ))
           )
@@ -6263,12 +6245,6 @@ function PvpArenaPlaceholder({ onBack }) {
                     color:"rgba(255,255,255,0.8)", fontSize:8, fontWeight:700,
                     fontFamily:"monospace", lineHeight:1, display:"flex", alignItems:"center", justifyContent:"center", padding:0,
                   },}, "ℹ")
-                  , u.junction && (
-                    React.createElement('div', { style: {position:"absolute", bottom:2, left:2, padding:"1px 4px", borderRadius:4,
-                      background:"rgba(0,245,255,0.18)", border:"1px solid rgba(0,245,255,0.35)"},}
-                      , React.createElement('span', { style: {fontFamily:"monospace", fontSize:6, color:C.cyan, fontWeight:700},}, "⚡")
-                    )
-                  )
                 )
               );
             })
