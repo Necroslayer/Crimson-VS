@@ -192,23 +192,52 @@ function loadSocketIO() {
 function usePvpConnection() {
   const [socket, setSocket]       = useState(null);
   const [connected, setConnected] = useState(false);
+  const [connectError, setConnectError] = useState(null);
 
   useEffect(() => {
     if (!PVP_SERVER_URL) return;
     let s;
+    let timeoutId;
     loadSocketIO().then(io => {
-      s = io(PVP_SERVER_URL, { transports: ['websocket', 'polling'] });
-      s.on('connect',    () => setConnected(true));
+      s = io(PVP_SERVER_URL, {
+        transports: ['websocket', 'polling'],
+        reconnection: false,   // we surface the error instead of retrying silently
+        timeout: 6000,         // socket.io's own connect timeout
+      });
+
+      // Belt-and-suspenders timeout in case the server never responds at
+      // all (e.g. wrong URL, server not started, blocked port).
+      timeoutId = setTimeout(() => {
+        if (!s.connected) {
+          setConnectError('timeout');
+          s.disconnect();
+        }
+      }, 6000);
+
+      s.on('connect', () => {
+        clearTimeout(timeoutId);
+        setConnected(true);
+        setConnectError(null);
+      });
       s.on('disconnect', () => setConnected(false));
+      s.on('connect_error', () => {
+        clearTimeout(timeoutId);
+        setConnectError('unreachable');
+      });
+
       setSocket(s);
-    }).catch(() => {});
-    return () => { if (s) s.disconnect(); };
+    }).catch(() => setConnectError('script_load_failed'));
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (s) s.disconnect();
+    };
   }, []);
 
-  return { socket, connected, enabled: !!PVP_SERVER_URL };
+  return { socket, connected, connectError, enabled: !!PVP_SERVER_URL };
 }
 
-const CVS_VERSION = "v0.7.2";
+const CVS_VERSION = "v0.7.3";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
@@ -5370,12 +5399,13 @@ function ArenaPlaceholder({ onBack, difficulty }) {
 function PvpQueueScreen({ onBack, onMatchFound }) {
   const { settings } = useSettings();
   const isPT = settings.language === "pt";
-  const { socket, connected, enabled } = usePvp();
+  const { socket, connected, connectError, enabled } = usePvp();
   const { activePlayer } = useNick();
 
   const [status, setStatus]   = useState("connecting"); // connecting | waiting | found | error | timeout
   const [error, setError]     = useState("");
   const [elapsed, setElapsed] = useState(0);
+  const [autoBackIn, setAutoBackIn] = useState(null);
 
   useEffect(() => {
     if (status !== "waiting") return;
@@ -5383,8 +5413,29 @@ function PvpQueueScreen({ onBack, onMatchFound }) {
     return () => clearInterval(iv);
   }, [status]);
 
+  // Server unreachable — surface a clear error and auto-return to the
+  // previous screen after a short countdown instead of hanging forever.
   useEffect(() => {
-    if (!enabled) { setStatus("error"); setError(isPT ? "PvP não configurado ainda." : "PvP not configured yet."); return; }
+    if (!connectError) return;
+    setStatus("error");
+    setError(
+      connectError === "timeout" || connectError === "unreachable"
+        ? (isPT ? "Não foi possível conectar ao servidor. Verifique se ele está rodando." : "Could not connect to the server. Make sure it's running.")
+        : (isPT ? "Falha ao carregar o módulo de conexão." : "Failed to load the connection module.")
+    );
+    setAutoBackIn(4);
+  }, [connectError, isPT]);
+
+  useEffect(() => {
+    if (autoBackIn === null) return;
+    if (autoBackIn <= 0) { onBack(); return; }
+    const t = setTimeout(() => setAutoBackIn(s => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [autoBackIn]);
+
+  useEffect(() => {
+    if (!enabled) { setStatus("error"); setError(isPT ? "PvP não configurado ainda." : "PvP not configured yet."); setAutoBackIn(4); return; }
+    if (connectError) return; // handled by the effect above
     if (!socket)  { return; }
     if (!connected) { setStatus("connecting"); return; }
 
@@ -5487,14 +5538,19 @@ function PvpQueueScreen({ onBack, onMatchFound }) {
 
         , status === "error" && (
           React.createElement(React.Fragment, null
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:13, color:"#ff4466", marginBottom:16, textAlign:"center", maxWidth:300},}
-              , error
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:13, color:"#ff4466", marginBottom:10, textAlign:"center", maxWidth:300},}, "⚠ "
+               , error
+            )
+            , autoBackIn !== null && (
+              React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted, marginBottom:16},}
+                , isPT ? `Voltando em ${autoBackIn}s...` : `Returning in ${autoBackIn}s...`
+              )
             )
             , React.createElement('button', { onClick: onBack, style: {
               padding:"10px 24px", borderRadius:8, cursor:"pointer",
               background:"rgba(255,40,60,0.08)", border:"1px solid rgba(255,40,60,0.3)",
               color:"#ff6677", fontFamily:"monospace", fontSize:13, fontWeight:700,
-            },}, isPT ? "Voltar" : "Back")
+            },}, isPT ? "Voltar agora" : "Back now")
           )
         )
 
