@@ -237,7 +237,7 @@ function usePvpConnection() {
   return { socket, connected, connectError, enabled: !!PVP_SERVER_URL };
 }
 
-const CVS_VERSION = "v0.7.6";
+const CVS_VERSION = "v0.7.7";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
@@ -5887,19 +5887,54 @@ function PvpArenaPlaceholder({ onBack }) {
   // ── PHASE: REVEAL ────────────────────────────────────────────────────────
   if (phase === "reveal") {
     const ack = () => { setRevealAcked(true); send("reveal_ack", true); };
+    const myDeck  = resolveDeck();
+    const oppDeck = _optionalChain([match, 'optionalAccess', _84 => _84.opponentDeck]);
+
+    function PoolGrid({ deck, accentColor }) {
+      const units = _optionalChain([deck, 'optionalAccess', _85 => _85.units]) || [];
+      return (
+        React.createElement('div', { style: {display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:6},}
+          , units.map(u => (
+            React.createElement('div', { key: u.id, style: {position:"relative", aspectRatio:"3/4", borderRadius:7, overflow:"hidden",
+              border:`1.5px solid ${TYPE_COLOR[u.type]||"#aaa"}`},}
+              , React.createElement('img', { src: IMGS[(u.img||"").replace(".png","")]||"", alt: u.name, style: {width:"100%", height:"100%", objectFit:"cover"},})
+              , React.createElement('div', { style: {position:"absolute", bottom:0, left:0, right:0, padding:"2px 3px", background:"rgba(0,0,0,0.75)"},}
+                , React.createElement('div', { style: {fontFamily:"monospace", fontSize:7, color:"#fff", fontWeight:700, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"},}, u.name)
+              )
+            )
+          ))
+        )
+      );
+    }
+
     return (
       React.createElement('div', { style: S.root,}
         , React.createElement('div', { style: {...S.content, paddingBottom:"2rem"},}
           , React.createElement(PvpPhaseHeader, null )
           , React.createElement('h1', { style: {...S.screenTitle, fontSize:16, marginBottom:10},}, "👁 " , isPT ? "Revelação" : "Reveal")
-          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted, textAlign:"center", marginBottom:16},}
+          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted, textAlign:"center", marginBottom:14},}
             , isPT ? "Ambas as formações foram reveladas." : "Both line-ups have been revealed."
           )
+
+          /* Your pool — always shown first, cyan accent */
+          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:10, color:C.cyan, fontWeight:700, letterSpacing:"0.06em", marginBottom:6},}
+            , isPT ? `SUA FORMAÇÃO (${myNick})` : `YOUR LINE-UP (${myNick})`
+          )
+          , React.createElement(PoolGrid, { deck: myDeck, accentColor: C.cyan,} )
+
+          , React.createElement('div', { style: {textAlign:"center", fontFamily:"monospace", fontSize:11, color:C.textMuted, letterSpacing:"0.15em", margin:"14px 0"},}, "⚔ VS ⚔"  )
+
+          /* Opponent pool — always shown second, red accent */
+          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:10, color:"#ff6677", fontWeight:700, letterSpacing:"0.06em", marginBottom:6},}
+            , isPT ? `FORMAÇÃO DO OPONENTE (${oppNick})` : `OPPONENT LINE-UP (${oppNick})`
+          )
+          , React.createElement(PoolGrid, { deck: oppDeck, accentColor: "#ff4466",} )
+
           , React.createElement('button', { onClick: ack, disabled: revealAcked, style: {
             width:"100%", padding:"12px 0", borderRadius:9, cursor: revealAcked ? "not-allowed" : "pointer",
             background:"rgba(0,245,255,0.08)", border:"1px solid rgba(0,245,255,0.3)",
             color:C.cyan, fontFamily:"monospace", fontSize:13, fontWeight:700,
-            opacity: revealAcked ? 0.5 : 1,
+            opacity: revealAcked ? 0.5 : 1, marginTop:18,
           },}, revealAcked ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...") : (isPT ? "Continuar" : "Continue"))
         )
       )
@@ -5976,7 +6011,7 @@ function PvpArenaPlaceholder({ onBack }) {
                 , pvpInfoCard.junction
               )
               , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:"rgba(180,220,255,0.85)", lineHeight:1.55},}
-                , (_optionalChain([JUNCTION_DESC, 'access', _84 => _84[pvpInfoCard.junction], 'optionalAccess', _85 => _85[isPT?"pt":"en"]])) || "— No description available."
+                , (_optionalChain([JUNCTION_DESC, 'access', _86 => _86[pvpInfoCard.junction], 'optionalAccess', _87 => _87[isPT?"pt":"en"]])) || "— No description available."
               )
             )
           )
@@ -5991,8 +6026,8 @@ function PvpArenaPlaceholder({ onBack }) {
 
   // ── PHASE: BAN — pick one opponent unit to remove from their pool ───────
   if (phase === "ban") {
-    const myDeck = resolveDeck();
-    const myUnits = _optionalChain([myDeck, 'optionalAccess', _86 => _86.units]) || [];
+    const oppDeck = _optionalChain([match, 'optionalAccess', _88 => _88.opponentDeck]);
+    const oppUnits = _optionalChain([oppDeck, 'optionalAccess', _89 => _89.units]) || [];
 
     const confirmBan = () => {
       if (!myBanPick) return;
@@ -6006,17 +6041,22 @@ function PvpArenaPlaceholder({ onBack }) {
           , React.createElement(PvpPhaseHeader, null )
           , React.createElement('h1', { style: {...S.screenTitle, fontSize:16, marginBottom:6},}, "🚫 " , isPT ? "Fase de Ban" : "Ban Phase")
           , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted, textAlign:"center", marginBottom:14},}
-            , isPT ? "Escolha 1 unidade DA SUA formação para ser banida pelo oponente já está sendo decidido — selecione qual unidade sua será exposta ao risco." : "Pick which of YOUR units the opponent will be shown — they'll choose one of yours to ban."
+            , isPT ? `Escolha 1 unidade da formação de ${oppNick} para banir.` : `Pick 1 unit from ${oppNick}'s line-up to ban.`
           )
 
           , React.createElement('div', { style: {display:"grid", gridTemplateColumns:"repeat(4, 1fr)", gap:8, marginBottom:16},}
-            , myUnits.map(u => (
+            , oppUnits.map(u => (
               React.createElement('div', { key: u.id, onClick: () => !banWaiting && setMyBanPick(u.id), style: {
                 position:"relative", aspectRatio:"3/4", borderRadius:8, overflow:"hidden", cursor: banWaiting ? "default" : "pointer",
-                border: myBanPick === u.id ? `2px solid ${TYPE_COLOR[u.type]||"#aaa"}` : "1.5px solid rgba(255,255,255,0.12)",
+                border: myBanPick === u.id ? "2px solid #ff4466" : "1.5px solid rgba(255,255,255,0.12)",
                 opacity: banWaiting && myBanPick !== u.id ? 0.4 : 1,
               },}
                 , React.createElement('img', { src: IMGS[(u.img||"").replace(".png","")]||"", alt: u.name, style: {width:"100%", height:"100%", objectFit:"cover"},})
+                , myBanPick === u.id && (
+                  React.createElement('div', { style: {position:"absolute", inset:0, background:"rgba(255,40,60,0.25)", display:"flex", alignItems:"center", justifyContent:"center"},}
+                    , React.createElement('span', { style: {fontSize:22},}, "🚫")
+                  )
+                )
                 , React.createElement('button', { onClick: e=>{e.stopPropagation();setPvpInfoCard(u);}, style: {
                   position:"absolute", top:4, right:4, zIndex:5,
                   background:"rgba(0,0,0,0.65)", border:"1px solid rgba(255,255,255,0.25)",
@@ -6036,7 +6076,7 @@ function PvpArenaPlaceholder({ onBack }) {
             background:"rgba(255,40,60,0.08)", border:"1px solid rgba(255,40,60,0.3)",
             color:"#ff6677", fontFamily:"monospace", fontSize:13, fontWeight:700,
             opacity: (!myBanPick || banWaiting) ? 0.5 : 1,
-          },}, banWaiting ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...") : (isPT ? "Confirmar Exposição" : "Confirm Exposure"))
+          },}, banWaiting ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...") : (isPT ? "Confirmar Ban" : "Confirm Ban"))
 
           , banResult && (
             React.createElement('div', { style: {marginTop:14, textAlign:"center", fontFamily:"monospace", fontSize:11, color:C.accent},}
@@ -6052,8 +6092,8 @@ function PvpArenaPlaceholder({ onBack }) {
   // ── PHASE: CUT — keep 3 of your remaining (non-banned) units ───────────
   if (phase === "cut") {
     const myDeck = resolveDeck();
-    const myBannedId = _optionalChain([banResult, 'optionalAccess', _87 => _87.bannedFromA]) === mySide ? null : (mySide === "A" ? _optionalChain([banResult, 'optionalAccess', _88 => _88.bannedFromA]) : _optionalChain([banResult, 'optionalAccess', _89 => _89.bannedFromB]));
-    const remaining = (_optionalChain([myDeck, 'optionalAccess', _90 => _90.units]) || []).filter(u => u.id !== myBannedId);
+    const myBannedId = _optionalChain([banResult, 'optionalAccess', _90 => _90.bannedFromA]) === mySide ? null : (mySide === "A" ? _optionalChain([banResult, 'optionalAccess', _91 => _91.bannedFromA]) : _optionalChain([banResult, 'optionalAccess', _92 => _92.bannedFromB]));
+    const remaining = (_optionalChain([myDeck, 'optionalAccess', _93 => _93.units]) || []).filter(u => u.id !== myBannedId);
 
     const toggleCut = (id) => {
       if (cutWaiting) return;
@@ -6120,7 +6160,7 @@ function PvpArenaPlaceholder({ onBack }) {
   if (phase === "confirm") {
     const myDeck = resolveDeck();
     const myKeptIds = cutResult ? (mySide === "A" ? cutResult.cutA : cutResult.cutB) : myCutPicks;
-    const myKept = (_optionalChain([myDeck, 'optionalAccess', _91 => _91.units]) || []).filter(u => myKeptIds.includes(u.id));
+    const myKept = (_optionalChain([myDeck, 'optionalAccess', _94 => _94.units]) || []).filter(u => myKeptIds.includes(u.id));
 
     const confirmReady = () => {
       setConfirmWaiting(true);
@@ -6168,7 +6208,7 @@ function PvpArenaPlaceholder({ onBack }) {
   if (phase === "clash") {
     const myDeck = resolveDeck();
     const myKeptIds = cutResult ? (mySide === "A" ? cutResult.cutA : cutResult.cutB) : myCutPicks;
-    const myKept = (_optionalChain([myDeck, 'optionalAccess', _92 => _92.units]) || []).filter(u => myKeptIds.includes(u.id));
+    const myKept = (_optionalChain([myDeck, 'optionalAccess', _95 => _95.units]) || []).filter(u => myKeptIds.includes(u.id));
 
     const placeAt = (slotIdx, unitId) => {
       if (clashWaiting) return;
@@ -6278,8 +6318,8 @@ function PvpArenaPlaceholder({ onBack }) {
 
           , React.createElement('div', { style: {...S.card, border:"1px solid rgba(255,40,60,0.3)", background:"rgba(50,0,10,0.35)", marginBottom:8},}
             , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:"#ff6677"},}, oppNick)
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:"#ff4466"},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _93 => _93.hp]), () => ( 0))))
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _94 => _94.ap]), () => ( 0)))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:"#ff4466"},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _96 => _96.hp]), () => ( 0))))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _97 => _97.ap]), () => ( 0)))
           )
 
           , React.createElement('div', { style: {textAlign:"center", fontFamily:"monospace", fontSize:11, color: myTurn ? C.cyan : C.textMuted, fontWeight:700, marginBottom:8},}
@@ -6289,8 +6329,8 @@ function PvpArenaPlaceholder({ onBack }) {
 
           , React.createElement('div', { style: {...S.card, border:`1px solid ${C.border}`, background:"rgba(0,10,60,0.45)", marginBottom:14},}
             , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:C.cyan},}, myNick)
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:C.cyan},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _95 => _95.hp]), () => ( 0))))
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _96 => _96.ap]), () => ( 0)))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:C.cyan},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _98 => _98.hp]), () => ( 0))))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _99 => _99.ap]), () => ( 0)))
           )
 
           , React.createElement('button', { onClick: attack, disabled: !myTurn, style: {
