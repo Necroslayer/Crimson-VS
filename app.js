@@ -237,7 +237,7 @@ function usePvpConnection() {
   return { socket, connected, connectError, enabled: !!PVP_SERVER_URL };
 }
 
-const CVS_VERSION = "v0.7.8";
+const CVS_VERSION = "v0.8.0";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
@@ -5626,7 +5626,12 @@ function PvpArenaPlaceholder({ onBack }) {
 
   // Battle
   const [battle, setBattle] = useState(null);
-  const [battleLog, setBattleLog] = useState([]);
+  const [attackWaiting, setAttackWaiting] = useState(false);
+
+  // Unified arena log — accumulates from Trinity all the way through
+  // Battle, instead of only existing during the Battle phase.
+  const [arenaLog, setArenaLog] = useState([]);
+  const addLog = (line) => setArenaLog(l => [...l, line]);
 
   // Card info popup — same pattern as the Deck Builder's dbInfoCard
   const [pvpInfoCard, setPvpInfoCard] = useState(null);
@@ -5650,31 +5655,87 @@ function PvpArenaPlaceholder({ onBack }) {
   useEffect(() => {
     if (!socket || !match) return;
 
-    const onTrinityResult = (data) => { setTrinityResult(data); setTrinityWaiting(false); };
-    const onTrinityDraw   = () => { setTrinityDraw(true); setMyPick(null); setTrinityWaiting(false); setTrinityResult(null); };
+    const onTrinityResult = (data) => {
+      setTrinityResult(data); setTrinityWaiting(false);
+      const myPickLabel  = mySide === "A" ? data.pickA : data.pickB;
+      const oppPickLabel = mySide === "A" ? data.pickB : data.pickA;
+      addLog(isPT ? `${myNick} escolheu ${myPickLabel}` : `${myNick} picked ${myPickLabel}`);
+      addLog(isPT ? `${oppNick} escolheu ${oppPickLabel}` : `${oppNick} picked ${oppPickLabel}`);
+      if (data.result === "draw") {
+        addLog(isPT ? "⚡ Empate no Trinity Duel!" : "⚡ Trinity Duel draw!");
+      } else {
+        const winnerNick = data.result === mySide ? myNick : oppNick;
+        addLog(isPT ? `🏆 ${winnerNick} venceu o Trinity Duel — vai primeiro!` : `🏆 ${winnerNick} won the Trinity Duel — goes first!`);
+      }
+    };
+    const onTrinityDraw   = () => {
+      setTrinityDraw(true); setMyPick(null); setTrinityWaiting(false); setTrinityResult(null);
+    };
     const onAdvance       = (data) => {
       setPhase(data.phase);
       setTrinityDraw(false);
       setTrinityResult(null);
-    };
-    const onBanResult     = (data) => { setBanResult(data); setBanWaiting(false); };
-    const onCutResult     = (data) => { setCutResult(data); setCutWaiting(false); };
-    const onClashResult   = (data) => { setClashResult(data); setClashWaiting(false); setBattle(data.battle); };
-    const onBattleTurn    = (data) => {
-      setBattle({ stateA: data.stateA, stateB: data.stateB, currentSide: data.currentSide, turn: data.turn, over: data.winner || null });
-      setBattleLog(l => [...l, ...data.log]);
-      if (data.winner) {
-        if (data.winner === "draw") setEnded({ type:"draw", text: isPT ? "Empate!" : "Draw!" });
-        else if (data.winner === mySide) setEnded({ type:"win", text: isPT ? "VOCÊ VENCEU!" : "YOU WIN!" });
-        else setEnded({ type:"loss", text: isPT ? "Você perdeu." : "You lost." });
+      const phaseNames = {
+        reveal:  isPT ? "Revelação" : "Reveal",
+        ban:     isPT ? "Fase de Ban" : "Ban Phase",
+        cut:     isPT ? "Fase de Corte" : "Cut Phase",
+        confirm: isPT ? "Confirmação" : "Confirm",
+        clash:   isPT ? "Clash" : "Clash",
+        battle:  isPT ? "Batalha" : "Battle",
+      };
+      if (phaseNames[data.phase]) {
+        addLog(isPT ? `▶ Avançando para: ${phaseNames[data.phase]}` : `▶ Advancing to: ${phaseNames[data.phase]}`);
       }
     };
-    const onOpponentLeft  = () => setEnded({ type:"win", text: isPT ? "Oponente desconectou — VOCÊ VENCEU!" : "Opponent disconnected — YOU WIN!" });
+    const onBanResult     = (data) => {
+      setBanResult(data); setBanWaiting(false);
+      const myDeckR  = resolveDeck();
+      const oppDeckR = _optionalChain([match, 'optionalAccess', _76 => _76.opponentDeck]);
+      const bannedFromMe  = mySide === "A" ? data.bannedFromA : data.bannedFromB;
+      const bannedFromOpp = mySide === "A" ? data.bannedFromB : data.bannedFromA;
+      const myLostUnit  = _optionalChain([myDeckR, 'optionalAccess', _77 => _77.units, 'optionalAccess', _78 => _78.find, 'call', _79 => _79(u => u.id === bannedFromMe)]);
+      const oppLostUnit = _optionalChain([oppDeckR, 'optionalAccess', _80 => _80.units, 'optionalAccess', _81 => _81.find, 'call', _82 => _82(u => u.id === bannedFromOpp)]);
+      if (oppLostUnit) addLog(isPT ? `🚫 Você baniu ${oppLostUnit.name} de ${oppNick}` : `🚫 You banned ${oppLostUnit.name} from ${oppNick}`);
+      if (myLostUnit)  addLog(isPT ? `🚫 ${oppNick} baniu ${myLostUnit.name} de você` : `🚫 ${oppNick} banned your ${myLostUnit.name}`);
+    };
+    const onCutResult     = (data) => {
+      setCutResult(data); setCutWaiting(false);
+      const myDeckR  = resolveDeck();
+      const oppDeckR = _optionalChain([match, 'optionalAccess', _83 => _83.opponentDeck]);
+      const myKeptIdsR  = mySide === "A" ? data.cutA : data.cutB;
+      const oppKeptIdsR = mySide === "A" ? data.cutB : data.cutA;
+      const myKeptNames  = (_optionalChain([myDeckR, 'optionalAccess', _84 => _84.units])||[]).filter(u => _optionalChain([myKeptIdsR, 'optionalAccess', _85 => _85.includes, 'call', _86 => _86(u.id)])).map(u => u.name).join(", ");
+      const oppKeptNames = (_optionalChain([oppDeckR, 'optionalAccess', _87 => _87.units])||[]).filter(u => _optionalChain([oppKeptIdsR, 'optionalAccess', _88 => _88.includes, 'call', _89 => _89(u.id)])).map(u => u.name).join(", ");
+      if (myKeptNames)  addLog(isPT ? `✂ Você manteve: ${myKeptNames}` : `✂ You kept: ${myKeptNames}`);
+      if (oppKeptNames) addLog(isPT ? `✂ ${oppNick} manteve: ${oppKeptNames}` : `✂ ${oppNick} kept: ${oppKeptNames}`);
+    };
+    const onClashResult   = (data) => {
+      setClashResult(data); setClashWaiting(false); setBattle(data.battle);
+      addLog(isPT ? "⚔ Clash resolvido:" : "⚔ Clash resolved:");
+      (data.clashLog || []).forEach(line => addLog(line));
+    };
+    const onBattleTurn    = (data) => {
+      setAttackWaiting(false);
+      setBattle({ stateA: data.stateA, stateB: data.stateB, currentSide: data.currentSide, turn: data.turn, over: data.winner || null });
+      (data.log || []).forEach(line => addLog(line));
+      if (data.winner) {
+        if (data.winner === "draw") { setEnded({ type:"draw", text: isPT ? "Empate!" : "Draw!" }); addLog(isPT ? "⚡ EMPATE!" : "⚡ DRAW!"); }
+        else if (data.winner === mySide) { setEnded({ type:"win", text: isPT ? "VOCÊ VENCEU!" : "YOU WIN!" }); addLog(isPT ? `✓ ${myNick} venceu!` : `✓ ${myNick} wins!`); }
+        else { setEnded({ type:"loss", text: isPT ? "Você perdeu." : "You lost." }); addLog(isPT ? `✕ ${oppNick} venceu.` : `✕ ${oppNick} wins.`); }
+      }
+    };
+    const onOpponentLeft  = () => {
+      setEnded({ type:"win", text: isPT ? "Oponente desconectou — VOCÊ VENCEU!" : "Opponent disconnected — YOU WIN!" });
+      addLog(isPT ? "🔌 Oponente desconectou." : "🔌 Opponent disconnected.");
+    };
     const onSurrendered   = (data) => {
       const iWon = data.winnerSide === mySide;
       setEnded({ type: iWon ? "win" : "loss", text: iWon
         ? (isPT ? "Oponente desistiu — VOCÊ VENCEU!" : "Opponent surrendered — YOU WIN!")
         : (isPT ? "Você desistiu." : "You surrendered.") });
+      addLog(iWon
+        ? (isPT ? `🏳 ${oppNick} se rendeu.` : `🏳 ${oppNick} surrendered.`)
+        : (isPT ? "🏳 Você se rendeu." : "🏳 You surrendered."));
     };
 
     socket.on("phase:trinityResult", onTrinityResult);
@@ -5732,8 +5793,8 @@ function PvpArenaPlaceholder({ onBack }) {
   };
 
   function PvpPhaseHeader() {
-    const myGen  = _optionalChain([resolveDeck, 'call', _76 => _76(), 'optionalAccess', _77 => _77.general]);
-    const oppGen = _optionalChain([match, 'optionalAccess', _78 => _78.opponentDeck, 'optionalAccess', _79 => _79.general]);
+    const myGen  = _optionalChain([resolveDeck, 'call', _90 => _90(), 'optionalAccess', _91 => _91.general]);
+    const oppGen = _optionalChain([match, 'optionalAccess', _92 => _92.opponentDeck, 'optionalAccess', _93 => _93.general]);
 
     return (
       React.createElement('div', { style: {flexShrink:0, width:"100%", marginBottom:10},}
@@ -5783,8 +5844,8 @@ function PvpArenaPlaceholder({ onBack }) {
                 , React.createElement('div', { style: {fontSize:11, fontWeight:700, color:C.textPrimary, fontFamily:"monospace",
                   whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:90, marginBottom:2},}, myGen.name)
                 , React.createElement('div', { style: {display:"flex", gap:6},}
-                  , React.createElement('span', { style: {fontSize:10, color:"#44ee88", fontFamily:"monospace", fontWeight:700},}, "HP " , battle ? Math.max(0,_nullishCoalesce(_optionalChain([(mySide==="A"?battle.stateA:battle.stateB), 'optionalAccess', _80 => _80.hp]), () => ( myGen.hp))) : myGen.hp)
-                  , React.createElement('span', { style: {fontSize:10, color:"#ff8844", fontFamily:"monospace", fontWeight:700},}, "AP " , battle ? _nullishCoalesce(_optionalChain([(mySide==="A"?battle.stateA:battle.stateB), 'optionalAccess', _81 => _81.ap]), () => ( myGen.ap)) : myGen.ap)
+                  , React.createElement('span', { style: {fontSize:10, color:"#44ee88", fontFamily:"monospace", fontWeight:700},}, "HP " , battle ? Math.max(0,_nullishCoalesce(_optionalChain([(mySide==="A"?battle.stateA:battle.stateB), 'optionalAccess', _94 => _94.hp]), () => ( myGen.hp))) : myGen.hp)
+                  , React.createElement('span', { style: {fontSize:10, color:"#ff8844", fontFamily:"monospace", fontWeight:700},}, "AP " , battle ? _nullishCoalesce(_optionalChain([(mySide==="A"?battle.stateA:battle.stateB), 'optionalAccess', _95 => _95.ap]), () => ( myGen.ap)) : myGen.ap)
                 )
                 , React.createElement('div', { style: {fontSize:9, color:"#cc88ff", fontFamily:"monospace"},}, "Chr " , myGen.charisma, " · "  , myGen.type)
               )
@@ -5797,8 +5858,8 @@ function PvpArenaPlaceholder({ onBack }) {
                 , React.createElement('div', { style: {fontSize:11, fontWeight:700, color:C.textPrimary, fontFamily:"monospace",
                   whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:90, marginBottom:2},}, oppGen.name)
                 , React.createElement('div', { style: {display:"flex", gap:6, justifyContent:"flex-end"},}
-                  , React.createElement('span', { style: {fontSize:10, color:"#44ee88", fontFamily:"monospace", fontWeight:700},}, "HP " , battle ? Math.max(0,_nullishCoalesce(_optionalChain([(mySide==="A"?battle.stateB:battle.stateA), 'optionalAccess', _82 => _82.hp]), () => ( oppGen.hp))) : oppGen.hp)
-                  , React.createElement('span', { style: {fontSize:10, color:"#ff8844", fontFamily:"monospace", fontWeight:700},}, "AP " , battle ? _nullishCoalesce(_optionalChain([(mySide==="A"?battle.stateB:battle.stateA), 'optionalAccess', _83 => _83.ap]), () => ( oppGen.ap)) : oppGen.ap)
+                  , React.createElement('span', { style: {fontSize:10, color:"#44ee88", fontFamily:"monospace", fontWeight:700},}, "HP " , battle ? Math.max(0,_nullishCoalesce(_optionalChain([(mySide==="A"?battle.stateB:battle.stateA), 'optionalAccess', _96 => _96.hp]), () => ( oppGen.hp))) : oppGen.hp)
+                  , React.createElement('span', { style: {fontSize:10, color:"#ff8844", fontFamily:"monospace", fontWeight:700},}, "AP " , battle ? _nullishCoalesce(_optionalChain([(mySide==="A"?battle.stateB:battle.stateA), 'optionalAccess', _97 => _97.ap]), () => ( oppGen.ap)) : oppGen.ap)
                 )
                 , React.createElement('div', { style: {fontSize:9, color:"#cc88ff", fontFamily:"monospace"},}, oppGen.type, " · Chr "   , oppGen.charisma)
               )
@@ -5879,6 +5940,7 @@ function PvpArenaPlaceholder({ onBack }) {
               , isPT ? "Aguardando oponente..." : "Waiting for opponent..."
             )
           )
+          , React.createElement(ArenaLogPanel, null )
         )
       )
     );
@@ -5888,9 +5950,9 @@ function PvpArenaPlaceholder({ onBack }) {
   if (phase === "reveal") {
     const ack = () => { setRevealAcked(true); send("reveal_ack", true); };
     const myDeck  = resolveDeck();
-    const oppDeck = _optionalChain([match, 'optionalAccess', _84 => _84.opponentDeck]);
-    const myUnitsR  = _optionalChain([myDeck, 'optionalAccess', _85 => _85.units]) || [];
-    const oppUnitsR = _optionalChain([oppDeck, 'optionalAccess', _86 => _86.units]) || [];
+    const oppDeck = _optionalChain([match, 'optionalAccess', _98 => _98.opponentDeck]);
+    const myUnitsR  = _optionalChain([myDeck, 'optionalAccess', _99 => _99.units]) || [];
+    const oppUnitsR = _optionalChain([oppDeck, 'optionalAccess', _100 => _100.units]) || [];
 
     function PoolColumn({ units, label, color, glow, bg, borderTint }) {
       return (
@@ -5948,6 +6010,7 @@ function PvpArenaPlaceholder({ onBack }) {
               color: "#ff4466", glow: "rgba(255,40,80,0.4)", bg: "rgba(50,0,10,0.45)",}
             )
           )
+          , React.createElement(ArenaLogPanel, null )
         )
         /* Bottom button — sticky, NOT fixed, same pattern as vs-AI arena */
         , React.createElement('div', { style: {flexShrink:0, padding:"10px 14px", background:"rgba(2,4,38,0.95)",
@@ -6037,7 +6100,7 @@ function PvpArenaPlaceholder({ onBack }) {
                 , pvpInfoCard.junction
               )
               , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:"rgba(180,220,255,0.85)", lineHeight:1.55},}
-                , (_optionalChain([JUNCTION_DESC, 'access', _87 => _87[pvpInfoCard.junction], 'optionalAccess', _88 => _88[isPT?"pt":"en"]])) || "— No description available."
+                , (_optionalChain([JUNCTION_DESC, 'access', _101 => _101[pvpInfoCard.junction], 'optionalAccess', _102 => _102[isPT?"pt":"en"]])) || "— No description available."
               )
             )
           )
@@ -6050,10 +6113,31 @@ function PvpArenaPlaceholder({ onBack }) {
     );
   }
 
+  // Persistent log panel — shown in every phase, from Trinity onward.
+  function ArenaLogPanel() {
+    return (
+      React.createElement('div', { style: {
+        marginTop:14, marginBottom:14, maxHeight:130, overflowY:"auto",
+        background:"rgba(0,0,0,0.25)", border:`1px solid ${C.border}`,
+        borderRadius:8, padding:"8px 10px", display:"flex", flexDirection:"column", gap:3,
+      },}
+        , arenaLog.length === 0 ? (
+          React.createElement('div', { style: {fontFamily:"monospace", fontSize:10, color:C.textMuted, opacity:0.6},}
+            , isPT ? "Nenhum evento ainda." : "No events yet."
+          )
+        ) : (
+          arenaLog.slice(-30).map((l, i) => (
+            React.createElement('div', { key: i, style: {fontFamily:"monospace", fontSize:10, color:"rgba(200,220,255,0.75)", lineHeight:1.4},}, l)
+          ))
+        )
+      )
+    );
+  }
+
   // ── PHASE: BAN — pick one opponent unit to remove from their pool ───────
   if (phase === "ban") {
-    const oppDeck = _optionalChain([match, 'optionalAccess', _89 => _89.opponentDeck]);
-    const oppUnits = _optionalChain([oppDeck, 'optionalAccess', _90 => _90.units]) || [];
+    const oppDeck = _optionalChain([match, 'optionalAccess', _103 => _103.opponentDeck]);
+    const oppUnits = _optionalChain([oppDeck, 'optionalAccess', _104 => _104.units]) || [];
 
     const confirmBan = () => {
       if (!myBanPick) return;
@@ -6109,6 +6193,7 @@ function PvpArenaPlaceholder({ onBack }) {
               , isPT ? "Unidades banidas processadas." : "Banned units processed."
             )
           )
+          , React.createElement(ArenaLogPanel, null )
         )
         , React.createElement(PvpCardInfoPopup, null )
       )
@@ -6118,8 +6203,8 @@ function PvpArenaPlaceholder({ onBack }) {
   // ── PHASE: CUT — keep 3 of your remaining (non-banned) units ───────────
   if (phase === "cut") {
     const myDeck = resolveDeck();
-    const myBannedId = _optionalChain([banResult, 'optionalAccess', _91 => _91.bannedFromA]) === mySide ? null : (mySide === "A" ? _optionalChain([banResult, 'optionalAccess', _92 => _92.bannedFromA]) : _optionalChain([banResult, 'optionalAccess', _93 => _93.bannedFromB]));
-    const remaining = (_optionalChain([myDeck, 'optionalAccess', _94 => _94.units]) || []).filter(u => u.id !== myBannedId);
+    const myBannedId = _optionalChain([banResult, 'optionalAccess', _105 => _105.bannedFromA]) === mySide ? null : (mySide === "A" ? _optionalChain([banResult, 'optionalAccess', _106 => _106.bannedFromA]) : _optionalChain([banResult, 'optionalAccess', _107 => _107.bannedFromB]));
+    const remaining = (_optionalChain([myDeck, 'optionalAccess', _108 => _108.units]) || []).filter(u => u.id !== myBannedId);
 
     const toggleCut = (id) => {
       if (cutWaiting) return;
@@ -6176,6 +6261,7 @@ function PvpArenaPlaceholder({ onBack }) {
             color:C.cyan, fontFamily:"monospace", fontSize:13, fontWeight:700,
             opacity: (myCutPicks.length !== 3 || cutWaiting) ? 0.5 : 1,
           },}, cutWaiting ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...") : (isPT ? "Confirmar Corte" : "Confirm Cut"))
+          , React.createElement(ArenaLogPanel, null )
         )
         , React.createElement(PvpCardInfoPopup, null )
       )
@@ -6186,7 +6272,7 @@ function PvpArenaPlaceholder({ onBack }) {
   if (phase === "confirm") {
     const myDeck = resolveDeck();
     const myKeptIds = cutResult ? (mySide === "A" ? cutResult.cutA : cutResult.cutB) : myCutPicks;
-    const myKept = (_optionalChain([myDeck, 'optionalAccess', _95 => _95.units]) || []).filter(u => myKeptIds.includes(u.id));
+    const myKept = (_optionalChain([myDeck, 'optionalAccess', _109 => _109.units]) || []).filter(u => myKeptIds.includes(u.id));
 
     const confirmReady = () => {
       setConfirmWaiting(true);
@@ -6224,6 +6310,7 @@ function PvpArenaPlaceholder({ onBack }) {
             color:C.cyan, fontFamily:"monospace", fontSize:13, fontWeight:700,
             opacity: confirmWaiting ? 0.5 : 1,
           },}, confirmWaiting ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...") : (isPT ? "Pronto para o Combate" : "Ready for Combat"))
+          , React.createElement(ArenaLogPanel, null )
         )
         , React.createElement(PvpCardInfoPopup, null )
       )
@@ -6234,7 +6321,7 @@ function PvpArenaPlaceholder({ onBack }) {
   if (phase === "clash") {
     const myDeck = resolveDeck();
     const myKeptIds = cutResult ? (mySide === "A" ? cutResult.cutA : cutResult.cutB) : myCutPicks;
-    const myKept = (_optionalChain([myDeck, 'optionalAccess', _96 => _96.units]) || []).filter(u => myKeptIds.includes(u.id));
+    const myKept = (_optionalChain([myDeck, 'optionalAccess', _110 => _110.units]) || []).filter(u => myKeptIds.includes(u.id));
 
     const placeAt = (slotIdx, unitId) => {
       if (clashWaiting) return;
@@ -6323,6 +6410,7 @@ function PvpArenaPlaceholder({ onBack }) {
             color:C.cyan, fontFamily:"monospace", fontSize:13, fontWeight:700,
             opacity: (clashLayout.some(s => s === null) || clashWaiting) ? 0.5 : 1,
           },}, clashWaiting ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...") : (isPT ? "Confirmar Posições" : "Confirm Positions"))
+          , React.createElement(ArenaLogPanel, null )
         )
         , React.createElement(PvpCardInfoPopup, null )
       )
@@ -6333,9 +6421,13 @@ function PvpArenaPlaceholder({ onBack }) {
   if (phase === "battle" && battle) {
     const myState  = mySide === "A" ? battle.stateA : battle.stateB;
     const oppState = mySide === "A" ? battle.stateB : battle.stateA;
-    const myTurn   = battle.currentSide === mySide;
+    const myTurn   = battle.currentSide === mySide && !battle.over;
 
-    const attack = () => send("attack", true) || socket.emit("battle:turn", { roomId: match.roomId });
+    const attack = () => {
+      if (!myTurn || attackWaiting) return;
+      setAttackWaiting(true);
+      socket.emit("battle:turn", { roomId: match.roomId });
+    };
 
     return (
       React.createElement('div', { style: S.root,}
@@ -6344,8 +6436,8 @@ function PvpArenaPlaceholder({ onBack }) {
 
           , React.createElement('div', { style: {...S.card, border:"1px solid rgba(255,40,60,0.3)", background:"rgba(50,0,10,0.35)", marginBottom:8},}
             , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:"#ff6677"},}, oppNick)
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:"#ff4466"},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _97 => _97.hp]), () => ( 0))))
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _98 => _98.ap]), () => ( 0)))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:"#ff4466"},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _111 => _111.hp]), () => ( 0))))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _112 => _112.ap]), () => ( 0)))
           )
 
           , React.createElement('div', { style: {textAlign:"center", fontFamily:"monospace", fontSize:11, color: myTurn ? C.cyan : C.textMuted, fontWeight:700, marginBottom:8},}
@@ -6355,23 +6447,25 @@ function PvpArenaPlaceholder({ onBack }) {
 
           , React.createElement('div', { style: {...S.card, border:`1px solid ${C.border}`, background:"rgba(0,10,60,0.45)", marginBottom:14},}
             , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:C.cyan},}, myNick)
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:C.cyan},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _99 => _99.hp]), () => ( 0))))
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _100 => _100.ap]), () => ( 0)))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:C.cyan},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _113 => _113.hp]), () => ( 0))))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _114 => _114.ap]), () => ( 0)))
           )
 
-          , React.createElement('button', { onClick: attack, disabled: !myTurn, style: {
-            width:"100%", padding:"13px 0", borderRadius:10, cursor: myTurn ? "pointer" : "not-allowed",
-            background: myTurn ? "rgba(0,245,255,0.1)" : "rgba(255,255,255,0.03)",
-            border: `1px solid ${myTurn ? "rgba(0,245,255,0.4)" : "rgba(255,255,255,0.1)"}`,
-            color: myTurn ? C.cyan : C.textMuted, fontFamily:"monospace", fontSize:14, fontWeight:700,
-            opacity: myTurn ? 1 : 0.5, marginBottom:14,
-          },}, "⚔ " , isPT ? "Atacar" : "Attack")
+          , React.createElement('button', { onClick: attack, disabled: !myTurn || attackWaiting, style: {
+            width:"100%", padding:"13px 0", borderRadius:10, cursor: (myTurn && !attackWaiting) ? "pointer" : "not-allowed",
+            background: (myTurn && !attackWaiting) ? "rgba(0,245,255,0.1)" : "rgba(255,255,255,0.03)",
+            border: `1px solid ${(myTurn && !attackWaiting) ? "rgba(0,245,255,0.4)" : "rgba(255,255,255,0.1)"}`,
+            color: (myTurn && !attackWaiting) ? C.cyan : C.textMuted, fontFamily:"monospace", fontSize:14, fontWeight:700,
+            opacity: (myTurn && !attackWaiting) ? 1 : 0.5, marginBottom:6,
+          },}, attackWaiting ? (isPT ? "Processando..." : "Processing...") : `⚔ ${isPT ? "Atacar" : "Attack"}`)
 
-          , React.createElement('div', { style: {maxHeight:160, overflowY:"auto", display:"flex", flexDirection:"column", gap:4, marginBottom:14},}
-            , battleLog.slice(-12).map((l, i) => (
-              React.createElement('div', { key: i, style: {fontFamily:"monospace", fontSize:10, color:"rgba(200,220,255,0.7)"},}, l)
-            ))
+          , !myTurn && !battle.over && (
+            React.createElement('div', { style: {textAlign:"center", fontFamily:"monospace", fontSize:10, color:C.textMuted, marginBottom:14},}
+              , isPT ? "Aguardando ataque do oponente..." : "Waiting for opponent's attack..."
+            )
           )
+
+          , React.createElement(ArenaLogPanel, null )
 
           , React.createElement('button', { onClick: surrender, style: {
             width:"100%", padding:"11px 0", borderRadius:9, cursor:"pointer",
