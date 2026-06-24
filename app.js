@@ -237,7 +237,7 @@ function usePvpConnection() {
   return { socket, connected, connectError, enabled: !!PVP_SERVER_URL };
 }
 
-const CVS_VERSION = "v0.8.1";
+const CVS_VERSION = "v0.8.2";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
@@ -5714,6 +5714,7 @@ function PvpArenaPlaceholder({ onBack }) {
       if (oppKeptNames) addLog(isPT ? `✂ ${oppNick} manteve: ${oppKeptNames}` : `✂ ${oppNick} kept: ${oppKeptNames}`);
     };
     const onClashReady    = (data) => {
+      setClashWaiting(false);
       setClashStep(data.step); setClashMyAck(false); setClashOppAck(false);
     };
     const onClashAdvanceAcked = (data) => {
