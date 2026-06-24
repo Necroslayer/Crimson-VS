@@ -237,7 +237,7 @@ function usePvpConnection() {
   return { socket, connected, connectError, enabled: !!PVP_SERVER_URL };
 }
 
-const CVS_VERSION = "v0.8.0";
+const CVS_VERSION = "v0.8.1";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
@@ -5623,6 +5623,10 @@ function PvpArenaPlaceholder({ onBack }) {
   const [clashLayout, setClashLayout] = useState([null, null, null]);
   const [clashWaiting, setClashWaiting] = useState(false);
   const [clashResult, setClashResult] = useState(null);
+  const [clashStep, setClashStep] = useState(0);       // 0,1,2 = position index, 3 = done
+  const [clashStepResults, setClashStepResults] = useState([]); // [{position, unitAId, unitBId, winner}]
+  const [clashMyAck, setClashMyAck] = useState(false);
+  const [clashOppAck, setClashOppAck] = useState(false);
 
   // Battle
   const [battle, setBattle] = useState(null);
@@ -5709,10 +5713,31 @@ function PvpArenaPlaceholder({ onBack }) {
       if (myKeptNames)  addLog(isPT ? `✂ Você manteve: ${myKeptNames}` : `✂ You kept: ${myKeptNames}`);
       if (oppKeptNames) addLog(isPT ? `✂ ${oppNick} manteve: ${oppKeptNames}` : `✂ ${oppNick} kept: ${oppKeptNames}`);
     };
+    const onClashReady    = (data) => {
+      setClashStep(data.step); setClashMyAck(false); setClashOppAck(false);
+    };
+    const onClashAdvanceAcked = (data) => {
+      if (data.side === mySide) setClashMyAck(true);
+      else setClashOppAck(true);
+    };
+    const onClashStepResult = (data) => {
+      setClashStepResults(prev => [...prev, data]);
+      setClashMyAck(false); setClashOppAck(false);
+      const myDeckS  = resolveDeck();
+      const oppDeckS = _optionalChain([match, 'optionalAccess', _90 => _90.opponentDeck]);
+      const unitA = _optionalChain([myDeckS, 'optionalAccess', _91 => _91.units, 'optionalAccess', _92 => _92.find, 'call', _93 => _93(u => u.id === data.unitAId)]) || _optionalChain([oppDeckS, 'optionalAccess', _94 => _94.units, 'optionalAccess', _95 => _95.find, 'call', _96 => _96(u => u.id === data.unitAId)]);
+      const unitB = _optionalChain([myDeckS, 'optionalAccess', _97 => _97.units, 'optionalAccess', _98 => _98.find, 'call', _99 => _99(u => u.id === data.unitBId)]) || _optionalChain([oppDeckS, 'optionalAccess', _100 => _100.units, 'optionalAccess', _101 => _101.find, 'call', _102 => _102(u => u.id === data.unitBId)]);
+      if (data.winner === "fizzle") {
+        addLog(isPT ? `⚡ ${data.position}: FIZZLE — ambos destruídos` : `⚡ ${data.position}: FIZZLE — both destroyed`);
+      } else if (unitA && unitB) {
+        const winnerUnit = data.winner === "A" ? unitA : unitB;
+        const loserUnit  = data.winner === "A" ? unitB : unitA;
+        addLog(isPT ? `✓ ${data.position}: ${winnerUnit.name} derrota ${loserUnit.name}` : `✓ ${data.position}: ${winnerUnit.name} defeats ${loserUnit.name}`);
+      }
+    };
     const onClashResult   = (data) => {
       setClashResult(data); setClashWaiting(false); setBattle(data.battle);
-      addLog(isPT ? "⚔ Clash resolvido:" : "⚔ Clash resolved:");
-      (data.clashLog || []).forEach(line => addLog(line));
+      addLog(isPT ? "⚔ Clash resolvido — Batalha começando!" : "⚔ Clash resolved — Battle starting!");
     };
     const onBattleTurn    = (data) => {
       setAttackWaiting(false);
@@ -5743,6 +5768,9 @@ function PvpArenaPlaceholder({ onBack }) {
     socket.on("phase:advance",       onAdvance);
     socket.on("phase:banResult",     onBanResult);
     socket.on("phase:cutResult",     onCutResult);
+    socket.on("phase:clashReady",        onClashReady);
+    socket.on("phase:clashAdvanceAcked", onClashAdvanceAcked);
+    socket.on("phase:clashStepResult",   onClashStepResult);
     socket.on("phase:clashResult",   onClashResult);
     socket.on("battle:turnResult",   onBattleTurn);
     socket.on("match:opponentLeft",  onOpponentLeft);
@@ -5754,6 +5782,9 @@ function PvpArenaPlaceholder({ onBack }) {
       socket.off("phase:advance",       onAdvance);
       socket.off("phase:banResult",     onBanResult);
       socket.off("phase:cutResult",     onCutResult);
+      socket.off("phase:clashReady",        onClashReady);
+      socket.off("phase:clashAdvanceAcked", onClashAdvanceAcked);
+      socket.off("phase:clashStepResult",   onClashStepResult);
       socket.off("phase:clashResult",   onClashResult);
       socket.off("battle:turnResult",   onBattleTurn);
       socket.off("match:opponentLeft",  onOpponentLeft);
@@ -5793,8 +5824,8 @@ function PvpArenaPlaceholder({ onBack }) {
   };
 
   function PvpPhaseHeader() {
-    const myGen  = _optionalChain([resolveDeck, 'call', _90 => _90(), 'optionalAccess', _91 => _91.general]);
-    const oppGen = _optionalChain([match, 'optionalAccess', _92 => _92.opponentDeck, 'optionalAccess', _93 => _93.general]);
+    const myGen  = _optionalChain([resolveDeck, 'call', _103 => _103(), 'optionalAccess', _104 => _104.general]);
+    const oppGen = _optionalChain([match, 'optionalAccess', _105 => _105.opponentDeck, 'optionalAccess', _106 => _106.general]);
 
     return (
       React.createElement('div', { style: {flexShrink:0, width:"100%", marginBottom:10},}
@@ -5844,8 +5875,8 @@ function PvpArenaPlaceholder({ onBack }) {
                 , React.createElement('div', { style: {fontSize:11, fontWeight:700, color:C.textPrimary, fontFamily:"monospace",
                   whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:90, marginBottom:2},}, myGen.name)
                 , React.createElement('div', { style: {display:"flex", gap:6},}
-                  , React.createElement('span', { style: {fontSize:10, color:"#44ee88", fontFamily:"monospace", fontWeight:700},}, "HP " , battle ? Math.max(0,_nullishCoalesce(_optionalChain([(mySide==="A"?battle.stateA:battle.stateB), 'optionalAccess', _94 => _94.hp]), () => ( myGen.hp))) : myGen.hp)
-                  , React.createElement('span', { style: {fontSize:10, color:"#ff8844", fontFamily:"monospace", fontWeight:700},}, "AP " , battle ? _nullishCoalesce(_optionalChain([(mySide==="A"?battle.stateA:battle.stateB), 'optionalAccess', _95 => _95.ap]), () => ( myGen.ap)) : myGen.ap)
+                  , React.createElement('span', { style: {fontSize:10, color:"#44ee88", fontFamily:"monospace", fontWeight:700},}, "HP " , battle ? Math.max(0,_nullishCoalesce(_optionalChain([(mySide==="A"?battle.stateA:battle.stateB), 'optionalAccess', _107 => _107.hp]), () => ( myGen.hp))) : myGen.hp)
+                  , React.createElement('span', { style: {fontSize:10, color:"#ff8844", fontFamily:"monospace", fontWeight:700},}, "AP " , battle ? _nullishCoalesce(_optionalChain([(mySide==="A"?battle.stateA:battle.stateB), 'optionalAccess', _108 => _108.ap]), () => ( myGen.ap)) : myGen.ap)
                 )
                 , React.createElement('div', { style: {fontSize:9, color:"#cc88ff", fontFamily:"monospace"},}, "Chr " , myGen.charisma, " · "  , myGen.type)
               )
@@ -5858,8 +5889,8 @@ function PvpArenaPlaceholder({ onBack }) {
                 , React.createElement('div', { style: {fontSize:11, fontWeight:700, color:C.textPrimary, fontFamily:"monospace",
                   whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:90, marginBottom:2},}, oppGen.name)
                 , React.createElement('div', { style: {display:"flex", gap:6, justifyContent:"flex-end"},}
-                  , React.createElement('span', { style: {fontSize:10, color:"#44ee88", fontFamily:"monospace", fontWeight:700},}, "HP " , battle ? Math.max(0,_nullishCoalesce(_optionalChain([(mySide==="A"?battle.stateB:battle.stateA), 'optionalAccess', _96 => _96.hp]), () => ( oppGen.hp))) : oppGen.hp)
-                  , React.createElement('span', { style: {fontSize:10, color:"#ff8844", fontFamily:"monospace", fontWeight:700},}, "AP " , battle ? _nullishCoalesce(_optionalChain([(mySide==="A"?battle.stateB:battle.stateA), 'optionalAccess', _97 => _97.ap]), () => ( oppGen.ap)) : oppGen.ap)
+                  , React.createElement('span', { style: {fontSize:10, color:"#44ee88", fontFamily:"monospace", fontWeight:700},}, "HP " , battle ? Math.max(0,_nullishCoalesce(_optionalChain([(mySide==="A"?battle.stateB:battle.stateA), 'optionalAccess', _109 => _109.hp]), () => ( oppGen.hp))) : oppGen.hp)
+                  , React.createElement('span', { style: {fontSize:10, color:"#ff8844", fontFamily:"monospace", fontWeight:700},}, "AP " , battle ? _nullishCoalesce(_optionalChain([(mySide==="A"?battle.stateB:battle.stateA), 'optionalAccess', _110 => _110.ap]), () => ( oppGen.ap)) : oppGen.ap)
                 )
                 , React.createElement('div', { style: {fontSize:9, color:"#cc88ff", fontFamily:"monospace"},}, oppGen.type, " · Chr "   , oppGen.charisma)
               )
@@ -5950,9 +5981,9 @@ function PvpArenaPlaceholder({ onBack }) {
   if (phase === "reveal") {
     const ack = () => { setRevealAcked(true); send("reveal_ack", true); };
     const myDeck  = resolveDeck();
-    const oppDeck = _optionalChain([match, 'optionalAccess', _98 => _98.opponentDeck]);
-    const myUnitsR  = _optionalChain([myDeck, 'optionalAccess', _99 => _99.units]) || [];
-    const oppUnitsR = _optionalChain([oppDeck, 'optionalAccess', _100 => _100.units]) || [];
+    const oppDeck = _optionalChain([match, 'optionalAccess', _111 => _111.opponentDeck]);
+    const myUnitsR  = _optionalChain([myDeck, 'optionalAccess', _112 => _112.units]) || [];
+    const oppUnitsR = _optionalChain([oppDeck, 'optionalAccess', _113 => _113.units]) || [];
 
     function PoolColumn({ units, label, color, glow, bg, borderTint }) {
       return (
@@ -6100,7 +6131,7 @@ function PvpArenaPlaceholder({ onBack }) {
                 , pvpInfoCard.junction
               )
               , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:"rgba(180,220,255,0.85)", lineHeight:1.55},}
-                , (_optionalChain([JUNCTION_DESC, 'access', _101 => _101[pvpInfoCard.junction], 'optionalAccess', _102 => _102[isPT?"pt":"en"]])) || "— No description available."
+                , (_optionalChain([JUNCTION_DESC, 'access', _114 => _114[pvpInfoCard.junction], 'optionalAccess', _115 => _115[isPT?"pt":"en"]])) || "— No description available."
               )
             )
           )
@@ -6136,8 +6167,8 @@ function PvpArenaPlaceholder({ onBack }) {
 
   // ── PHASE: BAN — pick one opponent unit to remove from their pool ───────
   if (phase === "ban") {
-    const oppDeck = _optionalChain([match, 'optionalAccess', _103 => _103.opponentDeck]);
-    const oppUnits = _optionalChain([oppDeck, 'optionalAccess', _104 => _104.units]) || [];
+    const oppDeck = _optionalChain([match, 'optionalAccess', _116 => _116.opponentDeck]);
+    const oppUnits = _optionalChain([oppDeck, 'optionalAccess', _117 => _117.units]) || [];
 
     const confirmBan = () => {
       if (!myBanPick) return;
@@ -6203,8 +6234,8 @@ function PvpArenaPlaceholder({ onBack }) {
   // ── PHASE: CUT — keep 3 of your remaining (non-banned) units ───────────
   if (phase === "cut") {
     const myDeck = resolveDeck();
-    const myBannedId = _optionalChain([banResult, 'optionalAccess', _105 => _105.bannedFromA]) === mySide ? null : (mySide === "A" ? _optionalChain([banResult, 'optionalAccess', _106 => _106.bannedFromA]) : _optionalChain([banResult, 'optionalAccess', _107 => _107.bannedFromB]));
-    const remaining = (_optionalChain([myDeck, 'optionalAccess', _108 => _108.units]) || []).filter(u => u.id !== myBannedId);
+    const myBannedId = _optionalChain([banResult, 'optionalAccess', _118 => _118.bannedFromA]) === mySide ? null : (mySide === "A" ? _optionalChain([banResult, 'optionalAccess', _119 => _119.bannedFromA]) : _optionalChain([banResult, 'optionalAccess', _120 => _120.bannedFromB]));
+    const remaining = (_optionalChain([myDeck, 'optionalAccess', _121 => _121.units]) || []).filter(u => u.id !== myBannedId);
 
     const toggleCut = (id) => {
       if (cutWaiting) return;
@@ -6272,7 +6303,7 @@ function PvpArenaPlaceholder({ onBack }) {
   if (phase === "confirm") {
     const myDeck = resolveDeck();
     const myKeptIds = cutResult ? (mySide === "A" ? cutResult.cutA : cutResult.cutB) : myCutPicks;
-    const myKept = (_optionalChain([myDeck, 'optionalAccess', _109 => _109.units]) || []).filter(u => myKeptIds.includes(u.id));
+    const myKept = (_optionalChain([myDeck, 'optionalAccess', _122 => _122.units]) || []).filter(u => myKeptIds.includes(u.id));
 
     const confirmReady = () => {
       setConfirmWaiting(true);
@@ -6319,15 +6350,19 @@ function PvpArenaPlaceholder({ onBack }) {
 
   // ── PHASE: CLASH — arrange your 3 units into Left/Center/Right ─────────
   if (phase === "clash") {
-    const myDeck = resolveDeck();
+    const myDeck  = resolveDeck();
+    const oppDeck = _optionalChain([match, 'optionalAccess', _123 => _123.opponentDeck]);
     const myKeptIds = cutResult ? (mySide === "A" ? cutResult.cutA : cutResult.cutB) : myCutPicks;
-    const myKept = (_optionalChain([myDeck, 'optionalAccess', _110 => _110.units]) || []).filter(u => myKeptIds.includes(u.id));
+    const myKept = (_optionalChain([myDeck, 'optionalAccess', _124 => _124.units]) || []).filter(u => myKeptIds.includes(u.id));
+
+    // POS_LABELS index 0 = Right, 1 = Center, 2 = Left — matches the vs-AI
+    // arena and the backend's CLASH_POSITIONS order exactly.
+    const POS_LABELS = [isPT ? "DIREITA" : "RIGHT", isPT ? "CENTRO" : "CENTER", isPT ? "ESQUERDA" : "LEFT"];
 
     const placeAt = (slotIdx, unitId) => {
       if (clashWaiting) return;
       setClashLayout(prev => {
         const next = [...prev];
-        // Remove this unit from any other slot first
         for (let i = 0; i < 3; i++) if (next[i] === unitId) next[i] = null;
         next[slotIdx] = unitId;
         return next;
@@ -6340,76 +6375,189 @@ function PvpArenaPlaceholder({ onBack }) {
       send("clash_layout", { layout: clashLayout });
     };
 
-    const slotLabels = [isPT ? "ESQUERDA" : "LEFT", isPT ? "CENTRO" : "CENTER", isPT ? "DIREITA" : "RIGHT"];
+    const advanceStep = () => {
+      if (clashMyAck) return;
+      setClashMyAck(true);
+      socket.emit("phase:action", { roomId: match.roomId, type: "clash_advance", payload: true });
+    };
+
+    // ── Step 1: layout selection (before the server has acked clash_layout) ──
+    if (!clashWaiting && clashStepResults.length === 0 && clashStep === 0 && !battle) {
+      return (
+        React.createElement('div', { style: S.root,}
+          , React.createElement('div', { style: {...S.content, paddingBottom:"2rem"},}
+            , React.createElement(PvpPhaseHeader, null )
+            , React.createElement('h1', { style: {...S.screenTitle, fontSize:16, marginBottom:6},}, "⚔ " , isPT ? "Clash" : "Clash")
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted, textAlign:"center", marginBottom:14},}
+              , isPT ? "Posicione suas unidades nas 3 posições" : "Arrange your units into the 3 positions"
+            )
+
+            , React.createElement('div', { style: {display:"flex", gap:8, justifyContent:"center", marginBottom:16},}
+              , [0,1,2].map(slotIdx => {
+                const unitId = clashLayout[slotIdx];
+                const unit = myKept.find(u => u.id === unitId);
+                return (
+                  React.createElement('div', { key: slotIdx, style: {width:80, textAlign:"center"},}
+                    , React.createElement('div', { style: {fontFamily:"monospace", fontSize:8, color:C.textMuted, marginBottom:3},}, POS_LABELS[slotIdx])
+                    , React.createElement('div', { style: {aspectRatio:"3/4", borderRadius:8, overflow:"hidden",
+                      border: unit ? `2px solid ${TYPE_COLOR[unit.type]||"#aaa"}` : "1.5px dashed rgba(255,255,255,0.2)",
+                      background:"rgba(255,255,255,0.03)"},}
+                      , unit && React.createElement('img', { src: IMGS[(unit.img||"").replace(".png","")]||"", alt: unit.name, style: {width:"100%", height:"100%", objectFit:"cover"},})
+                    )
+                  )
+                );
+              })
+            )
+
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:C.textMuted, textAlign:"center", marginBottom:6},}
+              , isPT ? "Toque numa unidade, depois num slot" : "Tap a unit, then tap a slot"
+            )
+            , React.createElement('div', { style: {display:"flex", gap:8, justifyContent:"center", marginBottom:18},}
+              , myKept.map(u => {
+                const placedSlot = clashLayout.indexOf(u.id);
+                return (
+                  React.createElement('div', { key: u.id, onClick: () => {
+                    if (clashWaiting) return;
+                    const emptySlot = clashLayout.indexOf(null);
+                    if (placedSlot >= 0) {
+                      setClashLayout(prev => { const n=[...prev]; n[placedSlot]=null; return n; });
+                    } else if (emptySlot >= 0) {
+                      placeAt(emptySlot, u.id);
+                    }
+                  }, style: {
+                    position:"relative", width:56, aspectRatio:"3/4", borderRadius:6, overflow:"hidden", cursor: clashWaiting ? "default" : "pointer",
+                    border: placedSlot >= 0 ? `2px solid ${TYPE_COLOR[u.type]||"#aaa"}` : "1.5px solid rgba(255,255,255,0.15)",
+                    opacity: placedSlot >= 0 ? 0.35 : 1,
+                  },}
+                    , React.createElement('img', { src: IMGS[(u.img||"").replace(".png","")]||"", alt: u.name, style: {width:"100%", height:"100%", objectFit:"cover"},})
+                    , React.createElement('button', { onClick: e=>{e.stopPropagation();setPvpInfoCard(u);}, style: {
+                      position:"absolute", top:2, right:2, zIndex:5,
+                      background:"rgba(0,0,0,0.65)", border:"1px solid rgba(255,255,255,0.25)",
+                      borderRadius:"50%", width:15, height:15, cursor:"pointer",
+                      color:"rgba(255,255,255,0.8)", fontSize:8, fontWeight:700,
+                      fontFamily:"monospace", lineHeight:1, display:"flex", alignItems:"center", justifyContent:"center", padding:0,
+                    },}, "ℹ")
+                  )
+                );
+              })
+            )
+
+            , React.createElement('button', { onClick: confirmClash, disabled: clashLayout.some(s => s === null), style: {
+              width:"100%", padding:"12px 0", borderRadius:9,
+              cursor: clashLayout.some(s => s === null) ? "not-allowed" : "pointer",
+              background:"rgba(0,245,255,0.08)", border:"1px solid rgba(0,245,255,0.3)",
+              color:C.cyan, fontFamily:"monospace", fontSize:13, fontWeight:700,
+              opacity: clashLayout.some(s => s === null) ? 0.5 : 1,
+            },}, isPT ? "Confirmar Posições" : "Confirm Positions")
+            , React.createElement(ArenaLogPanel, null )
+          )
+          , React.createElement(PvpCardInfoPopup, null )
+        )
+      );
+    }
+
+    // ── Step 2: waiting for opponent's layout submission ──────────────────
+    if (clashWaiting && clashStepResults.length === 0 && !battle) {
+      return (
+        React.createElement('div', { style: S.root,}
+          , React.createElement('div', { style: {...S.content, justifyContent:"center", alignItems:"center", display:"flex", flexDirection:"column", minHeight:"100vh"},}
+            , React.createElement(PvpPhaseHeader, null )
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:12, color:C.textMuted, marginTop:20},}
+              , isPT ? "Aguardando posições do oponente..." : "Waiting for opponent's positions..."
+            )
+            , React.createElement(ArenaLogPanel, null )
+          )
+        )
+      );
+    }
+
+    // ── Step 3: one-position-at-a-time reveal, mirroring the vs-AI flow ───
+    const myLayoutUnits  = clashLayout.map(id => myKept.find(u => u.id === id));
+    const oppKeptIdsAll  = mySide === "A" ? _optionalChain([cutResult, 'optionalAccess', _125 => _125.cutB]) : _optionalChain([cutResult, 'optionalAccess', _126 => _126.cutA]);
+    const oppUnitsKept   = (_optionalChain([oppDeck, 'optionalAccess', _127 => _127.units]) || []).filter(u => _optionalChain([oppKeptIdsAll, 'optionalAccess', _128 => _128.includes, 'call', _129 => _129(u.id)]));
+
+    const currentPos    = clashStep < 3 ? POS_LABELS[clashStep] : null;
+
+    function ResultBadge({ winner }) {
+      if (winner === "fizzle") return (
+        React.createElement('div', { style: {padding:"4px 10px", borderRadius:20, fontSize:11, fontWeight:700,
+          background:"rgba(150,100,0,0.2)", border:"1px solid rgba(255,200,0,0.4)",
+          color:"#ffcc00", fontFamily:"monospace"},}, "⚡ FIZZLE" )
+      );
+      const iWon = winner === mySide;
+      return (
+        React.createElement('div', { style: {padding:"4px 10px", borderRadius:20, fontSize:11, fontWeight:700,
+          background: iWon ? "rgba(0,245,100,0.1)" : "rgba(255,40,60,0.1)",
+          border: `1px solid ${iWon ? "rgba(0,245,100,0.4)" : "rgba(255,40,60,0.4)"}`,
+          color: iWon ? "#44ee88" : "#ff6677", fontFamily:"monospace"},}
+          , iWon ? (isPT ? "✓ VOCÊ VENCE" : "✓ YOU WIN") : (isPT ? "✕ OPONENTE VENCE" : "✕ OPPONENT WINS")
+        )
+      );
+    }
 
     return (
       React.createElement('div', { style: S.root,}
         , React.createElement('div', { style: {...S.content, paddingBottom:"2rem"},}
           , React.createElement(PvpPhaseHeader, null )
           , React.createElement('h1', { style: {...S.screenTitle, fontSize:16, marginBottom:6},}, "⚔ " , isPT ? "Clash" : "Clash")
-          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted, textAlign:"center", marginBottom:14},}
-            , isPT ? "Posicione suas unidades nas 3 posições" : "Arrange your units into the 3 positions"
-          )
 
-          /* Slots */
-          , React.createElement('div', { style: {display:"flex", gap:8, justifyContent:"center", marginBottom:16},}
-            , [0,1,2].map(slotIdx => {
-              const unitId = clashLayout[slotIdx];
-              const unit = myKept.find(u => u.id === unitId);
-              return (
-                React.createElement('div', { key: slotIdx, style: {width:80, textAlign:"center"},}
-                  , React.createElement('div', { style: {fontFamily:"monospace", fontSize:8, color:C.textMuted, marginBottom:3},}, slotLabels[slotIdx])
-                  , React.createElement('div', { style: {aspectRatio:"3/4", borderRadius:8, overflow:"hidden",
-                    border: unit ? `2px solid ${TYPE_COLOR[unit.type]||"#aaa"}` : "1.5px dashed rgba(255,255,255,0.2)",
-                    background:"rgba(255,255,255,0.03)"},}
-                    , unit && React.createElement('img', { src: IMGS[(unit.img||"").replace(".png","")]||"", alt: unit.name, style: {width:"100%", height:"100%", objectFit:"cover"},})
+          /* Already-resolved positions, stacked above the current one */
+          , clashStepResults.map((r, i) => {
+            const myUnit  = myLayoutUnits[i];
+            const oppUnit = oppUnitsKept[i];
+            return (
+              React.createElement('div', { key: i, style: {display:"flex", alignItems:"center", justifyContent:"space-between",
+                gap:8, padding:"6px 10px", marginBottom:6, borderRadius:7,
+                background:"rgba(255,255,255,0.03)", border:`1px solid ${C.border}`},}
+                , React.createElement('span', { style: {fontFamily:"monospace", fontSize:10, color:C.textSub, width:54},}, r.position)
+                , React.createElement('span', { style: {fontFamily:"monospace", fontSize:10, color:C.textMuted, flex:1, textAlign:"center"},}
+                  , _optionalChain([myUnit, 'optionalAccess', _130 => _130.name]), " vs "  , _optionalChain([oppUnit, 'optionalAccess', _131 => _131.name])
+                )
+                , React.createElement(ResultBadge, { winner: r.winner,} )
+              )
+            );
+          })
+
+          /* Current position being revealed */
+          , clashStep < 3 && (
+            React.createElement('div', { style: {marginTop:10},}
+              , React.createElement('div', { style: {textAlign:"center", fontFamily:"monospace", fontSize:11, color:C.accent, fontWeight:700, marginBottom:10, letterSpacing:"0.1em"},}
+                , isPT ? `POSIÇÃO: ${currentPos}` : `POSITION: ${currentPos}`
+              )
+              , React.createElement('div', { style: {display:"flex", gap:10, justifyContent:"center", alignItems:"center", marginBottom:16},}
+                , React.createElement('div', { style: {textAlign:"center"},}
+                  , React.createElement('div', { style: {fontSize:9, color:C.cyan, fontFamily:"monospace", marginBottom:4},}, myNick)
+                  , React.createElement('div', { style: {width:70, aspectRatio:"3/4", borderRadius:8, overflow:"hidden",
+                    border:`2px solid ${TYPE_COLOR[_optionalChain([myLayoutUnits, 'access', _132 => _132[clashStep], 'optionalAccess', _133 => _133.type])]||"#aaa"}`},}
+                    , myLayoutUnits[clashStep] && React.createElement('img', { src: IMGS[(myLayoutUnits[clashStep].img||"").replace(".png","")]||"", alt: "",
+                      style: {width:"100%", height:"100%", objectFit:"cover"},})
                   )
+                  , React.createElement('div', { style: {fontSize:9, fontFamily:"monospace", color:"#fff", marginTop:3},}, _optionalChain([myLayoutUnits, 'access', _134 => _134[clashStep], 'optionalAccess', _135 => _135.name]))
                 )
-              );
-            })
+                , React.createElement('div', { style: {fontSize:18, fontWeight:900, color:"#ff2244"},}, "VS")
+                , React.createElement('div', { style: {textAlign:"center"},}
+                  , React.createElement('div', { style: {fontSize:9, color:"#ff4466", fontFamily:"monospace", marginBottom:4},}, oppNick)
+                  , React.createElement('div', { style: {width:70, aspectRatio:"3/4", borderRadius:8, overflow:"hidden",
+                    border:`2px solid ${TYPE_COLOR[_optionalChain([oppUnitsKept, 'access', _136 => _136[clashStep], 'optionalAccess', _137 => _137.type])]||"#aaa"}`},}
+                    , oppUnitsKept[clashStep] && React.createElement('img', { src: IMGS[(oppUnitsKept[clashStep].img||"").replace(".png","")]||"", alt: "",
+                      style: {width:"100%", height:"100%", objectFit:"cover"},})
+                  )
+                  , React.createElement('div', { style: {fontSize:9, fontFamily:"monospace", color:"#fff", marginTop:3},}, _optionalChain([oppUnitsKept, 'access', _138 => _138[clashStep], 'optionalAccess', _139 => _139.name]))
+                )
+              )
+
+              , React.createElement('button', { onClick: advanceStep, disabled: clashMyAck, style: {
+                width:"100%", padding:"12px 0", borderRadius:9,
+                cursor: clashMyAck ? "not-allowed" : "pointer",
+                background:"rgba(0,245,255,0.08)", border:"1px solid rgba(0,245,255,0.3)",
+                color:C.cyan, fontFamily:"monospace", fontSize:13, fontWeight:700,
+                opacity: clashMyAck ? 0.5 : 1,
+              },}, clashMyAck
+                ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...")
+                : (isPT ? "Revelar →" : "Reveal →"))
+            )
           )
 
-          /* Unit pool — tap to place into next empty slot */
-          , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:C.textMuted, textAlign:"center", marginBottom:6},}
-            , isPT ? "Toque numa unidade, depois num slot" : "Tap a unit, then tap a slot"
-          )
-          , React.createElement('div', { style: {display:"flex", gap:8, justifyContent:"center", marginBottom:18},}
-            , myKept.map(u => {
-              const placedSlot = clashLayout.indexOf(u.id);
-              return (
-                React.createElement('div', { key: u.id, onClick: () => {
-                  if (clashWaiting) return;
-                  const emptySlot = clashLayout.indexOf(null);
-                  if (placedSlot >= 0) {
-                    setClashLayout(prev => { const n=[...prev]; n[placedSlot]=null; return n; });
-                  } else if (emptySlot >= 0) {
-                    placeAt(emptySlot, u.id);
-                  }
-                }, style: {
-                  width:56, aspectRatio:"3/4", borderRadius:6, overflow:"hidden", cursor: clashWaiting ? "default" : "pointer",
-                  border: placedSlot >= 0 ? `2px solid ${TYPE_COLOR[u.type]||"#aaa"}` : "1.5px solid rgba(255,255,255,0.15)",
-                  opacity: placedSlot >= 0 ? 0.35 : 1,
-                },}
-                  , React.createElement('img', { src: IMGS[(u.img||"").replace(".png","")]||"", alt: u.name, style: {width:"100%", height:"100%", objectFit:"cover"},})
-                  , React.createElement('button', { onClick: e=>{e.stopPropagation();setPvpInfoCard(u);}, style: {
-                    position:"absolute", top:2, right:2, zIndex:5,
-                    background:"rgba(0,0,0,0.65)", border:"1px solid rgba(255,255,255,0.25)",
-                    borderRadius:"50%", width:15, height:15, cursor:"pointer",
-                    color:"rgba(255,255,255,0.8)", fontSize:8, fontWeight:700,
-                    fontFamily:"monospace", lineHeight:1, display:"flex", alignItems:"center", justifyContent:"center", padding:0,
-                  },}, "ℹ")
-                )
-              );
-            })
-          )
-
-          , React.createElement('button', { onClick: confirmClash, disabled: clashLayout.some(s => s === null) || clashWaiting, style: {
-            width:"100%", padding:"12px 0", borderRadius:9,
-            cursor: (clashLayout.some(s => s === null) || clashWaiting) ? "not-allowed" : "pointer",
-            background:"rgba(0,245,255,0.08)", border:"1px solid rgba(0,245,255,0.3)",
-            color:C.cyan, fontFamily:"monospace", fontSize:13, fontWeight:700,
-            opacity: (clashLayout.some(s => s === null) || clashWaiting) ? 0.5 : 1,
-          },}, clashWaiting ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...") : (isPT ? "Confirmar Posições" : "Confirm Positions"))
           , React.createElement(ArenaLogPanel, null )
         )
         , React.createElement(PvpCardInfoPopup, null )
@@ -6436,8 +6584,8 @@ function PvpArenaPlaceholder({ onBack }) {
 
           , React.createElement('div', { style: {...S.card, border:"1px solid rgba(255,40,60,0.3)", background:"rgba(50,0,10,0.35)", marginBottom:8},}
             , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:"#ff6677"},}, oppNick)
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:"#ff4466"},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _111 => _111.hp]), () => ( 0))))
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _112 => _112.ap]), () => ( 0)))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:"#ff4466"},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _140 => _140.hp]), () => ( 0))))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([oppState, 'optionalAccess', _141 => _141.ap]), () => ( 0)))
           )
 
           , React.createElement('div', { style: {textAlign:"center", fontFamily:"monospace", fontSize:11, color: myTurn ? C.cyan : C.textMuted, fontWeight:700, marginBottom:8},}
@@ -6447,8 +6595,8 @@ function PvpArenaPlaceholder({ onBack }) {
 
           , React.createElement('div', { style: {...S.card, border:`1px solid ${C.border}`, background:"rgba(0,10,60,0.45)", marginBottom:14},}
             , React.createElement('div', { style: {fontFamily:"monospace", fontSize:9, color:C.cyan},}, myNick)
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:C.cyan},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _113 => _113.hp]), () => ( 0))))
-            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _114 => _114.ap]), () => ( 0)))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:18, fontWeight:800, color:C.cyan},}, "HP " , Math.max(0, _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _142 => _142.hp]), () => ( 0))))
+            , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}, "AP " , _nullishCoalesce(_optionalChain([myState, 'optionalAccess', _143 => _143.ap]), () => ( 0)))
           )
 
           , React.createElement('button', { onClick: attack, disabled: !myTurn || attackWaiting, style: {
