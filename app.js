@@ -237,7 +237,7 @@ function usePvpConnection() {
   return { socket, connected, connectError, enabled: !!PVP_SERVER_URL };
 }
 
-const CVS_VERSION = "v0.8.2";
+const CVS_VERSION = "v0.8.3";
 
 // ─────────────────────────────────────────────
 // EMBEDDED IMAGES (base64 WEBP)
@@ -5723,6 +5723,10 @@ function PvpArenaPlaceholder({ onBack }) {
     };
     const onClashStepResult = (data) => {
       setClashStepResults(prev => [...prev, data]);
+      setClashStep(data.step + 1); // advance immediately; covers the last
+                                    // position too, since the server only
+                                    // sends a fresh phase:clashReady for
+                                    // steps 0 and 1, never for step 2→3.
       setClashMyAck(false); setClashOppAck(false);
       const myDeckS  = resolveDeck();
       const oppDeckS = _optionalChain([match, 'optionalAccess', _90 => _90.opponentDeck]);
@@ -6556,6 +6560,22 @@ function PvpArenaPlaceholder({ onBack }) {
               },}, clashMyAck
                 ? (isPT ? "Aguardando oponente..." : "Waiting for opponent...")
                 : (isPT ? "Revelar →" : "Reveal →"))
+            )
+          )
+
+          /* Transitional state: all 3 positions resolved, waiting for the
+              server's clashResult (which carries the initial battle state)
+              and the phase:advance event. This closes the gap where
+              clashStep===3 but `battle` hasn't arrived yet, which otherwise
+              rendered nothing and looked frozen. */
+          , clashStep >= 3 && !battle && (
+            React.createElement('div', { style: {textAlign:"center", marginTop:16, padding:"20px 0"},}
+              , React.createElement('div', { style: {fontFamily:"monospace", fontSize:12, color:C.cyan, fontWeight:700, marginBottom:8},}
+                , isPT ? "⚔ Clash concluído!" : "⚔ Clash complete!"
+              )
+              , React.createElement('div', { style: {fontFamily:"monospace", fontSize:11, color:C.textMuted},}
+                , isPT ? "Preparando a Batalha dos Generais..." : "Preparing the General Battle..."
+              )
             )
           )
 
